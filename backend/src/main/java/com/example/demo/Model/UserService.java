@@ -34,7 +34,6 @@ public class UserService implements UserDetailsService {
     }
 
     // New method to load user by email
-    @Override
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
 
         // Look for the user by email
