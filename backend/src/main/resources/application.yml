@@ -4,8 +4,16 @@ server:
     include-binding-errors: always
 
 spring:
+  thymeleaf:
+    prefix: file:../frontend/templates/
+    suffix: .html
+    cache: false
+  web:
+    resources:
+      static-locations: file:../frontend/static/
+      add-mappings: true
   datasource:
-    password: password
+    password: PavitraGate1@B19
     url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
     username: root
   jpa:
