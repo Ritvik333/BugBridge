@@ -5,12 +5,12 @@ server:
 
 spring:
   thymeleaf:
-    prefix: file:../frontend/templates/
+    prefix: file:../frontend-01/src/pages
     suffix: .html
     cache: false
   web:
     resources:
-      static-locations: file:../frontend/static/
+      static-locations: file:../frontend-01/public/
       add-mappings: true
   datasource:
     password: PavitraGate1@B19
