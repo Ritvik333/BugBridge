@@ -1,14 +1,14 @@
 package com.example.demo.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.Model.User;
 import com.example.demo.Model.UserRepository;
 import com.example.demo.Service.RegistrationService;
+
+import java.util.List;
 
 @RestController
 public class RegistrationController {
@@ -16,8 +16,8 @@ public class RegistrationController {
     @Autowired
     private UserRepository myAppUserRepository;
     
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+//    @Autowired
+//    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private RegistrationService registrationService;
@@ -31,6 +31,11 @@ public class RegistrationController {
             // Handle validation error (returning a custom message)
             throw new RuntimeException("Error: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/users")
+    public List<User> getAllUsers() {
+        return registrationService.getAllUsers();
     }
     
 }
