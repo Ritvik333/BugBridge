@@ -1,4 +1,4 @@
-//package com.example.demo.Security;
+package com.example.demo.Security;
 //
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.context.annotation.Bean;
@@ -25,7 +25,23 @@
 //    @Autowired
 //    private final UserService appUserService;
 //
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+//        return httpSecurity
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .formLogin(httpForm ->{
+//                    httpForm.loginPage("/req/login").permitAll();
+//                    httpForm.defaultSuccessUrl("/index");
 //
+//                })
+//
+//
+//                .authorizeHttpRequests(registry ->{
+//                    registry.requestMatchers("/req/signup","/req/login").permitAll();
+//                    registry.anyRequest().authenticated();
+//                })
+//                .build();
+//    }
 //    @Bean
 //    public UserDetailsService userDetailsService(){
 //        return appUserService;
@@ -44,22 +60,41 @@
 //        return new BCryptPasswordEncoder();
 //    }
 //
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
-//        return httpSecurity
-//            .csrf(AbstractHttpConfigurer::disable)
-//            .formLogin(httpForm ->{
-//                httpForm.loginPage("/req/login").permitAll();
-//                httpForm.defaultSuccessUrl("/index");
 //
-//            })
-//
-//
-//            .authorizeHttpRequests(registry ->{
-//                registry.requestMatchers("/req/signup","/css/**","/js/**").permitAll();
-//                registry.anyRequest().authenticated();
-//            })
-//            .build();
-//    }
 //
 //}
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+@RequiredArgsConstructor
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final UserAuthenticationEntryPoint userAuthenticationEntryPoint;
+    private final UserAuthenticationProvider userAuthenticationProvider;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/**") // Ensures security applies to all endpoints
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/login", "/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/protected-endpoint").authenticated() // Secured
+                        .anyRequest().authenticated()
+                )
+                .csrf(csrf -> csrf.disable()) // Disabling CSRF
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(userAuthenticationEntryPoint))
+                .addFilterBefore(new JwtAuthFilter(userAuthenticationProvider), BasicAuthenticationFilter.class)
+                .build();
+    }
+
+}

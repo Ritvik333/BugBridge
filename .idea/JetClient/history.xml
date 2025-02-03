@@ -4,8 +4,8 @@
     <option name="requestHistoryStates">
       <list>
         <requestHistoryState>
-          <option name="dateTime" value="1738477958566" />
-          <option name="id" value="97e11d59-f505-47be-97ff-9915b0a37220" />
+          <option name="dateTime" value="1738556579756" />
+          <option name="id" value="ce543c24-9d99-4cca-afe7-804a3e3bd3a1" />
           <option name="request">
             <requestState>
               <option name="body">
@@ -22,10 +22,10 @@
           </option>
           <option name="response">
             <responseState>
-              <option name="bodyBytesBase64" value="W3siaWQiOjEsInVzZXJuYW1lIjoicml0dmlrIiwiZW1haWwiOiJyQGcuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkYzZYdlRXVnRGcFlLeFlQb1JqV3paLjN3d1E2UWw3dmxrQnNFTmxJeEg1bThpbnVzV1ZTeTYifV0=" />
-              <option name="bodyString" value="[&#10;  {&#10;    &quot;id&quot;: 1,&#10;    &quot;username&quot;: &quot;ritvik&quot;,&#10;    &quot;email&quot;: &quot;r@g.com&quot;,&#10;    &quot;password&quot;: &quot;$2a$10$c6XvTWVtFpYKxYPoRjWzZ.3wwQ6Ql7vlkBsENlIxH5m8inusWVSy6&quot;&#10;  }&#10;]" />
+              <option name="bodyBytesBase64" value="W10=" />
+              <option name="bodyString" value="[]" />
               <option name="code" value="200" />
-              <option name="connectionEstablishingTime" value="37" />
+              <option name="connectionEstablishingTime" value="48" />
               <option name="contentType" value="application/json" />
               <option name="headers">
                 <list>
@@ -39,7 +39,7 @@
                   </headerState>
                   <headerState>
                     <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:32:38 GMT" />
+                    <option name="value" value="Mon, 03 Feb 2025 04:22:59 GMT" />
                   </headerState>
                   <headerState>
                     <option name="key" value="Keep-Alive" />
@@ -51,251 +51,19 @@
                   </headerState>
                 </list>
               </option>
-              <option name="id" value="97e11d59-f505-47be-97ff-9915b0a37220" />
+              <option name="id" value="ce543c24-9d99-4cca-afe7-804a3e3bd3a1" />
               <option name="message" value="OK" />
               <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="[{&quot;id&quot;:1,&quot;username&quot;:&quot;ritvik&quot;,&quot;email&quot;:&quot;r@g.com&quot;,&quot;password&quot;:&quot;$2a$10$c6XvTWVtFpYKxYPoRjWzZ.3wwQ6Ql7vlkBsENlIxH5m8inusWVSy6&quot;}]" />
-              <option name="size" value="122" />
-              <option name="time" value="46" />
+              <option name="rawBodyString" value="[]" />
+              <option name="size" value="2" />
+              <option name="time" value="149" />
             </responseState>
           </option>
           <option name="workspaceId" value="drafts" />
         </requestHistoryState>
         <requestHistoryState>
-          <option name="dateTime" value="1738478103971" />
-          <option name="id" value="e74d2bf8-b839-4f09-a46d-bed082a505de" />
-          <option name="request">
-            <requestState>
-              <option name="body">
-                <bodyState>
-                  <option name="raw" value="{&#10;  username: &quot;niv&quot;,&#10;  email: &quot;niv@w.com&quot;,&#10;  password: &quot;123456&quot;&#10;}" />
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="id" value="b081d45b-41a1-4e7c-8099-74992d9e98a2" />
-              <option name="method" value="POST" />
-              <option name="name" value="Draft (1)" />
-              <option name="url" value="http://localhost:8080/req/signup" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJpZCI6MiwidXNlcm5hbWUiOiJuaXYiLCJlbWFpbCI6Im5pdkB3LmNvbSIsInBhc3N3b3JkIjoiMTIzNDU2In0=" />
-              <option name="bodyString" value="{&#10;  &quot;id&quot;: 2,&#10;  &quot;username&quot;: &quot;niv&quot;,&#10;  &quot;email&quot;: &quot;niv@w.com&quot;,&#10;  &quot;password&quot;: &quot;123456&quot;&#10;}" />
-              <option name="code" value="200" />
-              <option name="connectionEstablishingTime" value="5" />
-              <option name="contentType" value="application/json" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Transfer-Encoding" />
-                    <option name="value" value="chunked" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:35:03 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Keep-Alive" />
-                    <option name="value" value="timeout=60" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="e74d2bf8-b839-4f09-a46d-bed082a505de" />
-              <option name="message" value="OK" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;id&quot;:2,&quot;username&quot;:&quot;niv&quot;,&quot;email&quot;:&quot;niv@w.com&quot;,&quot;password&quot;:&quot;123456&quot;}" />
-              <option name="size" value="65" />
-              <option name="time" value="105" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1738478115401" />
-          <option name="id" value="f06f80c7-f20a-49d0-b846-ef66574ced63" />
-          <option name="request">
-            <requestState>
-              <option name="body">
-                <bodyState>
-                  <option name="raw" value="{&#10;  username: &quot;niv&quot;,&#10;  email: &quot;niv@w.com&quot;,&#10;  password: &quot;123456&quot;&#10;}" />
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="id" value="b081d45b-41a1-4e7c-8099-74992d9e98a2" />
-              <option name="method" value="POST" />
-              <option name="name" value="Draft (1)" />
-              <option name="url" value="http://localhost:8080/users" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lc3RhbXAiOiIyMDI1LTAyLTAyVDA2OjM1OjE1LjQwMCswMDowMCIsInN0YXR1cyI6NDA1LCJlcnJvciI6Ik1ldGhvZCBOb3QgQWxsb3dlZCIsIm1lc3NhZ2UiOiJNZXRob2QgJ1BPU1QnIGlzIG5vdCBzdXBwb3J0ZWQuIiwicGF0aCI6Ii91c2VycyJ9" />
-              <option name="bodyString" value="{&#10;  &quot;timestamp&quot;: &quot;2025-02-02T06:35:15.400+00:00&quot;,&#10;  &quot;status&quot;: 405,&#10;  &quot;error&quot;: &quot;Method Not Allowed&quot;,&#10;  &quot;message&quot;: &quot;Method 'POST' is not supported.&quot;,&#10;  &quot;path&quot;: &quot;/users&quot;&#10;}" />
-              <option name="code" value="405" />
-              <option name="connectionEstablishingTime" value="1" />
-              <option name="contentType" value="application/json" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Allow" />
-                    <option name="value" value="GET" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Transfer-Encoding" />
-                    <option name="value" value="chunked" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:35:15 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Keep-Alive" />
-                    <option name="value" value="timeout=60" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="f06f80c7-f20a-49d0-b846-ef66574ced63" />
-              <option name="message" value="Method Not Allowed" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timestamp&quot;:&quot;2025-02-02T06:35:15.400+00:00&quot;,&quot;status&quot;:405,&quot;error&quot;:&quot;Method Not Allowed&quot;,&quot;message&quot;:&quot;Method 'POST' is not supported.&quot;,&quot;path&quot;:&quot;/users&quot;}" />
-              <option name="size" value="147" />
-              <option name="time" value="6" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1738478122464" />
-          <option name="id" value="81d54247-a1d0-4a18-8481-12f76d439c05" />
-          <option name="request">
-            <requestState>
-              <option name="body">
-                <bodyState>
-                  <option name="raw" value="{&#10;  username: &quot;niv&quot;,&#10;  email: &quot;niv@w.com&quot;,&#10;  password: &quot;123456&quot;&#10;}" />
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="id" value="b081d45b-41a1-4e7c-8099-74992d9e98a2" />
-              <option name="method" value="GET" />
-              <option name="name" value="Draft (1)" />
-              <option name="url" value="http://localhost:8080/users" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="W3siaWQiOjEsInVzZXJuYW1lIjoicml0dmlrIiwiZW1haWwiOiJyQGcuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkYzZYdlRXVnRGcFlLeFlQb1JqV3paLjN3d1E2UWw3dmxrQnNFTmxJeEg1bThpbnVzV1ZTeTYifSx7ImlkIjoyLCJ1c2VybmFtZSI6Im5pdiIsImVtYWlsIjoibml2QHcuY29tIiwicGFzc3dvcmQiOiIxMjM0NTYifV0=" />
-              <option name="bodyString" value="[&#10;  {&#10;    &quot;id&quot;: 1,&#10;    &quot;username&quot;: &quot;ritvik&quot;,&#10;    &quot;email&quot;: &quot;r@g.com&quot;,&#10;    &quot;password&quot;: &quot;$2a$10$c6XvTWVtFpYKxYPoRjWzZ.3wwQ6Ql7vlkBsENlIxH5m8inusWVSy6&quot;&#10;  },&#10;  {&#10;    &quot;id&quot;: 2,&#10;    &quot;username&quot;: &quot;niv&quot;,&#10;    &quot;email&quot;: &quot;niv@w.com&quot;,&#10;    &quot;password&quot;: &quot;123456&quot;&#10;  }&#10;]" />
-              <option name="code" value="200" />
-              <option name="connectionEstablishingTime" value="1" />
-              <option name="contentType" value="application/json" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Transfer-Encoding" />
-                    <option name="value" value="chunked" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:35:22 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Keep-Alive" />
-                    <option name="value" value="timeout=60" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="81d54247-a1d0-4a18-8481-12f76d439c05" />
-              <option name="message" value="OK" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="[{&quot;id&quot;:1,&quot;username&quot;:&quot;ritvik&quot;,&quot;email&quot;:&quot;r@g.com&quot;,&quot;password&quot;:&quot;$2a$10$c6XvTWVtFpYKxYPoRjWzZ.3wwQ6Ql7vlkBsENlIxH5m8inusWVSy6&quot;},{&quot;id&quot;:2,&quot;username&quot;:&quot;niv&quot;,&quot;email&quot;:&quot;niv@w.com&quot;,&quot;password&quot;:&quot;123456&quot;}]" />
-              <option name="size" value="188" />
-              <option name="time" value="13" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1738478209281" />
-          <option name="id" value="72750239-5e2b-482c-8006-3ed9a52af77e" />
-          <option name="request">
-            <requestState>
-              <option name="body">
-                <bodyState>
-                  <option name="raw" value="{&#10;  username: &quot;niv&quot;,&#10;  email: &quot;123.com&quot;,&#10;  password: &quot;123456&quot;&#10;}" />
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="id" value="b081d45b-41a1-4e7c-8099-74992d9e98a2" />
-              <option name="method" value="POST" />
-              <option name="name" value="Draft (1)" />
-              <option name="url" value="http://localhost:8080/req/signup" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lc3RhbXAiOiIyMDI1LTAyLTAyVDA2OjM2OjQ5LjI4MCswMDowMCIsInN0YXR1cyI6NTAwLCJlcnJvciI6IkludGVybmFsIFNlcnZlciBFcnJvciIsIm1lc3NhZ2UiOiJFcnJvcjogVXNlcm5hbWUgYWxyZWFkeSB0YWtlbiIsInBhdGgiOiIvcmVxL3NpZ251cCJ9" />
-              <option name="bodyString" value="{&#10;  &quot;timestamp&quot;: &quot;2025-02-02T06:36:49.280+00:00&quot;,&#10;  &quot;status&quot;: 500,&#10;  &quot;error&quot;: &quot;Internal Server Error&quot;,&#10;  &quot;message&quot;: &quot;Error: Username already taken&quot;,&#10;  &quot;path&quot;: &quot;/req/signup&quot;&#10;}" />
-              <option name="code" value="500" />
-              <option name="connectionEstablishingTime" value="2" />
-              <option name="contentType" value="application/json" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Transfer-Encoding" />
-                    <option name="value" value="chunked" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:36:49 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="close" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="72750239-5e2b-482c-8006-3ed9a52af77e" />
-              <option name="message" value="Internal Server Error" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timestamp&quot;:&quot;2025-02-02T06:36:49.280+00:00&quot;,&quot;status&quot;:500,&quot;error&quot;:&quot;Internal Server Error&quot;,&quot;message&quot;:&quot;Error: Username already taken&quot;,&quot;path&quot;:&quot;/req/signup&quot;}" />
-              <option name="size" value="153" />
-              <option name="time" value="16" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1738478216096" />
-          <option name="id" value="bde5a35a-e626-4de2-9bf4-2cbf2751fe36" />
+          <option name="dateTime" value="1738556586021" />
+          <option name="id" value="2a335276-49d2-48cb-a0c2-d2a3dd9a091e" />
           <option name="request">
             <requestState>
               <option name="body">
@@ -312,10 +80,10 @@
           </option>
           <option name="response">
             <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lc3RhbXAiOiIyMDI1LTAyLTAyVDA2OjM2OjU2LjA5NSswMDowMCIsInN0YXR1cyI6NTAwLCJlcnJvciI6IkludGVybmFsIFNlcnZlciBFcnJvciIsIm1lc3NhZ2UiOiJFcnJvcjogSW52YWxpZCBlbWFpbCBmb3JtYXQiLCJwYXRoIjoiL3JlcS9zaWdudXAifQ==" />
-              <option name="bodyString" value="{&#10;  &quot;timestamp&quot;: &quot;2025-02-02T06:36:56.095+00:00&quot;,&#10;  &quot;status&quot;: 500,&#10;  &quot;error&quot;: &quot;Internal Server Error&quot;,&#10;  &quot;message&quot;: &quot;Error: Invalid email format&quot;,&#10;  &quot;path&quot;: &quot;/req/signup&quot;&#10;}" />
+              <option name="bodyBytesBase64" value="eyJ0aW1lc3RhbXAiOiIyMDI1LTAyLTAzVDA0OjIzOjA2LjAxNCswMDowMCIsInN0YXR1cyI6NTAwLCJlcnJvciI6IkludGVybmFsIFNlcnZlciBFcnJvciIsIm1lc3NhZ2UiOiJFcnJvcjogSW52YWxpZCBlbWFpbCBmb3JtYXQiLCJwYXRoIjoiL3JlcS9zaWdudXAifQ==" />
+              <option name="bodyString" value="{&#10;  &quot;timestamp&quot;: &quot;2025-02-03T04:23:06.014+00:00&quot;,&#10;  &quot;status&quot;: 500,&#10;  &quot;error&quot;: &quot;Internal Server Error&quot;,&#10;  &quot;message&quot;: &quot;Error: Invalid email format&quot;,&#10;  &quot;path&quot;: &quot;/req/signup&quot;&#10;}" />
               <option name="code" value="500" />
-              <option name="connectionEstablishingTime" value="1" />
+              <option name="connectionEstablishingTime" value="2" />
               <option name="contentType" value="application/json" />
               <option name="headers">
                 <list>
@@ -329,7 +97,7 @@
                   </headerState>
                   <headerState>
                     <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:36:56 GMT" />
+                    <option name="value" value="Mon, 03 Feb 2025 04:23:06 GMT" />
                   </headerState>
                   <headerState>
                     <option name="key" value="Connection" />
@@ -337,19 +105,135 @@
                   </headerState>
                 </list>
               </option>
-              <option name="id" value="bde5a35a-e626-4de2-9bf4-2cbf2751fe36" />
+              <option name="id" value="2a335276-49d2-48cb-a0c2-d2a3dd9a091e" />
               <option name="message" value="Internal Server Error" />
               <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timestamp&quot;:&quot;2025-02-02T06:36:56.095+00:00&quot;,&quot;status&quot;:500,&quot;error&quot;:&quot;Internal Server Error&quot;,&quot;message&quot;:&quot;Error: Invalid email format&quot;,&quot;path&quot;:&quot;/req/signup&quot;}" />
+              <option name="rawBodyString" value="{&quot;timestamp&quot;:&quot;2025-02-03T04:23:06.014+00:00&quot;,&quot;status&quot;:500,&quot;error&quot;:&quot;Internal Server Error&quot;,&quot;message&quot;:&quot;Error: Invalid email format&quot;,&quot;path&quot;:&quot;/req/signup&quot;}" />
               <option name="size" value="151" />
-              <option name="time" value="8" />
+              <option name="time" value="80" />
             </responseState>
           </option>
           <option name="workspaceId" value="drafts" />
         </requestHistoryState>
         <requestHistoryState>
-          <option name="dateTime" value="1738478229374" />
-          <option name="id" value="3ba0e480-0a70-45ff-a485-5cab34c7a78b" />
+          <option name="dateTime" value="1738556593430" />
+          <option name="id" value="cc8f97b2-cc7a-4516-85bf-a6df623bd37e" />
+          <option name="request">
+            <requestState>
+              <option name="body">
+                <bodyState>
+                  <option name="raw" value="{&#10;  username: &quot;niv1&quot;,&#10;  email: &quot;123@f.com&quot;,&#10;  password: &quot;123456&quot;&#10;}" />
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="id" value="b081d45b-41a1-4e7c-8099-74992d9e98a2" />
+              <option name="method" value="POST" />
+              <option name="name" value="Draft (1)" />
+              <option name="url" value="http://localhost:8080/req/signup" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJpZCI6MSwidXNlcm5hbWUiOiJuaXYxIiwiZW1haWwiOiIxMjNAZi5jb20iLCJwYXNzd29yZCI6IjEyMzQ1NiJ9" />
+              <option name="bodyString" value="{&#10;  &quot;id&quot;: 1,&#10;  &quot;username&quot;: &quot;niv1&quot;,&#10;  &quot;email&quot;: &quot;123@f.com&quot;,&#10;  &quot;password&quot;: &quot;123456&quot;&#10;}" />
+              <option name="code" value="200" />
+              <option name="connectionEstablishingTime" value="3" />
+              <option name="contentType" value="application/json" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Transfer-Encoding" />
+                    <option name="value" value="chunked" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Mon, 03 Feb 2025 04:23:13 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Keep-Alive" />
+                    <option name="value" value="timeout=60" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="cc8f97b2-cc7a-4516-85bf-a6df623bd37e" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;id&quot;:1,&quot;username&quot;:&quot;niv1&quot;,&quot;email&quot;:&quot;123@f.com&quot;,&quot;password&quot;:&quot;123456&quot;}" />
+              <option name="size" value="66" />
+              <option name="time" value="45" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1738556601148" />
+          <option name="id" value="2f80bd24-6ade-40de-be1c-688ef92bae97" />
+          <option name="request">
+            <requestState>
+              <option name="body">
+                <bodyState>
+                  <option name="raw" value="{&#10;  username: &quot;rit&quot;,&#10;  email: &quot;123@f.com&quot;,&#10;  password: &quot;123456&quot;&#10;}" />
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="id" value="b081d45b-41a1-4e7c-8099-74992d9e98a2" />
+              <option name="method" value="POST" />
+              <option name="name" value="Draft (1)" />
+              <option name="url" value="http://localhost:8080/req/signup" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJpZCI6MiwidXNlcm5hbWUiOiJyaXQiLCJlbWFpbCI6IjEyM0BmLmNvbSIsInBhc3N3b3JkIjoiMTIzNDU2In0=" />
+              <option name="bodyString" value="{&#10;  &quot;id&quot;: 2,&#10;  &quot;username&quot;: &quot;rit&quot;,&#10;  &quot;email&quot;: &quot;123@f.com&quot;,&#10;  &quot;password&quot;: &quot;123456&quot;&#10;}" />
+              <option name="code" value="200" />
+              <option name="connectionEstablishingTime" value="2" />
+              <option name="contentType" value="application/json" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Transfer-Encoding" />
+                    <option name="value" value="chunked" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Mon, 03 Feb 2025 04:23:21 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Keep-Alive" />
+                    <option name="value" value="timeout=60" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="2f80bd24-6ade-40de-be1c-688ef92bae97" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;id&quot;:2,&quot;username&quot;:&quot;rit&quot;,&quot;email&quot;:&quot;123@f.com&quot;,&quot;password&quot;:&quot;123456&quot;}" />
+              <option name="size" value="65" />
+              <option name="time" value="19" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1738556609028" />
+          <option name="id" value="7a9e746f-4424-462c-a2db-01feee22145e" />
           <option name="request">
             <requestState>
               <option name="body">
@@ -366,10 +250,9 @@
           </option>
           <option name="response">
             <responseState>
-              <option name="bodyBytesBase64" value="W3siaWQiOjEsInVzZXJuYW1lIjoicml0dmlrIiwiZW1haWwiOiJyQGcuY29tIiwicGFzc3dvcmQiOiIkMmEkMTAkYzZYdlRXVnRGcFlLeFlQb1JqV3paLjN3d1E2UWw3dmxrQnNFTmxJeEg1bThpbnVzV1ZTeTYifSx7ImlkIjoyLCJ1c2VybmFtZSI6Im5pdiIsImVtYWlsIjoibml2QHcuY29tIiwicGFzc3dvcmQiOiIxMjM0NTYifV0=" />
-              <option name="bodyString" value="[&#10;  {&#10;    &quot;id&quot;: 1,&#10;    &quot;username&quot;: &quot;ritvik&quot;,&#10;    &quot;email&quot;: &quot;r@g.com&quot;,&#10;    &quot;password&quot;: &quot;$2a$10$c6XvTWVtFpYKxYPoRjWzZ.3wwQ6Ql7vlkBsENlIxH5m8inusWVSy6&quot;&#10;  },&#10;  {&#10;    &quot;id&quot;: 2,&#10;    &quot;username&quot;: &quot;niv&quot;,&#10;    &quot;email&quot;: &quot;niv@w.com&quot;,&#10;    &quot;password&quot;: &quot;123456&quot;&#10;  }&#10;]" />
+              <option name="bodyBytesBase64" value="W3siaWQiOjEsInVzZXJuYW1lIjoibml2MSIsImVtYWlsIjoiMTIzQGYuY29tIiwicGFzc3dvcmQiOiIxMjM0NTYifSx7ImlkIjoyLCJ1c2VybmFtZSI6InJpdCIsImVtYWlsIjoiMTIzQGYuY29tIiwicGFzc3dvcmQiOiIxMjM0NTYifV0=" />
+              <option name="bodyString" value="[&#10;  {&#10;    &quot;id&quot;: 1,&#10;    &quot;username&quot;: &quot;niv1&quot;,&#10;    &quot;email&quot;: &quot;123@f.com&quot;,&#10;    &quot;password&quot;: &quot;123456&quot;&#10;  },&#10;  {&#10;    &quot;id&quot;: 2,&#10;    &quot;username&quot;: &quot;rit&quot;,&#10;    &quot;email&quot;: &quot;123@f.com&quot;,&#10;    &quot;password&quot;: &quot;123456&quot;&#10;  }&#10;]" />
               <option name="code" value="200" />
-              <option name="connectionEstablishingTime" value="3" />
               <option name="contentType" value="application/json" />
               <option name="headers">
                 <list>
@@ -383,7 +266,7 @@
                   </headerState>
                   <headerState>
                     <option name="key" value="Date" />
-                    <option name="value" value="Sun, 02 Feb 2025 06:37:09 GMT" />
+                    <option name="value" value="Mon, 03 Feb 2025 04:23:29 GMT" />
                   </headerState>
                   <headerState>
                     <option name="key" value="Keep-Alive" />
@@ -395,12 +278,12 @@
                   </headerState>
                 </list>
               </option>
-              <option name="id" value="3ba0e480-0a70-45ff-a485-5cab34c7a78b" />
+              <option name="id" value="7a9e746f-4424-462c-a2db-01feee22145e" />
               <option name="message" value="OK" />
               <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="[{&quot;id&quot;:1,&quot;username&quot;:&quot;ritvik&quot;,&quot;email&quot;:&quot;r@g.com&quot;,&quot;password&quot;:&quot;$2a$10$c6XvTWVtFpYKxYPoRjWzZ.3wwQ6Ql7vlkBsENlIxH5m8inusWVSy6&quot;},{&quot;id&quot;:2,&quot;username&quot;:&quot;niv&quot;,&quot;email&quot;:&quot;niv@w.com&quot;,&quot;password&quot;:&quot;123456&quot;}]" />
-              <option name="size" value="188" />
-              <option name="time" value="14" />
+              <option name="rawBodyString" value="[{&quot;id&quot;:1,&quot;username&quot;:&quot;niv1&quot;,&quot;email&quot;:&quot;123@f.com&quot;,&quot;password&quot;:&quot;123456&quot;},{&quot;id&quot;:2,&quot;username&quot;:&quot;rit&quot;,&quot;email&quot;:&quot;123@f.com&quot;,&quot;password&quot;:&quot;123456&quot;}]" />
+              <option name="size" value="134" />
+              <option name="time" value="7" />
             </responseState>
           </option>
           <option name="workspaceId" value="drafts" />
