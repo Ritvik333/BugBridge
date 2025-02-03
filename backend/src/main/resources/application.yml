@@ -13,7 +13,7 @@ spring:
       static-locations: file:../frontend-01/public/
       add-mappings: true
   datasource:
-    password: PavitraGate1@B19
+    password: root
     url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
     username: root
   jpa:
