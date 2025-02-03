@@ -34,7 +34,7 @@
                 <authState>
                   <option name="bearer">
                     <pw>
-                      <option name="token" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjNAZi5jb20iLCJleHAiOjE3Mzg2MjQ5MDYsImlhdCI6MTczODYyMTMwNn0.k9Etno5McHpr3oOcUVLAcgKXO7EhOi5_oiMPOy8YS0w" />
+                      <option name="token" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjNAZi5jb20iLCJleHAiOjE3Mzg2MzAyNDIsImlhdCI6MTczODYyNjY0Mn0.DCtUx_9jc3_RlgWOj4BD9sjx6KWGGQKsqoLpIW4yYWs" />
                     </pw>
                   </option>
                   <option name="type" value="BEARER" />
@@ -61,7 +61,7 @@
               <option name="id" value="2cfa0fda-664c-45d8-8266-401ef9c7881f" />
               <option name="method" value="POST" />
               <option name="name" value="Draft (3)" />
-              <option name="url" value="http://localhost:8080/login" />
+              <option name="url" value="http://localhost:8080/auth/login" />
             </requestState>
           </list>
         </option>

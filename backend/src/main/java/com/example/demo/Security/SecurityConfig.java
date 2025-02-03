@@ -86,7 +86,7 @@ public class SecurityConfig {
         return http
                 .securityMatcher("/**") // Ensures security applies to all endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/login", "/register").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/protected-endpoint").authenticated() // Secured
                         .anyRequest().authenticated()
                 )
