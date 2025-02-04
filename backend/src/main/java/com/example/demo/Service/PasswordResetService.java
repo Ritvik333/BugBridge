@@ -5,7 +5,6 @@ import com.example.demo.Model.PasswordResetTokenRepository;
 import com.example.demo.Model.User;
 import com.example.demo.Model.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,7 @@ public class PasswordResetService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // ✅ 1. Generate and send password reset token
+    // Generate and send password reset token
     public String createPasswordResetToken(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (!userOpt.isPresent()) {
@@ -72,41 +71,19 @@ public class PasswordResetService {
             helper.setSubject("Password Reset Request");
             helper.setText(emailContent, true); // `true` enables HTML content
 
-//        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setTo(email);  // User's email from request
-//        message.setSubject("Password Reset Request");
-//        message.setText("This is one-time token to reset your password: " + tokenToBeValidated);
-
             mailSender.send(message);  // This sends the email dynamically
         } catch (MessagingException e) {
             e.printStackTrace(); // Handle error properly in production
         }
-
-
-
     }
 
-
-//    private void sendResetEmail(String email, String token) {
-//        String resetLink = "http://localhost:3000/reset-password?token=" + token;
-//        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setTo(email);
-//        message.setSubject("Password Reset Request");
-//        message.setText("Click the link to reset your password: " + resetLink);
-//        mailSender.send(message);
-//    }
-//private void sendResetEmail(String email, String token) {
-//    System.out.println("Mock Email: Password reset link: http://localhost:3000/reset-password?token=" + token);
-//}
-
-
-    // ✅ 2. Validate token before password reset
+    // Validate token before password reset
     public boolean validateToken(String token) {
         Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(token);
         return tokenOpt.isPresent() && tokenOpt.get().getExpiryDate().isAfter(LocalDateTime.now());
     }
 
-    // ✅ 3. Reset password
+    // Reset password
     public String resetPassword(String token, String newPassword) {
         Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(token);
         if (!tokenOpt.isPresent() || tokenOpt.get().getExpiryDate().isBefore(LocalDateTime.now())) {

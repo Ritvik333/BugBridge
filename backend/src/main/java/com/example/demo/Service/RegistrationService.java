@@ -5,9 +5,6 @@ import com.example.demo.Model.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service

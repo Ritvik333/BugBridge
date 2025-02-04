@@ -7,8 +7,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,7 +46,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Allow CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/req/signup", "/auth/**").permitAll()
                         .anyRequest().authenticated()
@@ -60,7 +58,7 @@ public class SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of("http://localhost:3000")); // ✅ Allow frontend
+        corsConfig.setAllowedOrigins(List.of("http://localhost:3000")); 
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         corsConfig.setAllowCredentials(true);
@@ -75,19 +73,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//        return httpSecurity
-//            .csrf(AbstractHttpConfigurer::disable)
-//            .formLogin(httpForm ->{
-//                httpForm.loginPage("/req/login").permitAll();
-//                httpForm.defaultSuccessUrl("/index");
-//
-//            })
-//
-//
-//            .authorizeHttpRequests(registry ->{
-//                registry.requestMatchers("/req/signup","/css/**","/js/**").permitAll();
-//                registry.anyRequest().authenticated();
-//            })
-//            .build();
-    
 }
