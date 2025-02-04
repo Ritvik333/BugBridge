@@ -14,10 +14,11 @@ apiClient.interceptors.request.use(
     (config) => {
         // Optionally attach token or modify headers
         // Example:
-        // const token = localStorage.getItem('token');
-        // if (token) {
-        //   config.headers['Authorization'] = `Bearer ${token}`;
-        // }
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+          console.log(config);
+        }
         return config;
     },
     (error) => Promise.reject(error)

@@ -36,6 +36,21 @@ public class UserService {
     }
 
     public UserDto register(SignUpDto userDto) {
+        if (userDto == null) {
+            throw new AppException("User data cannot be null", HttpStatus.BAD_REQUEST);
+        }
+
+        if (userDto.getEmail() == null || userDto.getEmail().trim().isEmpty()) {
+            throw new AppException("Email is required", HttpStatus.BAD_REQUEST);
+        }
+
+        if (userDto.getUsername() == null || userDto.getUsername().trim().isEmpty()) {
+            throw new AppException("Username is required", HttpStatus.BAD_REQUEST);
+        }
+
+        if (userDto.getPassword() == null || userDto.getPassword().length == 0) {
+            throw new AppException("Password cannot be empty", HttpStatus.BAD_REQUEST);
+        }
         Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
 
         if (optionalUser.isPresent()) {
