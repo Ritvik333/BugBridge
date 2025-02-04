@@ -1,9 +1,24 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {Link, Redirect, useNavigate} from "react-router-dom";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { signup } from "../services/auth";
+import {Box, Modal, Typography} from "@mui/material";
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
+
 
 const SignupPage = () => {
+    const [open, setOpen] = useState(false);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -25,6 +40,11 @@ const [error, setError] = useState("");
             
             try {
                 const response = await signup(credentials);
+                console.log(response);
+                handleOpen();
+                setTimeout(()=>{
+                    handleClose();
+                },3000)
                 // window.location.href = "/dashboard";
             } catch (err) {
                 setError("Invalid credentials. Please try again.");
@@ -33,9 +53,25 @@ const [error, setError] = useState("");
                 setLoading(false);
             }
         };
-
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => {
+        setOpen(false);
+        navigate("/login");
+    }
     return (
         <div className="login-wrapper">
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                        User Successfully registered!
+                    </Typography>
+                </Box>
+            </Modal>
             <div className="register-container">
                 <div style={{display:"flex", alignItems:"center",gap:"10px", justifyContent:"start",width:"100%"}}>
                                     <IoArrowBackCircle className="back-arrow" onClick={()=>{navigate("/")}}/>
