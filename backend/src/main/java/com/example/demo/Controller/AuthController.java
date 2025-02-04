@@ -29,14 +29,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
         UserDto userDto = userService.login(credentialsDto);
-        userDto.setToken(userAuthenticationProvider.createToken(userDto.getLogin()));
+        userDto.setToken(userAuthenticationProvider.createToken(userDto.getEmail()));
         return ResponseEntity.ok(userDto);
     }
 
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@RequestBody SignUpDto user) {
         UserDto createdUser = userService.register(user);
-        createdUser.setToken(userAuthenticationProvider.createToken(user.getLogin()));
+        createdUser.setToken(userAuthenticationProvider.createToken(user.getEmail()));
         return ResponseEntity.created(URI.create("/users/" + createdUser.getId())).body(createdUser);
     }
 
