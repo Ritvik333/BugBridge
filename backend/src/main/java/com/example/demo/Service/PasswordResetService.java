@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
+
 @Service
 public class PasswordResetService {
 
@@ -46,13 +50,55 @@ public class PasswordResetService {
     }
 
     private void sendResetEmail(String email, String token) {
-        String resetLink = "http://localhost:3000/reset-password?token=" + token;
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Password Reset Request");
-        message.setText("Click the link to reset your password: " + resetLink);
-        mailSender.send(message);
+        try{
+            String tokenToBeValidated = token;
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            String emailContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;'>"
+                    + "<h2 style='color: #333;'>Password Reset Request</h2>"
+                    + "<p style='font-size: 16px;'>Hello,</p>"
+                    + "<p style='font-size: 16px;'>We received a request to reset your password. Use the token below to proceed:</p>"
+                    + "<div style='text-align: center; margin: 20px 0; padding: 10px; background-color: #eee; border-radius: 5px; font-size: 18px; font-weight: bold; letter-spacing: 1px;'>"
+                    + tokenToBeValidated + "</div>"
+                    + "<p style='font-size: 14px; color: #777;'>Copy this token and paste it into the password reset form.</p>"
+                    + "<p style='font-size: 14px; color: #777;'>This token will expire in 1 hour.</p>"
+                    + "<p style='font-size: 14px; color: #777;'>If you did not request this, please ignore this email.</p>"
+                    + "<p style='font-size: 14px; color: #777;'>Thank you,<br>The Support Team</p>"
+                    + "</div>";
+
+            helper.setTo(email);
+            helper.setSubject("Password Reset Request");
+            helper.setText(emailContent, true); // `true` enables HTML content
+
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setTo(email);  // User's email from request
+//        message.setSubject("Password Reset Request");
+//        message.setText("This is one-time token to reset your password: " + tokenToBeValidated);
+
+            mailSender.send(message);  // This sends the email dynamically
+        } catch (MessagingException e) {
+            e.printStackTrace(); // Handle error properly in production
+        }
+
+
+
     }
+
+
+//    private void sendResetEmail(String email, String token) {
+//        String resetLink = "http://localhost:3000/reset-password?token=" + token;
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setTo(email);
+//        message.setSubject("Password Reset Request");
+//        message.setText("Click the link to reset your password: " + resetLink);
+//        mailSender.send(message);
+//    }
+//private void sendResetEmail(String email, String token) {
+//    System.out.println("Mock Email: Password reset link: http://localhost:3000/reset-password?token=" + token);
+//}
+
 
     // ✅ 2. Validate token before password reset
     public boolean validateToken(String token) {
