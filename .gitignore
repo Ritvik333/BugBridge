@@ -13,5 +13,6 @@ frontend/node_modules
 backend/target
 
 # misc
-.idea
+.idea/
+.vscode/
 .DS_Store
