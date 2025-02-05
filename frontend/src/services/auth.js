@@ -18,3 +18,11 @@ export const signup = async (userData) => {
       throw error.response ? error.response.data : error.message;
   }
 };
+// export const forgot = async (userData) => {
+//   try {
+//       const response = await apiClient.post('/req/signup', userData);
+//       return response.data;
+//   } catch (error) {
+//       throw error.response ? error.response.data : error.message;
+//   }
+// };
