@@ -1,107 +1,91 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { IoArrowBackCircle } from "react-icons/io5";
 import { signup } from "../services/auth";
+import { Link, useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const navigate = useNavigate();
-const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (event) => {
-            event.preventDefault();
-            setLoading(true);
-            setError("");
-            // Simple validation to check if passwords match
-        if (password !== confirmPassword) {
-            alert("Passwords do not match.");
-            return;
-        }
-            const credentials = {username, email, password };
-            
-            try {
-                const response = await signup(credentials);
-                // window.location.href = "/dashboard";
-            } catch (err) {
-                setError("Invalid credentials. Please try again.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
 
-    return (
-        <div className="login-wrapper">
-            <div className="register-container">
-                <div style={{display:"flex", alignItems:"center",gap:"10px", justifyContent:"start",width:"100%"}}>
-                                    <IoArrowBackCircle className="back-arrow" onClick={()=>{navigate("/")}}/>
-                                    <h1>Sign Up</h1>
-                                    </div>
-            <form onSubmit={handleSubmit}>
-                <div className="inputbox">
-                    <ion-icon name="person-outline"></ion-icon>
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                    <label htmlFor="username">Name</label>
-                </div>
-                <div className="inputbox">
-                    <ion-icon name="mail-outline"></ion-icon>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                    <label htmlFor="email">Email</label>
-                </div>
-                <div className="inputbox">
-                    <ion-icon name="lock-closed-outline"></ion-icon>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                    <label htmlFor="password">Password</label>
-                </div>
-                <div className="inputbox">
-                    <ion-icon name="lock-closed-outline"></ion-icon>
-                    <input
-                        type="password"
-                        id="passwordcon"
-                        name="passwordcon"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                    />
-                    <label htmlFor="passwordcon">Confirm Password</label>
-                </div>
-                <button id="submit" type="submit">
-                    Sign Up
-                </button>
-                <div className="register">
-                    <p style={{color:"black"}}>
-                        Already have an account? <Link to="/login" style={{color:"black"}}>Log In</Link>
-                    </p>
-                </div>
-            </form>
+    if (!username || !email || !password || !confirmPassword) {
+      setError("All fields are required.");
+      setLoading(false);
+      return;
+    }
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setError("Invalid email format.");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await signup({ username, email, password });
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">
+      <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
+        <div className="md:w-1/2 flex items-center justify-center bg-blue-500 text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+          <h2 className="text-2xl md:text-3xl font-bold text-center">Join the Bug Board Community</h2>
         </div>
+        <div className="md:w-1/2 p-8">
+          <h1 className="text-2xl font-semibold mb-6">Sign Up</h1>
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-medium">Username</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-medium">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-medium">Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-medium">Confirm Password</label>
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
+            </div>
+            <button type="submit" disabled={loading}
+              className={`w-full py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}> 
+              {loading ? "Signing Up..." : "Sign Up"}
+            </button>
+          </form>
+          <p className="text-sm text-center text-gray-600 mt-4">
+            Already have an account? <Link to="/" className="text-blue-500 hover:underline">Log In</Link>
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default SignupPage;

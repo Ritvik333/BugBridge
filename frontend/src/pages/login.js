@@ -1,102 +1,86 @@
 import React, { useState } from "react";
 import { login } from "../services/auth";
-import { IoArrowBackCircle } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        setLoading(true);
-        setError("");
-        
-        const credentials = { email, password };
-        
-        try {
-            const response = await login(credentials);
-            localStorage.setItem('authToken', response.token);
-            if (rememberMe) {
-                localStorage.setItem('rememberMe', email);
-            } else {
-                localStorage.removeItem('rememberMe');
-            }
-            // window.location.href = "/dashboard";
-        } catch (err) {
-            setError("Invalid credentials. Please try again.");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    return (
-        <div className="login-wrapper">
-            <div className="login-container">
-            <div style={{display:"flex", alignItems:"center", gap:"10px", marginBottom:"20px", justifyContent:"start",width:"100%"}}>
-                    <IoArrowBackCircle className="back-arrow" onClick={()=>{navigate("/")}}/>
-                    <h1>Login</h1>
-                    </div>
-                <form onSubmit={handleSubmit}>
-                    {error && (
-                        <div className="dialog-row">
-                            <label className="text-center redText">{error}</label>
-                        </div>
-                    )}
-                    <div className="inputbox">
-                        <ion-icon name="email-outline"></ion-icon>
-                        <input
-                            type="text"
-                            name="username"
-                            id="username"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <label htmlFor="username">Username</label>
-                    </div>
-                    <div className="inputbox">
-                        <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input
-                            type="password"
-                            name="password"
-                            id="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <label htmlFor="password">Password</label>
-                    </div>
-                    <div className="options-row" style={{display:"flex", justifyContent:"space-between", gap:"30px", marginBottom:"10px"}}>
-                        <label style={{display: "flex"
-,
-    alignItems: "center",
-    gap: "4px"}}>
-                            <input 
-                                type="checkbox" 
-                                checked={rememberMe} 
-                                onChange={() => setRememberMe(!rememberMe)} 
-                            />
-                            Remember Me
-                        </label>
-                        <p><a href="#">Forgot Password?</a></p>
-                    </div>
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Logging in..." : "Log in"}
-                    </button>
-                    <div className="register">
-                        <p style={{color:"black"}}>
-                            Don't have an account? <Link to="/register" style={{color:"black"}}>Sign Up!</Link>
-                        </p>
-                    </div>
-                </form>
-            </div>
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await login({ email, password });
+      localStorage.setItem("authToken", response.token);
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", email);
+      } else {
+        localStorage.removeItem("rememberMe");
+      }
+      console.log("succesfully logged in");
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">
+      <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
+        {/* Left Side - Welcome Message */}
+        <div className="w-full md:w-1/2 flex items-center justify-center bg-blue-500 text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+          <h2 className="text-3xl font-bold text-center">Welcome Back to Bug Board</h2>
         </div>
-    );
+
+        {/* Right Side - Login Form */}
+        <div className="w-full md:w-1/2 p-8">
+          <h1 className="text-2xl font-semibold mb-6 text-center md:text-left">Login</h1>
+          {error && <p className="text-red-500 text-sm mb-4 text-center md:text-left">{error}</p>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-medium">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-medium">Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)}
+                  className="form-checkbox text-blue-500" />
+                Remember Me
+              </label>
+              <Link to="/forgot-password" className="text-blue-500 hover:underline">Forgot Password?</Link>
+            </div>
+            <button type="submit" disabled={loading}
+              className={`w-full py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}>
+              {loading ? "Logging in..." : "Log in"}
+            </button>
+          </form>
+          <p className="text-sm text-center text-gray-600 mt-4">
+            Don't have an account? <Link to="/register" className="text-blue-500 hover:underline">Sign Up!</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default LoginPage;
