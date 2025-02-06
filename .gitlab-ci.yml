@@ -110,9 +110,9 @@ deploy-backend:
     - DB_USER=""
     - DB_PASSWORD=""
     - IMAGE_TAG="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
-    - if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then CONTAINER_NAME="projectstream-dev-app"; SERVER_PORT=8080; DB_URL=$DEVINT_DB_URL; DB_USER=$DEVINT_DB_USER; DB_PASSWORD=$DEVINT_DB_PASSWORD; fi
-    - if [ "$CI_COMMIT_REF_NAME" == "main" ]; then CONTAINER_NAME="projectstream-prod-app"; SERVER_PORT=8073; DB_URL=$PROD_DB_URL; DB_USER=$PROD_DB_USER; DB_PASSWORD=$PROD_DB_PASSWORD; fi
-    - if [ "$CI_COMMIT_REF_NAME" != "main" ] && [ "$CI_COMMIT_REF_NAME" != "develop" ]; then CONTAINER_NAME="projectstream-test-app"; SERVER_PORT=8000; DB_URL=$TEST_DB_URL; DB_USER=$TEST_DB_USER; DB_PASSWORD=$TEST_DB_PASSWORD; fi
+    - if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then CONTAINER_NAME="bugboard-dev-app"; SERVER_PORT=8080; DB_URL=$DEVINT_DB_URL; DB_USER=$DEVINT_DB_USER; DB_PASSWORD=$DEVINT_DB_PASSWORD; fi
+    - if [ "$CI_COMMIT_REF_NAME" == "main" ]; then CONTAINER_NAME="bugboard-prod-app"; SERVER_PORT=8073; DB_URL=$PROD_DB_URL; DB_USER=$PROD_DB_USER; DB_PASSWORD=$PROD_DB_PASSWORD; fi
+    - if [ "$CI_COMMIT_REF_NAME" != "main" ] && [ "$CI_COMMIT_REF_NAME" != "develop" ]; then CONTAINER_NAME="bugboard-test-app"; SERVER_PORT=8000; DB_URL=$TEST_DB_URL; DB_USER=$TEST_DB_USER; DB_PASSWORD=$TEST_DB_PASSWORD; fi
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD docker.io"
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull dharmakevadiya/backend-api:$IMAGE_TAG"
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f $CONTAINER_NAME || true"
@@ -141,14 +141,14 @@ deploy-frontend:
     - CONTAINER_NAME=""
     - SERVER_PORT=""
     - IMAGE_TAG="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
-    - if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then CONTAINER_NAME="projectstream-dev-app-frontend"; SERVER_PORT=3000; fi
-    - if [ "$CI_COMMIT_REF_NAME" == "main" ]; then CONTAINER_NAME="projectstream-prod-app-frontend"; SERVER_PORT=3080; fi
-    - if [ "$CI_COMMIT_REF_NAME" != "main" ] && [ "$CI_COMMIT_REF_NAME" != "develop" ]; then CONTAINER_NAME="projectstream-test-app-frontend"; SERVER_PORT=3030; fi
+    - if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then CONTAINER_NAME="bugboard-dev-app-frontend"; SERVER_PORT=3000; REACT_APP_BACKEND_BASE_URL=$DEV_BACKEND_BASE_URL;fi
+    - if [ "$CI_COMMIT_REF_NAME" == "main" ]; then CONTAINER_NAME="bugboard-prod-app-frontend"; SERVER_PORT=3080; REACT_APP_BACKEND_BASE_URL=$PROD_BACKEND_BASE_URL;fi
+    - if [ "$CI_COMMIT_REF_NAME" != "main" ] && [ "$CI_COMMIT_REF_NAME" != "develop" ]; then CONTAINER_NAME="bugboard-test-app-frontend"; SERVER_PORT=3030; REACT_APP_BACKEND_BASE_URL=$TEST_BACKEND_BASE_URL;fi
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD docker.io"
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull dharmakevadiya/frontend:$IMAGE_TAG"
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f $CONTAINER_NAME || true"
-    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p $SERVER_PORT:$SERVER_PORT --name $CONTAINER_NAME --restart=always dharmakevadiya/frontend:$IMAGE_TAG"
-  environment:
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p $SERVER_PORT:$SERVER_PORT -e PORT=$SERVER_PORT -e REACT_APP_BACKEND_BASE_URL=$REACT_APP_BACKEND_BASE_URL --name $CONTAINER_NAME --restart=always dharmakevadiya/frontend:$IMAGE_TAG"  
+    environment:
     name: development
     url: http://$SERVER_IP:$SERVER_PORT
   only:
