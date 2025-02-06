@@ -63,7 +63,6 @@ publish-backend:
   only:
     - main
     - dev
-    - issue32
 
 
 publish-frontend:
@@ -92,7 +91,6 @@ publish-frontend:
   only:
     - main
     - dev
-    - issue32
 
 deploy-backend:
   image: alpine:latest
@@ -127,7 +125,6 @@ deploy-backend:
   only:
     - main
     - dev
-    - issue32
 
 deploy-frontend:
   image: alpine:latest
@@ -160,4 +157,3 @@ deploy-frontend:
   only:
     - main
     - dev
-    - issue32
