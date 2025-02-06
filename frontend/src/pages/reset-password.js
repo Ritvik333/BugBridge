@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { reset_password } from "../services/auth";
 
@@ -9,7 +9,6 @@ const ResetPasswordPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
     
     // Extract token (email) from URL
     const token = localStorage.getItem("resetToken");
