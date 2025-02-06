@@ -24,6 +24,7 @@ const ForgotPasswordPage = () => {
             console.log("function call");
             // Simulate API Call (Replace with actual API call)
             await forgot({email});
+            console.log(otpSent);
             setOtpSent(true);
             console.log("otp sent");
             alert("OTP sent successfully!");
