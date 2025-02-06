@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoArrowBackCircle, IoSend } from "react-icons/io5";
+import { forgot, validate_token } from "../services/auth";
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ const ForgotPasswordPage = () => {
     const navigate = useNavigate();
 
     const handleSendOtp = async () => {
+        console.log(email);
         if (!email) {
             setError("Please enter an email to receive OTP.");
             return;
@@ -19,9 +21,11 @@ const ForgotPasswordPage = () => {
         setError("");
 
         try {
+            console.log("function call");
             // Simulate API Call (Replace with actual API call)
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await forgot({email});
             setOtpSent(true);
+            console.log("otp sent");
             alert("OTP sent successfully!");
         } catch (err) {
             setError("Failed to send OTP. Please try again.");
@@ -35,28 +39,39 @@ const ForgotPasswordPage = () => {
         setLoading(true);
         setError("");
 
+        if (!code) {
+            setError("Please enter the OTP.");
+            setLoading(false);
+            return;
+        }
+    
         try {
-            // Simulate API Call (Replace with actual API call)
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            alert("Code submitted successfully!"); // Replace with further navigation or API response handling
-            navigate("/reset-password");
+            const isValid = await validate_token(code); // API returns true or false
+
+            if (isValid) {
+                localStorage.setItem("resetToken", code); // Store the token securely
+                alert("OTP verified successfully!");
+                navigate("/reset-password"); // No token in URL
+            } else {
+                setError("Invalid or expired OTP. Please try again.");
+            }
         } catch (err) {
-            setError("Invalid email or code. Please try again.");
+            setError(err || "Invalid OTP. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#e5e5e5] px-4">
+        <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">
             <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
-                <div className="md:w-1/2 flex items-center justify-center bg-gradient-to-r from-[#2D3E50] to-[#A3D8F4] text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+                <div className="md:w-1/2 flex items-center justify-center bg-blue-500 text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
                     <h2 className="text-2xl md:text-3xl font-bold text-center">Recover Your Account</h2>
                 </div>
                 <div className="md:w-1/2 p-8">
                     <div className="flex items-center gap-2 mb-6">
                         <IoArrowBackCircle className="text-3xl text-gray-700 cursor-pointer" onClick={() => navigate("/")} />
-                        <h1 className=" text-center md:text-left text-[#2D3E50] text-4xl font-bold">Forgot Password</h1>
+                        <h1 className="text-2xl font-semibold">Forgot Password</h1>
                     </div>
                     {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,7 +80,7 @@ const ForgotPasswordPage = () => {
                             <div className="flex items-center border rounded-lg p-2">
                                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                                     className="w-full outline-none" required />
-                                <button type="button" onClick={handleSendOtp} className="ml-2 text-[#2D3E50] hover:text-[#1A2B37]">
+                                <button type="button" onClick={handleSendOtp} className="ml-2 text-blue-500 hover:text-blue-700">
                                     <IoSend className="text-2xl" />
                                 </button>
                             </div>
@@ -76,10 +91,9 @@ const ForgotPasswordPage = () => {
                                 className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
                         </div>
                         <button type="submit" disabled={loading}
-                        className={`w-full py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-[#2D3E50] hover:bg-[#1A2B37]'}`}>
-    {loading ? "Verifying..." : "Submit"}
-</button>
-
+                            className={`w-full py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}> 
+                            {loading ? "Verifying..." : "Submit"}
+                        </button>
                     </form>
                 </div>
             </div>

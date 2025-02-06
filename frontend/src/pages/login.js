@@ -29,6 +29,7 @@ const LoginPage = () => {
       } else {
         localStorage.removeItem("rememberMe");
       }
+      console.log("succesfully logged in");
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");
