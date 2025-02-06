@@ -1,0 +1,163 @@
+# List of stages for jobs, and their order of execution
+stages:
+  - build
+  - test
+  - publish
+  - deploy
+
+build-backend:
+  stage: build
+  tags:
+    - bugboard-runner
+    # - autoscale-runner.cs.dal.ca
+  image: maven:latest
+  script:
+    - cd backend
+    - mvn clean package
+    - ls -l target/
+  artifacts:
+    paths:
+      - backend/target/*.jar
+
+
+build-frontend:
+  stage: build
+  tags:
+    - bugboard-runner
+    # - autoscale-runner.cs.dal.ca
+  image: node:18-alpine
+  script:
+    - cd frontend
+    - npm i 
+    - echo $BASE_URL
+    - export BACKEND_BASE_URL=$BASE_URL
+    - echo $BACKEND_BASE_URL
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/build
+
+publish-backend:
+  image: docker:latest
+  stage: publish
+  tags:
+    - bugboard-runner
+    # - autoscale-runner.cs.dal.ca
+  variables:
+    # these values may need to be different if using TLS, k8s, etc.
+    # You can alternatively set defaults in your runner config
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: "tcp://docker:2375"
+  services:
+    - docker:dind
+  script:
+    - cd backend
+    - pwd
+    - ls
+    - echo $SERVER_IP
+    - docker --version
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD docker.io
+    - IMAGE_TAG="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    - docker build -t dharmakevadiya/backend-api:$IMAGE_TAG . -f Dockerfile
+    - docker push dharmakevadiya/backend-api:$IMAGE_TAG
+  only:
+    - main
+    - dev
+    - issue32
+
+
+publish-frontend:
+  image: docker:latest
+  stage: publish
+  tags:
+   - bugboard-runner
+  # - autoscale-runner.cs.dal.ca
+  variables:
+   # these values may need to be different if using TLS, k8s, etc.
+   # You can alternatively set defaults in your runner config
+   DOCKER_TLS_CERTDIR: ""
+   DOCKER_HOST: "tcp://docker:2375"
+  services:
+   - docker:dind
+  script:
+   - cd frontend
+   - pwd
+   - ls
+   - echo $SERVER_IP
+   - docker --version
+   - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD docker.io
+   - IMAGE_TAG="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+   - docker build --build-arg BACKEND_BASE_URL=$BASE_URL -t dharmakevadiya/frontend:$IMAGE_TAG . -f Dockerfile
+   - docker push dharmakevadiya/frontend:$IMAGE_TAG
+  only:
+    - main
+    - dev
+    - issue32
+
+deploy-backend:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - bugboard-runner
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)  # Start SSH agent
+    - mkdir -p ~/.ssh  # ✅ Ensure the .ssh directory exists
+    - chmod 700 ~/.ssh  # ✅ Secure the .ssh directory
+    - echo "$ID_RSA" | base64 -d > ~/.ssh/id_ed25519  # Decode & save SSH key
+    - chmod 600 ~/.ssh/id_ed25519  # Secure the SSH key (no access for others)
+    - ssh-add ~/.ssh/id_ed25519  # Add the private key to SSH agent
+  script:
+    - CONTAINER_NAME=""
+    - SERVER_PORT=""
+    - DB_URL=""
+    - DB_USER=""
+    - DB_PASSWORD=""
+    - IMAGE_TAG="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    - if [ "$CI_COMMIT_REF_NAME" == "dev" ]; then CONTAINER_NAME="projectstream-dev-app"; SERVER_PORT=8080; DB_URL=$DEVINT_DB_URL; DB_USER=$DEVINT_DB_USER; DB_PASSWORD=$DEVINT_DB_PASSWORD; fi
+    - if [ "$CI_COMMIT_REF_NAME" == "main" ]; then CONTAINER_NAME="projectstream-prod-app"; SERVER_PORT=8073; DB_URL=$PROD_DB_URL; DB_USER=$PROD_DB_USER; DB_PASSWORD=$PROD_DB_PASSWORD; fi
+    - if [ "$CI_COMMIT_REF_NAME" != "main" ] && [ "$CI_COMMIT_REF_NAME" != "dev" ]; then CONTAINER_NAME="projectstream-test-app"; SERVER_PORT=8000; DB_URL=$TEST_DB_URL; DB_USER=$TEST_DB_USER; DB_PASSWORD=$TEST_DB_PASSWORD; fi
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD docker.io"
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull dharmakevadiya/backend-api:$IMAGE_TAG"
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f $CONTAINER_NAME || true"
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p $SERVER_PORT:$SERVER_PORT --name $CONTAINER_NAME --restart=always -e SERVER_PORT=$SERVER_PORT -e SPRING_DATASOURCE_URL=$DB_URL -e SPRING_DATASOURCE_USERNAME=$DB_USER -e SPRING_DATASOURCE_PASSWORD=$DB_PASSWORD -e EMAIL_HOST=$EMAIL_HOST -e EMAIL_PORT=$EMAIL_PORT -e EMAIL_USERNAME=$EMAIL_USERNAME -e EMAIL_PASSWORD=$EMAIL_PASSWORD -e FRONTEND_HOST=$FRONTEND_HOST -e FRONTEND_LOGIN_URL=$FRONTEND_LOGIN_URL -e FRONTEND_UPDATE_PASSWORD_URL=$FRONTEND_UPDATE_PASSWORD_URL dharmakevadiya/backend-api:$IMAGE_TAG"
+  environment:
+    name: development
+    url: http://$SERVER_IP:$SERVER_PORT
+  only:
+    - main
+    - dev
+    - issue32
+
+deploy-frontend:
+  image: alpine:latest
+  stage: deploy
+  tags:
+   - bugboard-runner
+    # - autoscale-runner.cs.dal.ca
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)  # Start SSH agent
+    - mkdir -p ~/.ssh  # ✅ Ensure the .ssh directory exists
+    - chmod 700 ~/.ssh  # ✅ Secure the .ssh directory
+    - echo "$ID_RSA" | base64 -d > ~/.ssh/id_ed25519  # Decode & save SSH key
+    - chmod 600 ~/.ssh/id_ed25519  # Secure the SSH key (no access for others)
+    - ssh-add ~/.ssh/id_ed25519  # Add the private key to SSH agent
+  script:
+    - CONTAINER_NAME=""
+    - SERVER_PORT=""
+    - IMAGE_TAG="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    - if [ "$CI_COMMIT_REF_NAME" == "dev" ]; then CONTAINER_NAME="projectstream-dev-app-frontend"; SERVER_PORT=3000; fi
+    - if [ "$CI_COMMIT_REF_NAME" == "main" ]; then CONTAINER_NAME="projectstream-prod-app-frontend"; SERVER_PORT=3080; fi
+    - if [ "$CI_COMMIT_REF_NAME" != "main" ] && [ "$CI_COMMIT_REF_NAME" != "dev" ]; then CONTAINER_NAME="projectstream-test-app-frontend"; SERVER_PORT=3030; fi
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PWD docker.io"
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull dharmakevadiya/frontend:$IMAGE_TAG"
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f $CONTAINER_NAME || true"
+    - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p $SERVER_PORT:$SERVER_PORT --name $CONTAINER_NAME --restart=always dharmakevadiya/frontend:$IMAGE_TAG"
+  environment:
+    name: development
+    url: http://$SERVER_IP:$SERVER_PORT
+  only:
+    - main
+    - dev
+    - issue32
