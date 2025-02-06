@@ -18,11 +18,27 @@ export const signup = async (userData) => {
       throw error.response ? error.response.data : error.message;
   }
 };
-// export const forgot = async (userData) => {
-//   try {
-//       const response = await apiClient.post('/req/signup', userData);
-//       return response.data;
-//   } catch (error) {
-//       throw error.response ? error.response.data : error.message;
-//   }
-// };
+export const forgot = async (userData) => {
+  try {
+      const response = await apiClient.post('/auth/forgot-password', userData);
+      return response.data;
+  } catch (error) {
+      throw error.response ? error.response.data : error.message;
+  }
+};
+export const validate_token = async (token) => {
+  try {
+      const response = await apiClient.get(`/auth/validate-reset-token?token=${token}`);
+      return response.data;
+  } catch (error) {
+      throw error.response ? error.response.data : error.message;
+  }
+};
+export const reset_password = async (userData) => {
+  try {
+      const response = await apiClient.post('/auth/reset-password', userData);
+      return response.data;
+  } catch (error) {
+      throw error.response ? error.response.data : error.message;
+  }
+};

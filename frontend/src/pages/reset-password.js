@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { IoArrowBackCircle } from "react-icons/io5";
+import { reset_password } from "../services/auth";
 
 const ResetPasswordPage = () => {
     const [newPassword, setNewPassword] = useState("");
@@ -8,11 +9,26 @@ const ResetPasswordPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Extract token (email) from URL
+    const token = localStorage.getItem("resetToken");
+    useEffect(() => {
+        if (!token) {
+            setError("Invalid or missing token. Please request a new password reset link.");
+        }
+    }, [token]);
 
-    const handleResetPassword = (event) => {
+    const handleResetPassword = async (event) => {
         event.preventDefault();
         setLoading(true);
         setError("");
+
+        if (!token) {
+            setError("Invalid or expired reset link.");
+            setLoading(false);
+            return;
+        }
 
         if (newPassword !== confirmPassword) {
             setError("Passwords do not match!");
@@ -20,16 +36,27 @@ const ResetPasswordPage = () => {
             return;
         }
 
-        setTimeout(() => {
+        try {
+            console.log(token,newPassword);
+            await reset_password({ token, newPassword });
+
+            // Remove token from local storage after successful reset
+            localStorage.removeItem("resetToken");
+
+
             alert("Password reset successful! Redirecting to login...");
             navigate("/");
-        }, 2000);
+        } catch (err) {
+            setError(err || "Failed to reset password. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">
             <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
-            <div className="md:w-1/2 flex items-center justify-center bg-blue-500 text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+                <div className="md:w-1/2 flex items-center justify-center bg-blue-500 text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
                     <h2 className="text-2xl md:text-3xl font-bold text-center">Secure Your Account</h2>
                 </div>
                 <div className="md:w-1/2 p-8">

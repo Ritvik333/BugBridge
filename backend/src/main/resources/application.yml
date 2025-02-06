@@ -5,9 +5,20 @@ server:
 
 spring:
   datasource:
-    password: password
+    password: root
     url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
     username: root
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "bugboard1@gmail.com"
+    password: "waum rizj weod rukd"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   jpa:
     hibernate:
       ddl-auto: update
