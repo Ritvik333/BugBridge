@@ -39,6 +39,11 @@ const ResetPasswordPage = () => {
         try {
             console.log(token,newPassword);
             await reset_password({ token, newPassword });
+
+            // Remove token from local storage after successful reset
+            localStorage.removeItem("resetToken");
+
+
             alert("Password reset successful! Redirecting to login...");
             navigate("/");
         } catch (err) {

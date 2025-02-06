@@ -4,14 +4,6 @@ server:
     include-binding-errors: always
 
 spring:
-  thymeleaf:
-    prefix: file:../frontend-01/src/pages
-    suffix: .html
-    cache: false
-  web:
-    resources:
-      static-locations: file:../frontend-01/public/
-      add-mappings: true
   datasource:
     password: root
     url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
