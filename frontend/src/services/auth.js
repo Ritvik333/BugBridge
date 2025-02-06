@@ -42,3 +42,7 @@ export const reset_password = async (userData) => {
       throw error.response ? error.response.data : error.message;
   }
 };
+export const logout = () => {
+  console.log(localStorage.getItem("authToken"));
+  localStorage.removeItem("authToken"); // Remove authentication token
+};
