@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { IoArrowBackCircle } from "react-icons/io5";
 import { reset_password } from "../services/auth";
 
@@ -9,6 +9,7 @@ const ResetPasswordPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     
     // Extract token (email) from URL
     const token = localStorage.getItem("resetToken");
@@ -53,9 +54,9 @@ const ResetPasswordPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#e5e5e5] px-4">
             <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
-                <div className="md:w-1/2 flex items-center justify-center bg-blue-500 text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+            <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-r from-[#2D3E50] to-[#A3D8F4] text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
                     <h2 className="text-2xl md:text-3xl font-bold text-center">Secure Your Account</h2>
                 </div>
                 <div className="md:w-1/2 p-8">
@@ -76,7 +77,7 @@ const ResetPasswordPage = () => {
                                 className="w-full p-2 border rounded-lg focus:ring focus:ring-blue-300" required />
                         </div>
                         <button type="submit" disabled={loading}
-                            className={`w-full py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}>
+                            className={`w-full py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-[#2D3E50] hover:bg-[#1A2B37]'}`}>
                             {loading ? "Processing..." : "Done"}
                         </button>
                     </form>

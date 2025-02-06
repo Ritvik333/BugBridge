@@ -148,7 +148,7 @@ deploy-frontend:
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull dharmakevadiya/frontend:$IMAGE_TAG"
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f $CONTAINER_NAME || true"
     - ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p $SERVER_PORT:$SERVER_PORT -e PORT=$SERVER_PORT -e REACT_APP_BACKEND_BASE_URL=$REACT_APP_BACKEND_BASE_URL --name $CONTAINER_NAME --restart=always dharmakevadiya/frontend:$IMAGE_TAG"  
-    environment:
+  environment:
     name: development
     url: http://$SERVER_IP:$SERVER_PORT
   only:
