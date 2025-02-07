@@ -61,7 +61,8 @@ publish-backend:
     - docker build -t dharmakevadiya/backend-api:$IMAGE_TAG . -f Dockerfile
     - docker push dharmakevadiya/backend-api:$IMAGE_TAG
   only:
-    - issue32
+    - develop
+    - main
 
 
 publish-frontend:
@@ -88,7 +89,8 @@ publish-frontend:
    - docker build --build-arg BACKEND_BASE_URL=$BASE_URL -t dharmakevadiya/frontend:$IMAGE_TAG . -f Dockerfile
    - docker push dharmakevadiya/frontend:$IMAGE_TAG
   only:
-    - issue32
+    - develop
+    - main
 
 deploy-backend:
   image: alpine:latest
@@ -121,7 +123,8 @@ deploy-backend:
     name: development
     url: http://$SERVER_IP:$SERVER_PORT
   only:
-    - issue32
+    - develop
+    - main
 
 deploy-frontend:
   image: alpine:latest
@@ -152,4 +155,5 @@ deploy-frontend:
     name: development
     url: http://$SERVER_IP:$SERVER_PORT
   only:
-    - issue32
+    - develop
+    - main
