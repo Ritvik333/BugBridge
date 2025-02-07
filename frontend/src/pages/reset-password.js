@@ -8,7 +8,9 @@ const ResetPasswordPage = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();    
+    const navigate = useNavigate();
+    const location = useLocation();
+    
     // Extract token (email) from URL
     const token = localStorage.getItem("resetToken");
     useEffect(() => {
