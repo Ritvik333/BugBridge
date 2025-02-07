@@ -64,7 +64,7 @@ const ForgotPasswordPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#e5e5e5] px-4">
             <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
             <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-r from-[#2D3E50] to-[#A3D8F4] text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
             <h2 className="text-2xl md:text-3xl font-bold text-center">Recover Your Account</h2>
