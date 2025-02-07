@@ -1,11 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "../pages/login";
 import SignupPage from "../pages/register";
-import HomePage from "../pages/home";
 import ForgotPasswordPage from "../pages/forgot-password";
 import ResetPasswordPage from "../pages/reset-password";
-import Dashboard from "../pages/dashboard";
 import ProtectedRoute from "../pages/ProtectedRoute";
+import BugBoardPage from "../pages/bug-board";
 
 
 const AppRoutes = () => {
@@ -16,7 +15,7 @@ const AppRoutes = () => {
         <Route path="/register" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} />
         
       </Routes>
   );
