@@ -90,7 +90,7 @@ public class SecurityConfig {
         return http
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:3000")); // Allow frontend origin
+                    config.setAllowedOrigins(List.of("http://localhost:3000","http://172.17.3.8:3000/","http://172.17.3.8:3030/","http://172.17.3.8:3080/")); // Allow frontend origin
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
