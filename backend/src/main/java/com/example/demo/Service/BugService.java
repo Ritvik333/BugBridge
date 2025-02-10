@@ -14,8 +14,8 @@ import java.util.List;
 public class BugService {
     @Autowired
     private BugRepository bugRepository;
-    @Autowired
-    private FileStorageService fileStorageService;
+    // @Autowired
+    // private FileStorageService fileStorageService;
 
     public List<Bug> getBugs(String severity, String status, String creator, String sortBy, String order) {
         return bugRepository.findAll();

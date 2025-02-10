@@ -16,10 +16,22 @@ public class BugController {
     @Autowired
     private BugService bugService;
 
+    // @GetMapping
+    // public ResponseEntity<List<Bug>> getBugs() {
+    //     return ResponseEntity.ok(bugService.getBugs(null, null, null, "createdAt", "desc"));
+    // }
+
     @GetMapping
-    public ResponseEntity<List<Bug>> getBugs() {
-        return ResponseEntity.ok(bugService.getBugs(null, null, null, "createdAt", "desc"));
-    }
+public ResponseEntity<List<Bug>> getBugs(
+    @RequestParam(required = false) String severity,
+    @RequestParam(required = false) String status,
+    @RequestParam(required = false) String creator,
+    @RequestParam(defaultValue = "createdAt") String sortBy,
+    @RequestParam(defaultValue = "asc") String order
+) {
+    List<Bug> bugs = bugService.getBugs(severity, status, creator, sortBy, order);
+    return ResponseEntity.ok(bugs);
+}
 
     @GetMapping("/{id}")
     public ResponseEntity<Bug> getBugById(@PathVariable Long id) {

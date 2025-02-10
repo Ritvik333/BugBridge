@@ -10,19 +10,36 @@ export default function BugBoardPage() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCreator, setFilterCreator] = useState("");
   const [sortOption, setSortOption] = useState("creationDate");
-  
-
-  const menuRef = useRef(null); // Reference for the dropdown menu
-
-  const bugs = [
-    { id: 1, title: "Syntax Error in Line 24", severity: "high", status: "open", creator: "Alice", creationDate: "2024-02-01", priority: 2 },
-    { id: 2, title: "Undefined Variable", severity: "medium", status: "in progress", creator: "Bob", creationDate: "2024-02-02", priority: 3 },
-    { id: 3, title: "Memory Leak Detected", severity: "critical", status: "open", creator: "Charlie", creationDate: "2024-02-03", priority: 1 },
-    { id: 4, title: "Login Button Not Working", severity: "low", status: "resolved", creator: "Alice", creationDate: "2024-02-04", priority: 4 },
-    { id: 5, title: "Slow API Response", severity: "high", status: "open", creator: "Bob", creationDate: "2024-02-05", priority: 2 },
-  ];
+  const [bugs, setBugs] = useState([]);
   
   const navigate = useNavigate();
+  const menuRef = useRef(null); // Reference for the dropdown menu
+
+  useEffect(() => {
+    fetchBugs();
+  }, [filterSeverity, filterStatus, filterCreator, sortOption]); // Fetch when filters change
+
+  const fetchBugs = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        severity: filterSeverity || "",
+        status: filterStatus || "",
+        creator: filterCreator || "",
+        sortBy: sortOption,
+        order: "asc",
+      });
+
+      const response = await fetch(`http://localhost:8080/api/bugs?${queryParams}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch bugs");
+      }
+      const data = await response.json();
+      setBugs(data); // Update state with fetched data
+    } catch (error) {
+      console.error("Error fetching bugs:", error);
+    }
+  };
+
 
   const handleLogout = () => {
           logout(); // Clear auth data
@@ -93,7 +110,7 @@ export default function BugBoardPage() {
             <option value="">All Creators</option>
             <option value="Alice">Alice</option>
             <option value="Bob">Bob</option>
-            <option value="Charlie">Charlie</option>
+            <option value="Charlie">BugBoard</option>
           </select>
           <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
             <option value="creationDate">Sort by Creation Date</option>
@@ -103,12 +120,24 @@ export default function BugBoardPage() {
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold mb-2">Detected Bugs</h2>
           <div className="space-y-2">
-            {filteredBugs.map((bug) => (
+          {bugs.length > 0 ? (
+              bugs.map((bug) => (
+                <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100">
+                  <h3 className="font-medium">{bug.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    Severity: {bug.severity} | Status: {bug.status} | Creator: {bug.creator}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No bugs found.</p>
+            )}
+            {/* {filteredBugs.map((bug) => (
               <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100">
                 <h3 className="font-medium">{bug.title}</h3>
                 <p className="text-sm text-gray-500">Severity: {bug.severity} | Status: {bug.status}</p>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
         <button className="mt-4 bg-blue-500 text-white p-2 rounded">Sign Up</button>
