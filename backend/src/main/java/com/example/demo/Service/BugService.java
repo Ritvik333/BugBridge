@@ -7,6 +7,7 @@ import com.example.demo.Repository.BugRepository;
 import com.example.demo.Model.Bug;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -26,12 +27,10 @@ public class BugService {
 
     public Bug createBug(Bug bug, MultipartFile codeFile) throws IOException {
         if (codeFile != null && !codeFile.isEmpty()) {
-            String fileUrl = fileStorageService.saveFile(codeFile);
-            bug.setCodeUrl(fileUrl);
-        } else {
-            bug.setCodeUrl("No file uploaded");
+            // Convert file to String and store it
+            String fileContent = new String(codeFile.getBytes(), StandardCharsets.UTF_8);
+            bug.setCode(fileContent);
         }
-    
         return bugRepository.save(bug);
     }
     

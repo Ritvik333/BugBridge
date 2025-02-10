@@ -15,11 +15,21 @@ public class Bug {
     private String status;
     private String creator;
     private Integer priority;        
-    private String codeUrl; // Store external file URL instead of code
+    // private String codeUrl; // Store external file URL instead of code
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+    @Lob  // Large Object - stores large text data
+    @Column(columnDefinition = "TEXT")
+    private String code;  // ✅ Store the actual code as text in the database
 
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public Long getId() {
         return id;
@@ -77,11 +87,12 @@ public class Bug {
         this.createdAt = createdAt;
     }
 
-    public String getCodeUrl() {
-        return codeUrl;
-    }
 
-    public void setCodeUrl(String codeUrl) {
-        this.codeUrl = codeUrl;
-    }
+    // public String getCodeUrl() {
+    //     return codeUrl;
+    // }
+
+    // public void setCodeUrl(String codeUrl) {
+    //     this.codeUrl = codeUrl;
+    // }
 }
