@@ -80,4 +80,42 @@ public class BugController {
 
         return ResponseEntity.ok(bugService.createBug(bug));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Bug> updateBug(
+        @PathVariable Long id,
+        @RequestParam String title,
+        @RequestParam String severity,
+        @RequestParam String status,
+        @RequestParam String creator,
+        @RequestParam Integer priority,
+        @RequestParam String description,
+        @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
+    ) throws IOException {
+        Bug existingBug = bugService.getBugById(id);
+        if (existingBug == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Update fields
+        existingBug.setTitle(title);
+        existingBug.setSeverity(severity);
+        existingBug.setStatus(status);
+        existingBug.setCreator(creator);
+        existingBug.setPriority(priority);
+        existingBug.setDescription(description);
+
+        if (codeFile != null && !codeFile.isEmpty()) {
+            String filePath = fileStorageService.saveFile(codeFile);
+            existingBug.setCodeFilePath(filePath);
+        }
+
+        return ResponseEntity.ok(bugService.updateBug(existingBug));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBug(@PathVariable Long id) {
+        boolean deleted = bugService.deleteBug(id);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
 }

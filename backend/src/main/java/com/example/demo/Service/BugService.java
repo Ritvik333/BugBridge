@@ -6,6 +6,7 @@ import com.example.demo.Repository.BugRepository;
 import com.example.demo.Model.Bug;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BugService {
@@ -24,4 +25,20 @@ public class BugService {
         return bugRepository.save(bug);
     }
     
+    public Bug updateBug(Bug updatedBug) {
+        Optional<Bug> existingBugOptional = bugRepository.findById(updatedBug.getId());
+        if (existingBugOptional.isPresent()) {
+            return bugRepository.save(updatedBug);
+        }
+        return null; // Return null if the bug doesn't exist
+    }
+
+    public boolean deleteBug(Long id) {
+        Optional<Bug> existingBugOptional = bugRepository.findById(id);
+        if (existingBugOptional.isPresent()) {
+            bugRepository.deleteById(id);
+            return true; // Successfully deleted
+        }
+        return false; // Bug not found
+    }
 }
