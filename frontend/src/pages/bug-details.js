@@ -26,12 +26,13 @@ export default function BugDetails() {
   // Function to run the code
   const handleRunCode = async () => {
     try {
-      const result = await runCode(code, selectedLanguage);
-      setOutput(result || "No output");
+        const result = await runCode(code, selectedLanguage);
+        setOutput(result||"No output");
     } catch (error) {
-      setOutput(`Error: ${error}`);
+        console.error("Error running code:", error);
+        setOutput(`Unexpected Error: ${error.message || error}`);
     }
-  };
+};
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
