@@ -14,6 +14,6 @@ public class FileStorageService {
         Path filePath = Paths.get(storagePath, filename);
         Files.createDirectories(filePath.getParent());
         Files.write(filePath, file.getBytes());
-        return "/files/" + filename; // Return URL to access stored file
+        return filePath.toString(); // Return URL to access stored file
     }
 }

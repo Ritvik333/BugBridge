@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.Model.Bug;
 import com.example.demo.Service.BugService;
+import com.example.demo.Service.FileStorageService;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,22 +17,25 @@ public class BugController {
     @Autowired
     private BugService bugService;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     // @GetMapping
     // public ResponseEntity<List<Bug>> getBugs() {
     //     return ResponseEntity.ok(bugService.getBugs(null, null, null, "createdAt", "desc"));
     // }
 
     @GetMapping
-public ResponseEntity<List<Bug>> getBugs(
-    @RequestParam(required = false) String severity,
-    @RequestParam(required = false) String status,
-    @RequestParam(required = false) String creator,
-    @RequestParam(defaultValue = "createdAt") String sortBy,
-    @RequestParam(defaultValue = "asc") String order
-) {
-    List<Bug> bugs = bugService.getBugs(severity, status, creator, sortBy, order);
-    return ResponseEntity.ok(bugs);
-}
+    public ResponseEntity<List<Bug>> getBugs(
+        @RequestParam(required = false) String severity,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String creator,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "asc") String order
+    ) {
+        List<Bug> bugs = bugService.getBugs(severity, status, creator, sortBy, order);
+        return ResponseEntity.ok(bugs);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Bug> getBugById(@PathVariable Long id) {
@@ -57,7 +61,8 @@ public ResponseEntity<List<Bug>> getBugs(
         @RequestParam String status,
         @RequestParam String creator,
         @RequestParam Integer priority,
-        @RequestParam(value = "codeFile", required = false) MultipartFile codeFile
+        @RequestParam String description,
+        @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
     ) throws IOException {
         Bug bug = new Bug();
         bug.setTitle(title);
@@ -65,6 +70,14 @@ public ResponseEntity<List<Bug>> getBugs(
         bug.setStatus(status);
         bug.setCreator(creator);
         bug.setPriority(priority);
-        return ResponseEntity.ok(bugService.createBug(bug, codeFile));
+        bug.setDescription(description);
+
+
+        if (codeFile != null && !codeFile.isEmpty()) {
+            String filePath = fileStorageService.saveFile(codeFile);
+            bug.setCodeFilePath(filePath); // Store file path instead of file content
+        }
+
+        return ResponseEntity.ok(bugService.createBug(bug));
     }
 }

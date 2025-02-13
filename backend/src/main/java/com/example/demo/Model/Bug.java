@@ -14,22 +14,14 @@ public class Bug {
     private String severity;
     private String status;
     private String creator;
-    private Integer priority;        
-    // private String codeUrl; // Store external file URL instead of code
+    private Integer priority;   
+    private String description;     
+    @Column(name = "code_file_path") // Store file path
+    private String codeFilePath;
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
-    @Lob  // Large Object - stores large text data
-    @Column(columnDefinition = "TEXT")
-    private String code;  // ✅ Store the actual code as text in the database
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
+    
 
     public Long getId() {
         return id;
@@ -37,6 +29,23 @@ public class Bug {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCodeFilePath() { 
+        return codeFilePath; 
+    }
+
+    public void setCodeFilePath(String codeFilePath) { 
+        this.codeFilePath = codeFilePath; 
+    }
+
+
+    public String getDescription() { 
+        return description; 
+    }
+
+    public void setDescription(String description) { 
+        this.description = description; 
     }
 
     public String getTitle() {
