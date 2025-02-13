@@ -1,6 +1,5 @@
 package com.example.demo.Controller;
 
-import java.net.URI;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import com.example.demo.Security.UserAuthenticationProvider;
 import com.example.demo.Service.PasswordResetService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.CredentialsDto;
+import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.SignUpDto;
 import com.example.demo.dto.UserDto;
 
@@ -34,32 +34,40 @@ public class AuthController {
     private PasswordResetService passwordResetService;
 
     @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
+    public ResponseWrapper<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
         UserDto userDto = userService.login(credentialsDto);
         userDto.setToken(userAuthenticationProvider.createToken(userDto.getEmail()));
-        return ResponseEntity.ok(userDto);
+        return new ResponseWrapper<>("success", "Login successful", userDto);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody SignUpDto user) {
-        UserDto createdUser = userService.register(user);
-        createdUser.setToken(userAuthenticationProvider.createToken(user.getEmail()));
-        return ResponseEntity.created(URI.create("/users/" + createdUser.getId())).body(createdUser);
-    }
+    public ResponseWrapper<UserDto> register(@RequestBody SignUpDto user) {
+    UserDto createdUser = userService.register(user);
+    createdUser.setToken(userAuthenticationProvider.createToken(user.getEmail()));
+    
+    // Wrap the createdUser in ResponseWrapper
+    return new ResponseWrapper<>("success", "User registration successful", createdUser); // Returning the ResponseWrapper directly
+}
+
 
     @PostMapping("/forgot-password")
-    public String requestPasswordReset(@RequestBody Map<String, String> request) {
-        return passwordResetService.createPasswordResetToken(request.get("email"));
+    public ResponseEntity<ResponseWrapper<String>> requestPasswordReset(@RequestBody Map<String, String> request) {
+        String result = passwordResetService.createPasswordResetToken(request.get("email"));
+        ResponseWrapper<String> response = new ResponseWrapper<>("success", "Password reset token created", result);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/validate-reset-token")
-    public boolean validateResetToken(@RequestParam String token) {
-        return passwordResetService.validateToken(token);
+    public ResponseEntity<ResponseWrapper<Boolean>> validateResetToken(@RequestParam String token) {
+        boolean isValid = passwordResetService.validateToken(token);
+        ResponseWrapper<Boolean> response = new ResponseWrapper<>("success", "Token validation result", isValid);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reset-password")
-    public String resetPassword(@RequestBody Map<String, String> request) {
-        return passwordResetService.resetPassword(request.get("token"), request.get("newPassword"));
+    public ResponseEntity<ResponseWrapper<String>> resetPassword(@RequestBody Map<String, String> request) {
+        String result = passwordResetService.resetPassword(request.get("token"), request.get("newPassword"));
+        ResponseWrapper<String> response = new ResponseWrapper<>("success", "Password reset successful", result);
+        return ResponseEntity.ok(response);
     }
-
 }
