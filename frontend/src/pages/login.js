@@ -23,14 +23,14 @@ const LoginPage = () => {
 
     try {
       const response = await login({ email, password });
-      localStorage.setItem("authToken", response.token);
+      localStorage.setItem("authToken", response.body.token);
       if (rememberMe) {
         localStorage.setItem("rememberMe", email);
       } else {
         localStorage.removeItem("rememberMe");
       }
       console.log("succesfully logged in");
-      console.log(response.token);
+      console.log(response.body.token);
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");

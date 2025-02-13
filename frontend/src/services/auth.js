@@ -50,7 +50,7 @@ export const logout = () => {
 export const runCode = async (code, language) => {
   try {
     const response = await apiClient.post("/api/run", { code, language });
-    return response.data.output;
+    return response.data.body.output;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
