@@ -96,11 +96,10 @@ export default function BugBoardPage() {
   
 
   const handleLogout = () => {
-          logout(); // Clear auth data
-          navigate("/"); // Redirect to login page
-      };
+    logout(); // Clear auth data
+    navigate("/"); // Redirect to login page
+  };
 
-  // Close the dropdown when clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -129,7 +128,6 @@ export default function BugBoardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Navigation Bar */}
       <nav className="h-14 bg-white shadow-sm flex justify-between items-center px-4">
         <h1 className="text-lg font-semibold">Bug Board</h1>
         <div className="flex space-x-4">
@@ -150,9 +148,8 @@ export default function BugBoardPage() {
           </div>
         </div>
       </nav>
-
-      {/* Main Content */}
-      <div className="flex-1 p-4">
+       {/* Main Content */}
+       <div className="flex-1 p-4">
         <div className="flex gap-4 mb-4">
           <select onChange={(e) => setFilterSeverity(e.target.value)} className="p-2 border rounded hover:border-gray-400">
             <option value="">All Severities</option>
@@ -201,20 +198,7 @@ export default function BugBoardPage() {
             ))} */}
           </div>
         </div>
-        <button className="mt-4 bg-blue-500 text-white p-2 rounded">Sign Up</button>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -3,10 +3,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Sort;
 
 import com.example.demo.Model.Bug;
 import com.example.demo.Service.BugService;
 import com.example.demo.Service.FileStorageService;
+import com.example.demo.Repository.BugRepository;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +22,8 @@ public class BugController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    private BugRepository bugRepository;
+
     // @GetMapping
     // public ResponseEntity<List<Bug>> getBugs() {
     //     return ResponseEntity.ok(bugService.getBugs(null, null, null, "createdAt", "desc"));
@@ -30,11 +34,14 @@ public class BugController {
         @RequestParam(required = false) String severity,
         @RequestParam(required = false) String status,
         @RequestParam(required = false) String creator,
-        @RequestParam(defaultValue = "createdAt") String sortBy,
-        @RequestParam(defaultValue = "asc") String order
-    ) {
-        List<Bug> bugs = bugService.getBugs(severity, status, creator, sortBy, order);
-        return ResponseEntity.ok(bugs);
+        @RequestParam(defaultValue = "created_at") String sortBy,
+        @RequestParam(defaultValue = "asc") String order) {
+        // Create a Sort object dynamically
+        Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(sortDirection, sortBy);
+
+        // Fetch bugs with filtering
+        return bugRepository.findByFilters(severity, status, creator, sort);
     }
 
     @GetMapping("/{id}")

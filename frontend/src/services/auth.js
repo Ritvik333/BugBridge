@@ -46,3 +46,12 @@ export const logout = () => {
   console.log(localStorage.getItem("authToken"));
   localStorage.removeItem("authToken"); // Remove authentication token
 };
+
+export const runCode = async (code, language) => {
+  try {
+    const response = await apiClient.post("/api/run", { code, language });
+    return response.data.body.output;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
