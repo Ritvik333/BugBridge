@@ -9,7 +9,7 @@ export default function BugBoardPage() {
   const [filterSeverity, setFilterSeverity] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCreator, setFilterCreator] = useState("");
-  const [sortOption, setSortOption] = useState("creationDate");
+  const [sortOption, setSortOption] = useState("created_at");
   const [bugs, setBugs] = useState([]);
   
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function BugBoardPage() {
         throw new Error("Failed to fetch bugs");
       }
       const data = await response.json();
-      setBugs(data); // Update state with fetched data
+      setBugs(data);
     } catch (error) {
       console.error("Error fetching bugs:", error);
     }
@@ -114,11 +114,18 @@ export default function BugBoardPage() {
     };
   }, []);
 
-  const filteredBugs = bugs
+  const filteredBugs = [...bugs]
     .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
     .filter((bug) => !filterStatus || bug.status === filterStatus)
     .filter((bug) => !filterCreator || bug.creator === filterCreator)
-    .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
+    .sort((a, b) => {
+      if (sortOption === "priority") {
+        return a.priority - b.priority;
+      } else if (sortOption === "creationDate") { 
+        return new Date(a.creationDate) - new Date(b.creationDate);
+      }
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">

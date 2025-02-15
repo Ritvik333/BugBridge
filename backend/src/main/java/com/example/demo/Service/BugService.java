@@ -1,6 +1,7 @@
 package com.example.demo.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
 import com.example.demo.Repository.BugRepository;
 import com.example.demo.Model.Bug;
@@ -14,7 +15,8 @@ public class BugService {
     private BugRepository bugRepository;
 
     public List<Bug> getBugs(String severity, String status, String creator, String sortBy, String order) {
-        return bugRepository.findAll(); // Implement filtering & sorting logic
+        return bugRepository.findAll(); 
+        
     }
 
     public Bug getBugById(Long id) {
