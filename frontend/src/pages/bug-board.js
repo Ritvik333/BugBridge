@@ -40,6 +40,7 @@ export default function BugBoardPage() {
       console.error("Error fetching bugs:", error);
     }
   };
+  
 
   //future functionality for create, update, delete bugs
   const createBug = async (bugData) => {
