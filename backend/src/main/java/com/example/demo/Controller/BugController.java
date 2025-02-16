@@ -31,7 +31,8 @@ public class BugController {
         @RequestParam(required = false) String status,
         @RequestParam(required = false) String creator,
         @RequestParam(defaultValue = "created_at") String sortBy,
-        @RequestParam(defaultValue = "asc") String order) {
+        @RequestParam(defaultValue = "asc") String order
+    ) {
         List<Bug> bugs = bugService.getBugs(severity, status, creator, sortBy, order);
         return ResponseEntity.ok(bugs);
     }
@@ -42,16 +43,6 @@ public class BugController {
         return bug != null ? ResponseEntity.ok(bug) : ResponseEntity.notFound().build();
     }
 
-    // JSON testing 
-    // @PostMapping
-    // public ResponseEntity<Bug> createBug(
-    //     @RequestBody Bug bug, // ✅ Accept JSON instead of form-data
-    //     @RequestParam(value = "codeFile", required = false) MultipartFile codeFile
-    // ) throws IOException {
-    //     return ResponseEntity.ok(bugService.createBug(bug, codeFile));
-    // }
-
-
     // use form-data
     @PostMapping
     public ResponseEntity<Bug> createBug(
@@ -59,8 +50,9 @@ public class BugController {
         @RequestParam String severity,
         @RequestParam String status,
         @RequestParam String creator,
-        @RequestParam Integer priority,
+        // @RequestParam Integer priority,
         @RequestParam String description,
+        @RequestParam String language,
         @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
     ) throws IOException {
         Bug bug = new Bug();
@@ -68,7 +60,8 @@ public class BugController {
         bug.setSeverity(severity);
         bug.setStatus(status);
         bug.setCreator(creator);
-        bug.setPriority(priority);
+        bug.setLanguage(language);
+        // bug.setPriority(priority);
         bug.setDescription(description);
 
 
@@ -87,7 +80,8 @@ public class BugController {
         @RequestParam String severity,
         @RequestParam String status,
         @RequestParam String creator,
-        @RequestParam Integer priority,
+        @RequestParam String language,
+        // @RequestParam Integer priority,
         @RequestParam String description,
         @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
     ) throws IOException {
@@ -101,7 +95,8 @@ public class BugController {
         existingBug.setSeverity(severity);
         existingBug.setStatus(status);
         existingBug.setCreator(creator);
-        existingBug.setPriority(priority);
+        existingBug.setLanguage(language);
+        // existingBug.setPriority(priority);
         existingBug.setDescription(description);
 
         if (codeFile != null && !codeFile.isEmpty()) {

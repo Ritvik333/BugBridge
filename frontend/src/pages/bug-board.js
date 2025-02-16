@@ -22,25 +22,46 @@ export default function BugBoardPage() {
 
   const fetchBugs = async () => {
     try {
-      const queryParams = new URLSearchParams({
-        severity: filterSeverity || "",
-        status: filterStatus || "",
-        creator: filterCreator || "",
-        sortBy: sortOption,
-        order: "asc",
-      });
-
+      const queryParams = new URLSearchParams();
+      if (filterSeverity) queryParams.append("severity", filterSeverity);
+      if (filterStatus) queryParams.append("status", filterStatus);
+      if (filterCreator) queryParams.append("creator", filterCreator);
+      queryParams.append("sortBy", sortOption);
+      queryParams.append("order", "asc");
+  
       const response = await fetch(`http://localhost:8080/api/bugs?${queryParams}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch bugs");
-      }
+      if (!response.ok) throw new Error("Failed to fetch bugs");
+  
       const data = await response.json();
       setBugs(data);
     } catch (error) {
       console.error("Error fetching bugs:", error);
     }
   };
-  
+
+  const handleLogout = () => {
+    logout(); // Clear auth data
+    navigate("/"); // Redirect to login page
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const filteredBugs = bugs
+  .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
+  .filter((bug) => !filterStatus || bug.status === filterStatus)
+  .filter((bug) => !filterCreator || bug.creator === filterCreator)
+  .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
 
   //future functionality for create, update, delete bugs
   const createBug = async (bugData) => {
@@ -94,38 +115,6 @@ export default function BugBoardPage() {
       console.error("Error deleting bug:", error);
     }
   };
-  
-
-  const handleLogout = () => {
-    logout(); // Clear auth data
-    navigate("/"); // Redirect to login page
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    };
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const filteredBugs = [...bugs]
-    .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
-    .filter((bug) => !filterStatus || bug.status === filterStatus)
-    .filter((bug) => !filterCreator || bug.creator === filterCreator)
-    .sort((a, b) => {
-      if (sortOption === "priority") {
-        return a.priority - b.priority;
-      } else if (sortOption === "creationDate") { 
-        return new Date(a.creationDate) - new Date(b.creationDate);
-      }
-      return 0;
-    });
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -172,31 +161,19 @@ export default function BugBoardPage() {
             <option value="Charlie">BugBoard</option>
           </select>
           <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-            <option value="creationDate">Sort by Creation Date</option>
+            <option value="created_at">Sort by Creation Date</option>
             <option value="priority">Sort by Priority</option>
           </select>
         </div>
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold mb-2">Detected Bugs</h2>
           <div className="space-y-2">
-          {bugs.length > 0 ? (
-              bugs.map((bug) => (
-                <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100">
-                  <h3 className="font-medium">{bug.title}</h3>
-                  <p className="text-sm text-gray-500">
-                    Severity: {bug.severity} | Status: {bug.status} | Creator: {bug.creator}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No bugs found.</p>
-            )}
-            {/* {filteredBugs.map((bug) => (
-              <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100">
+          {filteredBugs.map((bug) => (
+              <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100" onClick={() => navigate(`/bug/${bug.id}`, { state: bug })}>
                 <h3 className="font-medium">{bug.title}</h3>
                 <p className="text-sm text-gray-500">Severity: {bug.severity} | Status: {bug.status}</p>
               </div>
-            ))} */}
+            ))}
           </div>
         </div>
       </div>

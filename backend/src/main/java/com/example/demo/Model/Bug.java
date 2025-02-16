@@ -14,13 +14,14 @@ public class Bug {
     private String severity;
     private String status;
     private String creator;
-    private Integer priority;   
+    // private Integer priority;   
     private String description;     
     @Column(name = "code_file_path") // Store file path
     private String codeFilePath;
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+    private String language;
     
 
     public Long getId() {
@@ -31,6 +32,14 @@ public class Bug {
         this.id = id;
     }
 
+    public String getLanguage(){
+        return language;
+    }
+
+    public void setLanguage(String language){
+        this.language = language;
+    }
+
     public String getCodeFilePath() { 
         return codeFilePath; 
     }
@@ -38,7 +47,6 @@ public class Bug {
     public void setCodeFilePath(String codeFilePath) { 
         this.codeFilePath = codeFilePath; 
     }
-
 
     public String getDescription() { 
         return description; 
@@ -80,13 +88,13 @@ public class Bug {
         this.creator = creator;
     }
 
-    public Integer getPriority() {
-        return priority;
-    }
+    // public Integer getPriority() {
+    //     return priority;
+    // }
 
-    public void setPriority(Integer priority) {
-        this.priority = priority;
-    }
+    // public void setPriority(Integer priority) {
+    //     this.priority = priority;
+    // }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
