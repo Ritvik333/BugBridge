@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import { runCode } from "../services/auth";
 
@@ -11,28 +11,38 @@ export default function BugDetails() {
   const [output, setOutput] = useState("");
   const [code, setCode] = useState("");
 
-  // Load code from localStorage when the component mounts
+  // Store the ORIGINAL bug.code permanently
+  const originalCodeRef = useRef(bug.code);
+
   useEffect(() => {
     const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
-    setCode(savedCode || bug.code); // Use saved code if available, else use bug default
+
+    if (savedCode) {
+      setCode(savedCode);
+    } else {
+      setCode(bug.code);
+    }
   }, [bug.id, bug.code]);
 
-  // Save code to localStorage whenever it changes
   const handleCodeChange = (newCode) => {
     setCode(newCode);
     localStorage.setItem(`bug_${bug.id}_code`, newCode);
   };
 
-  // Function to run the code
   const handleRunCode = async () => {
     try {
-        const result = await runCode(code, selectedLanguage);
-        setOutput(result||"No output");
+      const result = await runCode(code, selectedLanguage);
+      setOutput(result || "No output");
     } catch (error) {
-        console.error("Error running code:", error);
-        setOutput(`Unexpected Error: ${error.message || error}`);
+      console.error("Error running code:", error);
+      setOutput(`Unexpected Error: ${error.message || error}`);
     }
-};
+  };
+
+  const handleResetCode = () => {
+    setCode(originalCodeRef.current); // Reset code to original bug.code
+    localStorage.removeItem(`bug_${bug.id}_code`); // Clear saved changes in local storage
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -49,7 +59,6 @@ export default function BugDetails() {
           <h2 className="text-lg font-semibold">Code</h2>
 
           <div className="flex items-center space-x-2">
-            {/* Language Selection */}
             <select 
               value={selectedLanguage} 
               onChange={(e) => setSelectedLanguage(e.target.value)} 
@@ -60,17 +69,22 @@ export default function BugDetails() {
               <option value="java">Java</option>
             </select>
 
-            {/* Run Button */}
             <button 
               onClick={handleRunCode} 
               className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
             >
               Run
             </button>
+
+            <button 
+              onClick={handleResetCode} 
+              className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+            >
+              Reset
+            </button>
           </div>
         </div>
 
-        <div className="mt-2"></div>
         <MonacoEditor
           height="400px"
           language={selectedLanguage}
@@ -86,10 +100,9 @@ export default function BugDetails() {
         />
 
         {/* Output Section */}
-        <div className="mt-2"></div>
-        <h2 className="text-lg font-semibold">Output</h2>
+        <h2 className="text-lg font-semibold mt-4">Output</h2>
         <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
-          <pre className="mt-2">{output}</pre>
+          <pre>{output}</pre>
         </div>
       </div>
     </div>
