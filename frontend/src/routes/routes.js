@@ -15,9 +15,9 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} />
-      
       {/* Add route for BugDetails page */}
-      <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} /> 
+      <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
+
 
     </Routes>
   );
