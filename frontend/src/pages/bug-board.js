@@ -9,41 +9,35 @@ export default function BugBoardPage() {
   const [filterSeverity, setFilterSeverity] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCreator, setFilterCreator] = useState("");
-  const [sortOption, setSortOption] = useState("creationDate");
+  const [sortOption, setSortOption] = useState("created_at");
+  const [bugs, setBugs] = useState([]);
+  
   const navigate = useNavigate();
   const menuRef = useRef(null); // Reference for the dropdown menu
 
-  const bugs = [
-    { id: 1, title: "Syntax Error in Line 24", severity: "high", status: "open", creator: "Alice", creationDate: "2024-02-01", priority: 2, language:"javascript", description: "A syntax error was detected in the main function.", 
-      code: "function hello() { console.log('Hello world!') } hello()" },
-    { id: 2, title: "Undefined Variable", severity: "medium", status: "in progress", creator: "Bob", creationDate: "2024-02-02", priority: 3, description: "Variable 'x' is not defined in the function.", code: "function calculate() { return x + 10; }" },
-    { id: 3, title: "Memory Leak Detected", severity: "critical", status: "open", creator: "Charlie", creationDate: "2024-02-03", priority: 1, description: "Memory usage keeps increasing due to an unclosed reference.", code: "let arr = []; while(true) { arr.push(new Array(1000000)); }" },
-    { 
-      id: 4, 
-      title: "Python Print Function", 
-      severity: "low", 
-      status: "open", 
-      creator: "David", 
-      creationDate: "2024-02-04", 
-      priority: 4, 
-      language: "python", 
-      description: "A simple Python function to test the run functionality.", 
-      code: "def hello():\n    print('Hello, world!')\n\nhello()" 
-  },
-  {
-    "id": 5,
-    "title": "Java Hello World",
-    "severity": "low",
-    "status": "open",
-    "creator": "Eve",
-    "creationDate": "2024-02-05",
-    "priority": 5,
-    "language": "java",
-    "description": "A simple Java program to test execution.",
-    "code": "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, world!\");\n    }\n}"
-  }
+  useEffect(() => {
+    fetchBugs();
+  }, [filterSeverity, filterStatus, filterCreator, sortOption]); // Fetch when filters change
 
-  ];
+
+  const fetchBugs = async () => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filterSeverity) queryParams.append("severity", filterSeverity);
+      if (filterStatus) queryParams.append("status", filterStatus);
+      if (filterCreator) queryParams.append("creator", filterCreator);
+      queryParams.append("sortBy", sortOption);
+      queryParams.append("order", "asc");
+  
+      const response = await fetch(`http://localhost:8080/api/bugs?${queryParams}`);
+      if (!response.ok) throw new Error("Failed to fetch bugs");
+  
+      const data = await response.json();
+      setBugs(data);
+    } catch (error) {
+      console.error("Error fetching bugs:", error);
+    }
+  };
 
   const handleLogout = () => {
     logout(); // Clear auth data
@@ -64,10 +58,63 @@ export default function BugBoardPage() {
   }, []);
 
   const filteredBugs = bugs
-    .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
-    .filter((bug) => !filterStatus || bug.status === filterStatus)
-    .filter((bug) => !filterCreator || bug.creator === filterCreator)
-    .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
+  .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
+  .filter((bug) => !filterStatus || bug.status === filterStatus)
+  .filter((bug) => !filterCreator || bug.creator === filterCreator)
+  .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
+
+  //future functionality for create, update, delete bugs
+  const createBug = async (bugData) => {
+    try {
+      const response = await fetch("http://localhost:8080/api/bugs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bugData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to create bug");
+      }
+  
+      fetchBugs(); // Refresh bugs after adding
+    } catch (error) {
+      console.error("Error creating bug:", error);
+    }
+  };
+  
+  const updateBug = async (bugId, updatedData) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update bug");
+      }
+  
+      fetchBugs(); // Refresh bugs after update
+    } catch (error) {
+      console.error("Error updating bug:", error);
+    }
+  };
+  
+  const deleteBug = async (bugId) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
+        method: "DELETE",
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete bug");
+      }
+  
+      fetchBugs(); // Refresh bugs after deletion
+    } catch (error) {
+      console.error("Error deleting bug:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -111,17 +158,17 @@ export default function BugBoardPage() {
             <option value="">All Creators</option>
             <option value="Alice">Alice</option>
             <option value="Bob">Bob</option>
-            <option value="Charlie">Charlie</option>
+            <option value="Charlie">BugBoard</option>
           </select>
           <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-            <option value="creationDate">Sort by Creation Date</option>
+            <option value="created_at">Sort by Creation Date</option>
             <option value="priority">Sort by Priority</option>
           </select>
         </div>
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold mb-2">Detected Bugs</h2>
           <div className="space-y-2">
-            {filteredBugs.map((bug) => (
+          {filteredBugs.map((bug) => (
               <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100" onClick={() => navigate(`/bug/${bug.id}`, { state: bug })}>
                 <h3 className="font-medium">{bug.title}</h3>
                 <p className="text-sm text-gray-500">Severity: {bug.severity} | Status: {bug.status}</p>
