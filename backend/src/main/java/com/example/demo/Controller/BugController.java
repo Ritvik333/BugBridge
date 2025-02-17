@@ -9,6 +9,10 @@ import com.example.demo.Service.BugService;
 import com.example.demo.Service.FileStorageService;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -112,4 +116,15 @@ public class BugController {
         boolean deleted = bugService.deleteBug(id);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
+    
+    @GetMapping("/file/{filename}")
+    public ResponseEntity<String> getFileContent(@PathVariable String filename) throws IOException {
+        Path filePath = Paths.get("uploads", filename);
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+        String content = Files.readString(filePath);
+        return ResponseEntity.ok(content);
+    }
+
 }

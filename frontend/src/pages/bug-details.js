@@ -1,38 +1,59 @@
 import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
-import { runCode } from "../services/auth";
+import { runCode, fetchCodeFile } from "../services/auth";
 
 export default function BugDetails() {
   const location = useLocation();
   const bug = location.state;
-
-  const [selectedLanguage, setSelectedLanguage] = useState("python");
   const [output, setOutput] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(""); // Initially empty
   const [saveStatus, setSaveStatus] = useState("Saved"); // "Saving..." | "Saved"
-
-  const originalCodeRef = useRef(bug.code);
+  const [loading, setLoading] = useState(true); // Loading while fetching the code
+  const originalCodeRef = useRef(""); // To store the original code
   const saveTimeoutRef = useRef(null); // To debounce saving
+  const [selectedLanguage, setSelectedLanguage] = useState(bug.language);
 
+  // Fetch the code from the file using bug.codeFilePath
   useEffect(() => {
-    const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
-    setCode(savedCode || bug.code);
-  }, [bug.id, bug.code]);
+    const loadCode = async () => {
+      try {
+        const filepath = bug.codeFilePath;
+        const filename = filepath.split("/").pop(); // Get the file name from the path
+        const fetchedCode = await fetchCodeFile(filename);
+        console.log(bug);
+        console.log(fetchedCode); // Check the fetched code
+        setCode(fetchedCode || ""); // Set code if fetched, otherwise empty
+        originalCodeRef.current = fetchedCode || ""; // Store the original code for reset
+
+        // Check if there's saved code in localStorage
+        const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
+        if (savedCode) {
+          setCode(savedCode); // If there's saved code, use it
+        }
+      } catch (error) {
+        console.error("Error fetching code file:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
+      }
+    };
+
+    loadCode();
+  }, [bug.codeFilePath]); // Dependency on codeFilePath so that it refetches when changed
 
   const handleCodeChange = (newCode) => {
     setCode(newCode);
-    setSaveStatus("Saving..."); // Show buffering icon
+    setSaveStatus("Saving...");
 
     // Clear any previous timeout to debounce saving
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Wait 800ms before saving to avoid excessive localStorage writes
+    // Save to localStorage after 800ms debounce
     saveTimeoutRef.current = setTimeout(() => {
       localStorage.setItem(`bug_${bug.id}_code`, newCode);
-      setSaveStatus("Saved"); // Show "Draft saved"
+      setSaveStatus("Saved"); // Set status as "Draft saved"
     }, 800);
   };
 
@@ -48,7 +69,7 @@ export default function BugDetails() {
 
   const handleResetCode = () => {
     setCode(originalCodeRef.current);
-    localStorage.removeItem(`bug_${bug.id}_code`);
+    localStorage.setItem(`bug_${bug.id}_code`, originalCodeRef.current);
     setSaveStatus("Saved"); // Reset means it's back to the original
   };
 
@@ -67,15 +88,17 @@ export default function BugDetails() {
           <h2 className="text-lg font-semibold">Code</h2>
 
           <div className="flex items-center space-x-2">
-            <select 
-              value={selectedLanguage} 
-              onChange={(e) => setSelectedLanguage(e.target.value)} 
-              className="p-1 border rounded-md"
-            >
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="java">Java</option>
-            </select>
+            {bug.language && (
+              <select 
+                value={selectedLanguage} 
+                onChange={(e) => setSelectedLanguage(e.target.value)} 
+                className="p-1 border rounded-md"
+              >
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+              </select>
+            )}
 
             <button 
               onClick={handleRunCode} 
@@ -83,47 +106,50 @@ export default function BugDetails() {
             >
               Run
             </button>
-
-            </div>
-            </div>
-        <MonacoEditor
-          height="400px"
-          language={selectedLanguage}
-          theme="vs-dark"
-          value={code}
-          onChange={handleCodeChange}
-          options={{
-            minimap: { enabled: false },
-            automaticLayout: true,
-            fontSize: 14,
-            lineNumbers: "on",
-          }}
-        />
+          </div>
+        </div>
+        
+        {loading ? (
+          <p>Loading code...</p> // Show loading message while fetching
+        ) : (
+          <MonacoEditor
+            height="400px"
+            language={selectedLanguage}
+            theme="vs-dark"
+            value={code}
+            onChange={handleCodeChange}
+            options={{
+              minimap: { enabled: false },
+              automaticLayout: true,
+              fontSize: 14,
+              lineNumbers: "on",
+            }}
+          />
+        )}
 
         {/* Reset Button & Save Status */}
         <div className="flex items-center space-x-4 mt-2">
-        <button 
+          <button 
             onClick={handleResetCode} 
             className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-        >
+          >
             Reset
-        </button>
+          </button>
 
-        {/* Save Status Indicator */}
-        <div className="text-sm text-gray-500 flex items-center">
+          {/* Save Status Indicator */}
+          <div className="text-sm text-gray-500 flex items-center">
             {saveStatus === "Saving..." ? (
-            <>
+              <>
                 <div className="animate-spin h-4 w-4 border-t-2 border-gray-500 rounded-full mr-2"></div>
                 Saving...
-            </>
+              </>
             ) : (
-            <>
+              <>
                 ✔ <span className="ml-1">Draft saved</span>
-            </>
+              </>
             )}
+          </div>
         </div>
-        </div>
-
 
         {/* Output Section */}
         <h2 className="text-lg font-semibold mt-4">Output</h2>
