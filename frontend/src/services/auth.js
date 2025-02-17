@@ -64,4 +64,22 @@ export const fetchCodeFile = async (filename) => {
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
-  }};
+  }
+};
+export const fetchBugs = async (filters) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    // Add filters to query parameters
+    if (filters.filterSeverity) queryParams.append("severity", filters.filterSeverity);
+    if (filters.filterStatus) queryParams.append("status", filters.filterStatus);
+    if (filters.filterCreator) queryParams.append("creator", filters.filterCreator);
+    queryParams.append("sortBy", filters.sortOption);
+    queryParams.append("order", "asc");
+
+    const response = await apiClient.get(`/api/bugs?${queryParams}`);
+    return response.data; // Return the fetched bugs
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};

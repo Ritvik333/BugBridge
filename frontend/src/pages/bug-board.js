@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell, Menu } from "lucide-react";
-import { logout } from "../services/auth";
+import { logout,fetchBugs } from "../services/auth";
 import { useNavigate } from "react-router-dom";
 
 export default function BugBoardPage() {
@@ -16,23 +16,14 @@ export default function BugBoardPage() {
   const menuRef = useRef(null); // Reference for the dropdown menu
 
   useEffect(() => {
-    fetchBugs();
+    fetchBugsList();
   }, [filterSeverity, filterStatus, filterCreator, sortOption]); // Fetch when filters change
 
 
-  const fetchBugs = async () => {
+  const fetchBugsList = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      if (filterSeverity) queryParams.append("severity", filterSeverity);
-      if (filterStatus) queryParams.append("status", filterStatus);
-      if (filterCreator) queryParams.append("creator", filterCreator);
-      queryParams.append("sortBy", sortOption);
-      queryParams.append("order", "asc");
-  
-      const response = await fetch(`http://localhost:8080/api/bugs?${queryParams}`);
-      if (!response.ok) throw new Error("Failed to fetch bugs");
-  
-      const data = await response.json();
+      const filters = { filterSeverity, filterStatus, filterCreator, sortOption };
+      const data = await fetchBugs(filters); // Call fetchBugs from auth.js
       setBugs(data);
     } catch (error) {
       console.error("Error fetching bugs:", error);
@@ -62,59 +53,6 @@ export default function BugBoardPage() {
   .filter((bug) => !filterStatus || bug.status === filterStatus)
   .filter((bug) => !filterCreator || bug.creator === filterCreator)
   .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
-
-  //future functionality for create, update, delete bugs
-  const createBug = async (bugData) => {
-    try {
-      const response = await fetch("http://localhost:8080/api/bugs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bugData),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to create bug");
-      }
-  
-      fetchBugs(); // Refresh bugs after adding
-    } catch (error) {
-      console.error("Error creating bug:", error);
-    }
-  };
-  
-  const updateBug = async (bugId, updatedData) => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to update bug");
-      }
-  
-      fetchBugs(); // Refresh bugs after update
-    } catch (error) {
-      console.error("Error updating bug:", error);
-    }
-  };
-  
-  const deleteBug = async (bugId) => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-        method: "DELETE",
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to delete bug");
-      }
-  
-      fetchBugs(); // Refresh bugs after deletion
-    } catch (error) {
-      console.error("Error deleting bug:", error);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -180,3 +118,56 @@ export default function BugBoardPage() {
     </div>
   );
 }
+
+// //future functionality for create, update, delete bugs
+// const createBug = async (bugData) => {
+//   try {
+//     const response = await fetch("http://localhost:8080/api/bugs", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(bugData),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error("Failed to create bug");
+//     }
+
+//     fetchBugs(); // Refresh bugs after adding
+//   } catch (error) {
+//     console.error("Error creating bug:", error);
+//   }
+// };
+
+// const updateBug = async (bugId, updatedData) => {
+//   try {
+//     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
+//       method: "PUT",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(updatedData),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error("Failed to update bug");
+//     }
+
+//     fetchBugs(); // Refresh bugs after update
+//   } catch (error) {
+//     console.error("Error updating bug:", error);
+//   }
+// };
+
+// const deleteBug = async (bugId) => {
+//   try {
+//     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
+//       method: "DELETE",
+//     });
+
+//     if (!response.ok) {
+//       throw new Error("Failed to delete bug");
+//     }
+
+//     fetchBugs(); // Refresh bugs after deletion
+//   } catch (error) {
+//     console.error("Error deleting bug:", error);
+//   }
+// };
