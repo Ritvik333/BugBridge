@@ -21,11 +21,28 @@ export default function BugBoardPage() {
   }, [filterSeverity, filterStatus, filterCreator, sortOption]); // Fetch when filters change
 
   useEffect(() => {
-    fetch("/api/users")
-        .then(res => res.json())
-        .then(data => setUsers(Array.isArray(data) ? data : []))
-        .catch(error => console.error("Error fetching users:", error));
+    fetch("http://localhost:8080/api/users")
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch users");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log("Users fetched:", data); // Debugging log
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else {
+        setUsers([]);
+        console.error("Unexpected users data format", data);
+      }
+    })
+    .catch((error) => console.error("Error fetching users:", error));
 }, []);
+//         .then(res => res.json())
+//         .then(data => setUsers(Array.isArray(data) ? data : []))
+//         .catch(error => console.error("Error fetching users:", error));
+// }, []);
 
 
 
@@ -167,14 +184,27 @@ export default function BugBoardPage() {
           </select>
 
           <select onChange={(e) => setFilterCreator(e.target.value)} className="p-2 border rounded hover:border-gray-400">
+            <option value="">All Creators</option>
+            {users.length > 0 ? (
+              users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.username}
+                </option>
+              ))
+            ) : (
+              <option disabled>Loading users...</option>
+            )}
+          </select>
+
+          {/* <select onChange={(e) => setFilterCreator(e.target.value)} className="p-2 border rounded hover:border-gray-400">
           <option value="">All Creators</option>
           {users.map(user => (
             <option key={user.id} value={user.id}>{user.name}</option>
             ))}
           {/* {users.map(user => (
             <option key={user.id} value={user.id}>{user.name}</option>
-          ))} */}
-          </select>
+          ))} 
+          </select> */}
 
           <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
             <option value="created_at">Sort by Creation Date</option>
