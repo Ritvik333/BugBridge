@@ -6,6 +6,9 @@ import com.example.demo.dto.UserDto;
 import com.example.demo.Model.User;
 import com.example.demo.exceptions.AppException;
 import com.example.demo.mappers.UserMapper;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.example.demo.Model.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -71,4 +74,11 @@ public class UserService {
         return userMapper.toUserDto(user);
     }
 
+    public User getUserById(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new EntityNotFoundException("User with ID " + id + " not found");
+        }
+        return user.get();
+    }
 }
