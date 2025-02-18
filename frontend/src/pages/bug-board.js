@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell, Menu } from "lucide-react";
 import { logout } from "../services/auth";
+import { fetchBugs, fetchUsers, createBug, updateBug, deleteBug } from "../services/auth"; // Import API functions
 import { useNavigate } from "react-router-dom";
-import { fetchBugs, createBug, updateBug, deleteBug, fetchUsers } from "../services/auth";
 
 export default function BugBoardPage() {
   const [notifications, setNotifications] = useState([]);
@@ -18,28 +18,39 @@ export default function BugBoardPage() {
   const menuRef = useRef(null);
 
   useEffect(() => {
-    fetchUsers()
-      .then(setUsers)
-      .catch(error => console.error("Error fetching users:", error));
-  }, []);
-
-  useEffect(() => {
-    fetchBugs({ filterSeverity, filterStatus, filterCreator, sortOption })
-      .then(setBugs)
-      .catch(error => console.error("Error fetching bugs:", error));
+    const loadBugs = async () => {
+      try {
+        const data = await fetchBugs({ filterSeverity, filterStatus, filterCreator, sortOption });
+        setBugs(data);
+      } catch (error) {
+        console.error("Error fetching bugs:", error);
+      }
+    };
+    loadBugs();
   }, [filterSeverity, filterStatus, filterCreator, sortOption]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
+    const loadUsers = async () => {
+      try {
+        const data = await fetchUsers();
+        setUsers(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching users:", error);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    loadUsers();
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const filteredBugs = bugs
+    .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
+    .filter((bug) => !filterStatus || bug.status === filterStatus)
+    .filter((bug) => !filterCreator || bug.creator.id === parseInt(filterCreator))
+    .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -57,7 +68,7 @@ export default function BugBoardPage() {
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg p-2">
                 <p className="p-2 hover:bg-gray-100 cursor-pointer">My Account</p>
                 <p className="p-2 hover:bg-gray-100 cursor-pointer">Settings</p>
-                <button className="w-full text-left p-2 hover:bg-gray-100 cursor-pointer" onClick={logout}>Log Out</button>
+                <button className="w-full text-left p-2 hover:bg-gray-100 cursor-pointer" onClick={handleLogout}>Log Out</button>
               </div>
             )}
           </div>
@@ -81,7 +92,9 @@ export default function BugBoardPage() {
           <select onChange={(e) => setFilterCreator(e.target.value)} className="p-2 border rounded hover:border-gray-400">
             <option value="">All Creators</option>
             {users.map((user) => (
-              <option key={user.id} value={user.id}>{user.username}</option>
+              <option key={user.id} value={user.id}>
+                {user.username}
+              </option>
             ))}
           </select>
           <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
@@ -92,7 +105,7 @@ export default function BugBoardPage() {
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold mb-2">Detected Bugs</h2>
           <div className="space-y-2">
-            {bugs.map((bug) => (
+            {filteredBugs.map((bug) => (
               <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100" onClick={() => navigate(`/bug/${bug.id}`, { state: bug })}>
                 <h3 className="font-medium">{bug.title}</h3>
                 <p className="text-sm text-gray-500">Severity: {bug.severity} | Status: {bug.status}</p>

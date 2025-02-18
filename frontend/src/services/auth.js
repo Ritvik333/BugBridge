@@ -56,40 +56,46 @@ export const runCode = async (code, language) => {
   }
 };
 
+export const fetchBugs = async ({ filterSeverity, filterStatus, filterCreator, sortOption }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (filterSeverity) queryParams.append("severity", filterSeverity);
+    if (filterStatus) queryParams.append("status", filterStatus);
+    if (filterCreator) queryParams.append("creator_id", filterCreator);
+    queryParams.append("sortBy", sortOption);
+    queryParams.append("order", "asc");
+
+    const response = await apiClient.get(`/api/bugs?${queryParams}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export const fetchUsers = async () => {
   try {
     const response = await apiClient.get("/api/users");
     return response.data;
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return [];
-  }
-};
-
-export const fetchBugs = async (filters) => {
-  try {
-    const queryParams = new URLSearchParams(filters).toString();
-    const response = await apiClient.get(`/api/bugs?${queryParams}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching bugs:", error);
-    return [];
+    throw error.response ? error.response.data : error.message;
   }
 };
 
 export const createBug = async (bugData) => {
   try {
-    await apiClient.post("/api/bugs", { ...bugData, creator_id: bugData.creator });
+    const response = await apiClient.post("/api/bugs", { ...bugData, creator_id: bugData.creator });
+    return response.data;
   } catch (error) {
-    console.error("Error creating bug:", error);
+    throw error.response ? error.response.data : error.message;
   }
 };
 
 export const updateBug = async (bugId, updatedData) => {
   try {
-    await apiClient.put(`/api/bugs/${bugId}`, updatedData);
+    const response = await apiClient.put(`/api/bugs/${bugId}`, updatedData);
+    return response.data;
   } catch (error) {
-    console.error("Error updating bug:", error);
+    throw error.response ? error.response.data : error.message;
   }
 };
 
@@ -97,7 +103,7 @@ export const deleteBug = async (bugId) => {
   try {
     await apiClient.delete(`/api/bugs/${bugId}`);
   } catch (error) {
-    console.error("Error deleting bug:", error);
+    throw error.response ? error.response.data : error.message;
   }
 };
 
