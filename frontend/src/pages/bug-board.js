@@ -3,6 +3,7 @@ import { Bell, Menu } from "lucide-react";
 import { logout,fetchBugs } from "../services/auth";
 import { useNavigate } from "react-router-dom";
 
+
 export default function BugBoardPage() {
   const [notifications, setNotifications] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,9 +17,11 @@ export default function BugBoardPage() {
   const navigate = useNavigate();
   const menuRef = useRef(null); // Reference for the dropdown menu
 
-  useEffect(() => {
-    fetchBugsList();
-  }, [filterSeverity, filterStatus, filterCreator, sortOption]); // Fetch when filters change
+// eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  fetchBugsList();
+}, [filterSeverity, filterStatus, filterCreator, sortOption]);
+
 
   useEffect(() => {
     fetch("http://localhost:8080/api/users")
