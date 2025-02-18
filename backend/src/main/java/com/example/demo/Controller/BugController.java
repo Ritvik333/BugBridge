@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
+
 @RequestMapping("/api/bugs")
 public class BugController {
     @Autowired
