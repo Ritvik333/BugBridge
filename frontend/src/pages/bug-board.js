@@ -22,27 +22,10 @@ export default function BugBoardPage() {
 
   useEffect(() => {
     fetch("http://localhost:8080/api/users")
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Failed to fetch users");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      console.log("Users fetched:", data); // Debugging log
-      if (Array.isArray(data)) {
-        setUsers(data);
-      } else {
-        setUsers([]);
-        console.error("Unexpected users data format", data);
-      }
-    })
-    .catch((error) => console.error("Error fetching users:", error));
+        .then(res => res.json())
+        .then(data => setUsers(Array.isArray(data) ? data : []))
+        .catch(error => console.error("Error fetching users:", error));
 }, []);
-//         .then(res => res.json())
-//         .then(data => setUsers(Array.isArray(data) ? data : []))
-//         .catch(error => console.error("Error fetching users:", error));
-// }, []);
 
 
 
