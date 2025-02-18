@@ -55,3 +55,49 @@ export const runCode = async (code, language) => {
     throw error.response ? error.response.data : error.message;
   }
 };
+
+export const fetchUsers = async () => {
+  try {
+    const response = await apiClient.get("/api/users");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+};
+
+export const fetchBugs = async (filters) => {
+  try {
+    const queryParams = new URLSearchParams(filters).toString();
+    const response = await apiClient.get(`/api/bugs?${queryParams}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching bugs:", error);
+    return [];
+  }
+};
+
+export const createBug = async (bugData) => {
+  try {
+    await apiClient.post("/api/bugs", { ...bugData, creator_id: bugData.creator });
+  } catch (error) {
+    console.error("Error creating bug:", error);
+  }
+};
+
+export const updateBug = async (bugId, updatedData) => {
+  try {
+    await apiClient.put(`/api/bugs/${bugId}`, updatedData);
+  } catch (error) {
+    console.error("Error updating bug:", error);
+  }
+};
+
+export const deleteBug = async (bugId) => {
+  try {
+    await apiClient.delete(`/api/bugs/${bugId}`);
+  } catch (error) {
+    console.error("Error deleting bug:", error);
+  }
+};
+
