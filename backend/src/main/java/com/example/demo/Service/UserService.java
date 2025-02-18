@@ -83,7 +83,7 @@ public class UserService {
         return user.get();
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<User> getUsersWithBugs() {
+        return userRepository.findUsersWithBugs();
     }
 }
