@@ -13,7 +13,7 @@ public class BugService {
     @Autowired
     private BugRepository bugRepository;
 
-    public List<Bug> getBugs(String severity, String status, String creator, String sortBy, String order) {
+    public List<Bug> getBugs(String severity, String status, Long creator, String sortBy, String order) {
         return bugRepository.findAll(); 
         
     }
