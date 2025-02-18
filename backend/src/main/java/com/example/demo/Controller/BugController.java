@@ -25,6 +25,7 @@ import com.example.demo.Service.FileStorageService;
 import com.example.demo.Service.UserService;
 
 @RestController
+
 @RequestMapping("/api/bugs")
 public class BugController {
     @Autowired

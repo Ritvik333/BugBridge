@@ -63,59 +63,6 @@ export default function BugBoardPage() {
   .filter((bug) => !filterCreator || bug.creator.id === parseInt(filterCreator))
   .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
 
-  //future functionality for create, update, delete bugs
-  const createBug = async (bugData) => {
-    try {
-      const response = await fetch("http://localhost:8080/api/bugs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...bugData, creator_id: bugData.creator }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to create bug");
-      }
-  
-      fetchBugs(); // Refresh bugs after adding
-    } catch (error) {
-      console.error("Error creating bug:", error);
-    }
-  };
-  
-  const updateBug = async (bugId, updatedData) => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to update bug");
-      }
-  
-      fetchBugs(); // Refresh bugs after update
-    } catch (error) {
-      console.error("Error updating bug:", error);
-    }
-  };
-  
-  const deleteBug = async (bugId) => {
-    try {
-      const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-        method: "DELETE",
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to delete bug");
-      }
-  
-      fetchBugs(); // Refresh bugs after deletion
-    } catch (error) {
-      console.error("Error deleting bug:", error);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <nav className="h-14 bg-white shadow-sm flex justify-between items-center px-4">
@@ -202,55 +149,55 @@ export default function BugBoardPage() {
   );
 }
 
-// //future functionality for create, update, delete bugs
-// const createBug = async (bugData) => {
-//   try {
-//     const response = await fetch("http://localhost:8080/api/bugs", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(bugData),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Failed to create bug");
-//     }
-
-//     fetchBugs(); // Refresh bugs after adding
-//   } catch (error) {
-//     console.error("Error creating bug:", error);
-//   }
-// };
-
-// const updateBug = async (bugId, updatedData) => {
-//   try {
-//     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-//       method: "PUT",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(updatedData),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Failed to update bug");
-//     }
-
-//     fetchBugs(); // Refresh bugs after update
-//   } catch (error) {
-//     console.error("Error updating bug:", error);
-//   }
-// };
-
-// const deleteBug = async (bugId) => {
-//   try {
-//     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-//       method: "DELETE",
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Failed to delete bug");
-//     }
-
-//     fetchBugs(); // Refresh bugs after deletion
-//   } catch (error) {
-//     console.error("Error deleting bug:", error);
-//   }
-// };
+//future functionality for create, update, delete bugs
+  // const createBug = async (bugData) => {
+  //   try {
+  //     const response = await fetch("http://localhost:8080/api/bugs", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ ...bugData, creator_id: bugData.creator }),
+  //     });
+  
+  //     if (!response.ok) {
+  //       throw new Error("Failed to create bug");
+  //     }
+  
+  //     fetchBugs(); // Refresh bugs after adding
+  //   } catch (error) {
+  //     console.error("Error creating bug:", error);
+  //   }
+  // };
+  
+  // const updateBug = async (bugId, updatedData) => {
+  //   try {
+  //     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(updatedData),
+  //     });
+  
+  //     if (!response.ok) {
+  //       throw new Error("Failed to update bug");
+  //     }
+  
+  //     fetchBugs(); // Refresh bugs after update
+  //   } catch (error) {
+  //     console.error("Error updating bug:", error);
+  //   }
+  // };
+  
+  // const deleteBug = async (bugId) => {
+  //   try {
+  //     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
+  //       method: "DELETE",
+  //     });
+  
+  //     if (!response.ok) {
+  //       throw new Error("Failed to delete bug");
+  //     }
+  
+  //     fetchBugs(); // Refresh bugs after deletion
+  //   } catch (error) {
+  //     console.error("Error deleting bug:", error);
+  //   }
+  // };
