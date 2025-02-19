@@ -45,6 +45,7 @@ export const reset_password = async (userData) => {
 export const logout = () => {
   console.log(localStorage.getItem("authToken"));
   localStorage.removeItem("authToken"); // Remove authentication token
+  localStorage.clear();
 };
 
 export const runCode = async (code, language) => {
@@ -54,7 +55,6 @@ export const runCode = async (code, language) => {
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
-
 
 };
 export const fetchCodeFile = async (filename) => {
@@ -79,6 +79,14 @@ export const fetchBugs = async (filters) => {
 
     const response = await apiClient.get(`/api/bugs?${queryParams}`);
     return response.data; // Return the fetched bugs
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+export const fetchUsers = async () => {
+  try {
+    const response = await apiClient.get("/api/users");
+    return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
