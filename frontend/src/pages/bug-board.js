@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell, Menu } from "lucide-react";
-import { logout,fetchBugs } from "../services/auth";
+import { logout,fetchBugs, fetchUsers } from "../services/auth";
 import { useNavigate } from "react-router-dom";
 
 
@@ -13,6 +13,7 @@ export default function BugBoardPage() {
   const [sortOption, setSortOption] = useState("created_at");
   const [bugs, setBugs] = useState([]);
   const [users, setUsers] = useState([]);
+  
 
   const navigate = useNavigate();
   const menuRef = useRef(null); // Reference for the dropdown menu
@@ -23,13 +24,24 @@ useEffect(() => {
 }, [filterSeverity, filterStatus, filterCreator, sortOption]);
 
 
+// useEffect(() => {
+//     fetch("http://localhost:8080/api/users")
+//         .then(res => res.json())
+//         .then(data => setUsers(Array.isArray(data) ? data : []))
+//         .catch(error => console.error("Error fetching users:", error));
+// }, []);
   useEffect(() => {
-    fetch("http://localhost:8080/api/users")
-        .then(res => res.json())
-        .then(data => setUsers(Array.isArray(data) ? data : []))
-        .catch(error => console.error("Error fetching users:", error));
-}, []);
+    const fetchUsersList = async () => {
+      try {
+        const usersData = await fetchUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
 
+    fetchUsersList();
+  }, []);
 
 
   const fetchBugsList = async () => {
@@ -103,8 +115,8 @@ useEffect(() => {
           <select onChange={(e) => setFilterStatus(e.target.value)} className="p-2 border rounded hover:border-gray-400">
             <option value="">All Statuses</option>
             <option value="open">Open</option>
-            <option value="in progress">In Progress</option>
-            <option value="resolved">Resolved</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
           </select>
 
           <select onChange={(e) => setFilterCreator(e.target.value)} className="p-2 border rounded hover:border-gray-400">
@@ -151,56 +163,3 @@ useEffect(() => {
     </div>
   );
 }
-
-//future functionality for create, update, delete bugs
-  // const createBug = async (bugData) => {
-  //   try {
-  //     const response = await fetch("http://localhost:8080/api/bugs", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ ...bugData, creator_id: bugData.creator }),
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to create bug");
-  //     }
-  
-  //     fetchBugs(); // Refresh bugs after adding
-  //   } catch (error) {
-  //     console.error("Error creating bug:", error);
-  //   }
-  // };
-  
-  // const updateBug = async (bugId, updatedData) => {
-  //   try {
-  //     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(updatedData),
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update bug");
-  //     }
-  
-  //     fetchBugs(); // Refresh bugs after update
-  //   } catch (error) {
-  //     console.error("Error updating bug:", error);
-  //   }
-  // };
-  
-  // const deleteBug = async (bugId) => {
-  //   try {
-  //     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-  //       method: "DELETE",
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to delete bug");
-  //     }
-  
-  //     fetchBugs(); // Refresh bugs after deletion
-  //   } catch (error) {
-  //     console.error("Error deleting bug:", error);
-  //   }
-  // };
