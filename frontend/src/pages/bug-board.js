@@ -45,13 +45,13 @@ function BugBoardPage() {
         : new Date(b.creationDate) - new Date(a.creationDate),
     )
 
-  const getInitials = (name) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }
+  // const getInitials = (name) => {
+  //   return name
+  //     .split(" ")
+  //     .map((n) => n[0])
+  //     .join("")
+  //     .toUpperCase()
+  // }
 
   const getSeverityColor = (severity) => {
     switch (severity) {
@@ -62,6 +62,19 @@ function BugBoardPage() {
       case "high":
         return "text-orange-600"
       case "critical":
+        return "text-red-600"
+      default:
+        return "text-gray-600"
+    }
+  }
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "resolved":
+        return "text-green-600"
+      case "in progress":
+        return "text-orange-600"
+      case "open":
         return "text-red-600"
       default:
         return "text-gray-600"
@@ -159,8 +172,8 @@ function BugBoardPage() {
                       </Link>
                     </h3>
                     <p className="text-sm text-gray-500">
-                      Severity: <span className={getSeverityColor(bug.severity)}>{bug.severity}</span> | Status:{" "}
-                      {bug.status} | Created: {bug.creationDate} | Creator: {getInitials(bug.creator)} | Language:{" "}
+                       <span className={getSeverityColor(bug.severity)}>{bug.severity}</span> | {" "}
+                       <span className={getStatusColor(bug.status)}>{bug.status}</span> |  Language:{" "}
                       {bug.language}
                     </p>
                   </div>
