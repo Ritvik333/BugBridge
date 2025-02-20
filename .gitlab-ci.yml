@@ -27,6 +27,7 @@ frontend-build:
       echo "Base URL:$BASE_URL"
       export BACKEND_BASE_URL=$BASE_URL
       echo "Backend Base URL: $BACKEND_BASE_URL"
+      export CI=false
       npm run build
   artifacts:
     paths:
