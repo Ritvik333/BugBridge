@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
-import { runCode } from "../services/auth";
+import { runCode, fetchCodeFile } from "../services/auth";
 import jsBeautify from "js-beautify";
 
 export default function BugDetails({ currentUser }) {
@@ -11,7 +11,7 @@ export default function BugDetails({ currentUser }) {
 
   const [selectedLanguage, setSelectedLanguage] = useState(bug.language || "python");
   const [output, setOutput] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(""); // Initially empty
   const [bugDescription, setBugDescription] = useState(bug.description);
   const [savedDescription, setSavedDescription] = useState(bug.description);
   const [isEditing, setIsEditing] = useState(false);
@@ -20,20 +20,43 @@ export default function BugDetails({ currentUser }) {
   // New states for the comment section
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-
-  const originalCodeRef = useRef(bug.code);
+  const [loading, setLoading] = useState(true); // Loading while fetching the code
+  const originalCodeRef = useRef(""); // To store the original code
   const saveTimeoutRef = useRef(null);
 
   const isCreator = currentUser === bug.creator;
+  const [selectedLanguage, setSelectedLanguage] = useState(bug.language);
 
+  // Fetch the code from the file using bug.codeFilePath
   useEffect(() => {
-    const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
+    const loadCode = async () => {
+      try {
+        const filepath = bug.codeFilePath;
+        const filename = filepath.split("/").pop(); // Get the file name from the path
+        const fetchedCode = await fetchCodeFile(filename);
+        console.log(bug);
+        console.log(fetchedCode); // Check the fetched code
+        setCode(fetchedCode || ""); // Set code if fetched, otherwise empty
+        originalCodeRef.current = fetchedCode || ""; // Store the original code for reset
+
+        // Check if there's saved code in localStorage
+        const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
     const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
 
-    setCode(savedCode || bug.code);
+        if (savedCode) {
+          setCode(savedCode); // If there's saved code, use it
+        }
+      } catch (error) {
+        console.error("Error fetching code file:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
+      }
+    };
+
+    loadCode();
     setBugDescription(savedBugDescription || bug.description);
     setSavedDescription(savedBugDescription || bug.description);
-  }, [bug.id, bug.code, bug.description]);
+  }, [bug.codeFilePath, bug.description]); // Dependency on codeFilePath so that it refetches when changed
 
   const handleCodeChange = (newCode) => {
     const formattedCode = jsBeautify(newCode, { indent_size: 2 });
@@ -41,9 +64,18 @@ export default function BugDetails({ currentUser }) {
     setIsSaving(true);
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    setCode(newCode);
+    setSaveStatus("Saving...");
+
+    // Clear any previous timeout to debounce saving
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Save to localStorage after 800ms debounce
     saveTimeoutRef.current = setTimeout(() => {
-      localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
-      setIsSaving(false);
+      localStorage.setItem(`bug_${bug.id}_code`, newCode);
+      setSaveStatus("Saved"); // Set status as "Draft saved"
     }, 800);
   };
 
@@ -189,6 +221,22 @@ console.log(bug);
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold">Code</h2>
           <div className="flex items-center space-x-2">
+            {bug.language && (
+              <select 
+                value={selectedLanguage} 
+                onChange={(e) => setSelectedLanguage(e.target.value)} 
+                className="p-1 border rounded-md"
+              >
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+              </select>
+            )}
+
+            <button 
+              onClick={handleRunCode} 
+              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
             <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="p-1 border rounded-md">
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
@@ -211,7 +259,6 @@ console.log(bug);
           </button>
           <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : "✔ Draft Saved"}</p>
         </div>
-
         <h2 className="text-lg font-semibold mt-4">Output</h2>
         <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
           <pre>{output}</pre>

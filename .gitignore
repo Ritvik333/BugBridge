@@ -1,4 +1,6 @@
 .class
+*.yml
+/uploads
 
 # dependencies
 frontend/node_modules

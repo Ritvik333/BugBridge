@@ -32,6 +32,7 @@ build-frontend:
     - echo $BASE_URL
     - export BACKEND_BASE_URL=$BASE_URL
     - echo $BACKEND_BASE_URL
+    - export CI=false
     - npm run build
   artifacts:
     paths:

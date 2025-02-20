@@ -45,12 +45,48 @@ export const reset_password = async (userData) => {
 export const logout = () => {
   console.log(localStorage.getItem("authToken"));
   localStorage.removeItem("authToken"); // Remove authentication token
+  localStorage.clear();
 };
 
 export const runCode = async (code, language) => {
   try {
     const response = await apiClient.post("/api/run", { code, language });
     return response.data.body.output;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+
+};
+export const fetchCodeFile = async (filename) => {
+  try {
+    const response = await apiClient.get(`/api/bugs/file/${filename}`);
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+export const fetchBugs = async (filters) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    // Add filters to query parameters
+    if (filters.filterSeverity) queryParams.append("severity", filters.filterSeverity);
+    if (filters.filterStatus) queryParams.append("status", filters.filterStatus);
+    if (filters.filterCreator) queryParams.append("creator", filters.filterCreator);
+    queryParams.append("sortBy", filters.sortOption);
+    queryParams.append("order", "asc");
+
+    const response = await apiClient.get(`/api/bugs?${queryParams}`);
+    return response.data; // Return the fetched bugs
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+export const fetchUsers = async () => {
+  try {
+    const response = await apiClient.get("/api/users");
+    return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
