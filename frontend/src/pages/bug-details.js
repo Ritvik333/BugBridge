@@ -73,8 +73,6 @@ export default function BugDetails() {
     setSaveStatus("Saved"); // Reset means it's back to the original
   };
 
-  console.log("cdoe:"+code);
-
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Left: Bug Description */}

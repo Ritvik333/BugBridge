@@ -24,12 +24,6 @@ useEffect(() => {
 }, [filterSeverity, filterStatus, filterCreator, sortOption]);
 
 
-// useEffect(() => {
-//     fetch("http://localhost:8080/api/users")
-//         .then(res => res.json())
-//         .then(data => setUsers(Array.isArray(data) ? data : []))
-//         .catch(error => console.error("Error fetching users:", error));
-// }, []);
   useEffect(() => {
     const fetchUsersList = async () => {
       try {
