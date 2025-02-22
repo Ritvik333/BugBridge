@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/drafts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/protected-endpoint").authenticated()
                         .anyRequest().authenticated()
                 )

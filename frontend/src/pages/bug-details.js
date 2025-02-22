@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
-import { runCode, fetchCodeFile } from "../services/auth";
+import { runCode, fetchCodeFile,saveDraft } from "../services/auth";
 
 export default function BugDetails() {
   const location = useLocation();
@@ -72,6 +72,20 @@ export default function BugDetails() {
     localStorage.setItem(`bug_${bug.id}_code`, originalCodeRef.current);
     setSaveStatus("Saved"); // Reset means it's back to the original
   };
+  const handleSaveDraft = async () => {
+    try {
+      const userId=localStorage.getItem("rememberMe")
+      const bugId=bug.id;
+      // Call the saveDraft API function and pass the necessary parameters
+      const result = await saveDraft({userId, bugId, code});
+      console.log("Draft saved successfully:", result);
+      setSaveStatus("Saved"); // Update save status UI
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      setSaveStatus("Error saving draft");
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -149,6 +163,10 @@ export default function BugDetails() {
               </>
             )}
           </div>
+          <button
+          onClick={handleSaveDraft}
+          className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
+        </button>
         </div>
 
         {/* Output Section */}
