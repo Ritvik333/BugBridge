@@ -23,6 +23,7 @@ import com.example.demo.Model.User;
 import com.example.demo.Service.BugService;
 import com.example.demo.Service.FileStorageService;
 import com.example.demo.Service.UserService;
+import com.example.demo.dto.ResponseWrapper;
 
 @RestController
 
@@ -56,25 +57,26 @@ public class BugController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createBug(
-        @RequestParam String title,
-        @RequestParam String severity,
-        @RequestParam String status,
-        @RequestParam Long creatorId, // Now Long instead of String
-        @RequestParam String description,
-        @RequestParam String language,
-        @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
-    ) throws IOException {
-        User creator = userService.getUserById(creatorId); // Fetch User entity
+public ResponseWrapper<Bug> createBug(
+    @RequestParam String title,
+    @RequestParam String severity,
+    @RequestParam String status,
+    @RequestParam Long creatorId,
+    @RequestParam String description,
+    @RequestParam String language,
+    @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
+) throws IOException {
+    try {
+        User creator = userService.getUserById(creatorId);
         if (creator == null) {
-            return ResponseEntity.badRequest().body("Invalid creator ID");
+            return new ResponseWrapper<>("error", "Invalid creator ID", null);
         }
 
         Bug bug = new Bug();
         bug.setTitle(title);
         bug.setSeverity(severity);
         bug.setStatus(status);
-        bug.setCreator(creator); // Now correctly passing a User object
+        bug.setCreator(creator);
         bug.setLanguage(language);
         bug.setDescription(description);
 
@@ -83,8 +85,14 @@ public class BugController {
             bug.setCodeFilePath(filePath);
         }
 
-        return ResponseEntity.ok(bugService.createBug(bug));
+        Bug createdBug = bugService.createBug(bug);
+        return new ResponseWrapper<>("success", "Bug created successfully", createdBug);
+
+    } catch (Exception e) {
+        return new ResponseWrapper<>("error", "An unexpected error occurred", null);
     }
+}
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBug(

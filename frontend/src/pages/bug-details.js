@@ -99,6 +99,8 @@ export default function BugDetails() {
     alert("Code copied to clipboard!");
   };
 
+  console.log("cdoe:"+code);
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Left: Bug Description & Additional Notes (50% Width) */}
