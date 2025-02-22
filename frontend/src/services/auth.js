@@ -91,3 +91,47 @@ export const fetchUsers = async () => {
     throw error.response ? error.response.data : error.message;
   }
 };
+
+
+export const updateBug = async (bug) => {
+  try {
+    const formData = new FormData();
+    formData.append("title", bug.title);
+    formData.append("severity", bug.severity);
+    formData.append("status", bug.status);
+    formData.append("creatorId", bug.creator.id);
+    formData.append("language", bug.language);
+    formData.append("description", bug.description);
+    // Append file if provided
+    if (bug.codeFile) {
+      formData.append("codeFilePath", bug.codeFile);
+    }
+
+    const response = await apiClient.put(`/api/bugs/${bug.id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+
+};
+export const fetchComments = async (bugId) => {
+  try {
+    const response = await apiClient.get(`/api/comments?bugId=${bugId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const addComment = async (commentData) => {
+  try {
+    const response = await apiClient.post("/api/comments", commentData);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};

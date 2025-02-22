@@ -14,9 +14,11 @@ const AppRoutes = () => {
       <Route path="/register" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} />
+      {/* <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} /> */}
+      <Route path="/dashboard" element={<BugBoardPage />} />
       {/* Add route for BugDetails page */}
-      <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
+      <Route path="/bug/:id" element={<BugDetails />} />
+      {/* <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} /> */}
 
 
     </Routes>

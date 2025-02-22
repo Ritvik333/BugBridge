@@ -1,14 +1,19 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
-import { runCode, fetchCodeFile } from "../services/auth";
+
+import { runCode, fetchCodeFile, updateBug, fetchComments, addComment } from "../services/auth";
+
 import jsBeautify from "js-beautify";
 
 export default function BugDetails({ currentUser }) {
   const location = useLocation();
   const navigate = useNavigate();
   const bug = location.state;
+  const rememberMeId = parseInt(localStorage.getItem("rememberMe"), 10);
+  const isCreator = bug && bug.creator && bug.creator.id === rememberMeId;
 
+  // Only one declaration for selectedLanguage
   const [selectedLanguage, setSelectedLanguage] = useState(bug.language || "python");
   const [output, setOutput] = useState("");
   const [code, setCode] = useState(""); // Initially empty
@@ -16,19 +21,24 @@ export default function BugDetails({ currentUser }) {
   const [savedDescription, setSavedDescription] = useState(bug.description);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [descriptionMinimized, setDescriptionMinimized] = useState(false);
 
-  // New states for the comment section
+
+
+  // States for the comment section
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true); // Loading while fetching the code
+  const commentsContainerRef = useRef(null);
+
+
   const originalCodeRef = useRef(""); // To store the original code
   const saveTimeoutRef = useRef(null);
 
-  const isCreator = currentUser === bug.creator;
-  const [selectedLanguage, setSelectedLanguage] = useState(bug.language);
-
-  // Fetch the code from the file using bug.codeFilePath
   useEffect(() => {
+    // Retrieve saved bug description outside loadCode
+    const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
+
     const loadCode = async () => {
       try {
         const filepath = bug.codeFilePath;
@@ -41,8 +51,6 @@ export default function BugDetails({ currentUser }) {
 
         // Check if there's saved code in localStorage
         const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
-    const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
-
         if (savedCode) {
           setCode(savedCode); // If there's saved code, use it
         }
@@ -56,16 +64,26 @@ export default function BugDetails({ currentUser }) {
     loadCode();
     setBugDescription(savedBugDescription || bug.description);
     setSavedDescription(savedBugDescription || bug.description);
-  }, [bug.codeFilePath, bug.description]); // Dependency on codeFilePath so that it refetches when changed
+  }, [bug.codeFilePath, bug.description, bug.id]);
+
+  // Fetch comments for this bug when component mounts
+  useEffect(() => {
+    const getComments = async () => {
+      try {
+        const commentsData = await fetchComments(bug.id);
+        setComments(commentsData);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      }
+    };
+    getComments();
+  }, [bug.id]);
 
   const handleCodeChange = (newCode) => {
+    // Beautify the new code and update state
     const formattedCode = jsBeautify(newCode, { indent_size: 2 });
     setCode(formattedCode);
     setIsSaving(true);
-
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    setCode(newCode);
-    setSaveStatus("Saving...");
 
     // Clear any previous timeout to debounce saving
     if (saveTimeoutRef.current) {
@@ -74,8 +92,8 @@ export default function BugDetails({ currentUser }) {
 
     // Save to localStorage after 800ms debounce
     saveTimeoutRef.current = setTimeout(() => {
-      localStorage.setItem(`bug_${bug.id}_code`, newCode);
-      setSaveStatus("Saved"); // Set status as "Draft saved"
+      localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
+      setIsSaving(false);
     }, 800);
   };
 
@@ -83,12 +101,24 @@ export default function BugDetails({ currentUser }) {
     setBugDescription(e.target.value);
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     if (!isCreator) return;
-    localStorage.setItem(`bug_${bug.id}_description`, bugDescription);
-    setSavedDescription(bugDescription);
-    setIsEditing(false);
-    alert("Bug description saved!");
+    try {
+      // Create an updated bug object.
+      const updatedBug = {
+        ...bug, // existing bug details
+        description: bugDescription, // updated description from textarea
+      };
+  
+      // Call the API to update the bug
+      await updateBug(updatedBug);
+  
+      // Update state to reflect the saved changes and exit editing mode.
+      setSavedDescription(bugDescription);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating bug description:", error);
+    }
   };
 
   const discardChanges = () => {
@@ -117,18 +147,44 @@ export default function BugDetails({ currentUser }) {
     alert("Code copied to clipboard!");
   };
 
-  // Handler for adding comments
-  const handleAddComment = () => {
+  // Handler for adding comments using API
+  const handleAddComment = async () => {
     if (newComment.trim() === "") return;
-    setComments([...comments, { id: Date.now(), text: newComment, user: currentUser }]);
-    setNewComment("");
+    try {
+      const commentData = {
+        bugId: bug.id,
+        userId: localStorage.getItem("rememberMe"), 
+        text: newComment,
+      };
+      // Call the API to add the comment
+      const savedComment = await addComment(commentData);
+      // After adding the comment, fetch the updated comments
+const updatedComments = await fetchComments(bug.id);
+
+// Update comments state to include the new comment
+setComments(updatedComments);
+setNewComment(""); // Reset the input field
+
+// Scroll to the latest comment after updating state
+setTimeout(() => {
+  commentsContainerRef.current?.scrollTo({ top: commentsContainerRef.current.scrollHeight, behavior: "smooth" });
+}, 100);
+
+
+      // // Update comments state to include the new comment
+      // setComments([...comments, savedComment]);
+      // setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
   };
-console.log(bug);
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Left: Bug Description & Comments (50% Width, Always Visible Scrollbar) */}
-      <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen overflow-y-scroll">
-        {/* Breadcrumb Navigation */}
+      {/* Left: Bug Description & Comments */}
+       <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
+      
+         {/* Breadcrumb Navigation */}
         <div className="flex items-center space-x-2 mb-4">
           <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
             ⬅ Bug Board
@@ -138,16 +194,18 @@ console.log(bug);
         {/* Bug Title & Edit Button */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">{bug.title}</h2>
-          {isCreator ? (
+          {(isCreator && !isEditing )&&(
             <button 
-              className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600" 
-              onClick={() => setIsEditing(!isEditing)}
+              className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600" s
+              onClick={async () => {
+                if (isEditing) {
+                  await saveChanges();
+                } else {
+                  setIsEditing(true);
+                }
+              }}
             >
-              {isEditing ? "Cancel" : "Edit"}
-            </button>
-          ) : (
-            <button className="p-1 px-3 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed" disabled>
-              Edit
+              { "Edit"}
             </button>
           )}
         </div>
@@ -158,15 +216,13 @@ console.log(bug);
         </p>
 
         {/* Editable Bug Description */}
-        <textarea
-          className={`w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none ${
-            isCreator ? "focus:ring-2 focus:ring-blue-400" : "bg-gray-200 cursor-not-allowed text-gray-600"
-          }`}
+        <textarea className={`w-full p-3 mt-2 border rounded-md ${descriptionMinimized ? "h-16" : "h-[420px]"} overflow-y-auto focus:outline-none ${isEditing ? "bg-gray-200" : "bg-white"}`}
+
           placeholder="Edit bug description..."
           value={bugDescription}
           onChange={handleDescriptionChange}
           readOnly={!isEditing || !isCreator}
-        ></textarea>
+        />
 
         {/* Save & Discard Buttons */}
         {isEditing && isCreator && (
@@ -183,40 +239,48 @@ console.log(bug);
         {/* Comment Section */}
         <div className="mt-6">
           <h3 className="text-xl font-bold mb-2">Comments</h3>
-          <div className="h-48 overflow-y-auto border p-2 rounded-md">
-            {comments.length === 0 ? (
-              <p className="text-gray-500">No comments yet.</p>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="mb-3">
-                  <p className="text-xs font-semibold text-gray-700">{comment.user}</p>
-                  <p className="text-sm">{comment.text}</p>
-                </div>
-              ))
-            )}
-          </div>
-          <div className="mt-2 flex space-x-2">
-            <input 
-              type="text" 
-              className="flex-grow p-2 border rounded-md focus:outline-none" 
-              placeholder="Add a comment..." 
-              value={newComment} 
-              onChange={(e) => setNewComment(e.target.value)} 
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddComment();
-                }
-              }}
-            />
-            <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
-              Submit
-            </button>
-          </div>
+          <div ref={commentsContainerRef} className={`transition-all border p-2 rounded-md overflow-y-auto flex-grow ${descriptionMinimized ? "h-[calc(100vh-200px)]" : "h-48"}`}>
+          {comments?.length === 0 ? (
+            <p className="text-gray-500">No comments yet.</p>
+  ) : (
+    comments?.map((comment) => (
+      <div key={comment?.id} className="mb-3 flex gap-2">
+        <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">{comment?.user?.username[0].toUpperCase()}</div>
+        <div><p className="text-xs font-light text-gray-500">
+          {comment?.user?.username}
+        </p>
+        <p className="text-sm text-gray-800">
+          {comment?.text}
+        </p></div>
+      </div>
+    ))
+  )}
+</div>
+
+<div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
+
+  <input 
+    type="text" 
+    className="flex-grow p-2 border rounded-md focus:outline-none" 
+    placeholder="Add a comment..." 
+    value={newComment} 
+    onChange={(e) => setNewComment(e.target.value)} 
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAddComment();
+      }
+    }}
+  />
+  <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
+    Send
+  </button>
+</div>
+
         </div>
       </div>
 
-      {/* Right: Code Editor (50% Width, Static) */}
+      {/* Right: Code Editor */}
       <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold">Code</h2>
@@ -232,16 +296,6 @@ console.log(bug);
                 <option value="java">Java</option>
               </select>
             )}
-
-            <button 
-              onClick={handleRunCode} 
-              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-            <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="p-1 border rounded-md">
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="java">Java</option>
-            </select>
             <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
               Run
             </button>
@@ -259,6 +313,7 @@ console.log(bug);
           </button>
           <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : "✔ Draft Saved"}</p>
         </div>
+
         <h2 className="text-lg font-semibold mt-4">Output</h2>
         <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
           <pre>{output}</pre>
