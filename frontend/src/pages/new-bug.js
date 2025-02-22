@@ -12,77 +12,7 @@ function NewBugPage() {
   const [codeSnippet, setCodeSnippet] = useState("")
   const [file, setFile] = useState(null)
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault()
-    
-  //   try {
-  //     // Create FormData object
-  //     const formData = new FormData()
-  //     formData.append('title', title)
-  //     formData.append('description', description)
-  //     formData.append('language', language)
-  //     formData.append('severity', severity)
-  //     formData.append('status', 'open') // or you can make this configurable
-  //     formData.append('codeFilePath', codeSnippet) // or handle actual file if needed
-  //     formData.append('creatorId', '1') // replace with actual user ID if available
-  
-  //     // Send to API
-  //     const response = await fetch('http://localhost:8080/api/bugs', {
-  //       method: 'POST',
-  //       body: formData
-  //       // Don't set Content-Type header - browser will set it automatically with boundary
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  
-  //     // Also save to localStorage for local state
-  //     const newBug = {
-  //       id: Date.now().toString(),
-  //       title,
-  //       description,
-  //       severity,
-  //       language,
-  //       codeSnippet,
-  //       status: "open",
-  //       creator: "1",
-  //       creationDate: new Date().toISOString(),
-  //     }
-  
-  //     // Get existing bugs from localStorage
-  //     let existingBugs = []
-  //     try {
-  //       const stored = localStorage.getItem("bugs")
-  //       if (stored) {
-  //         const parsed = JSON.parse(stored)
-  //         existingBugs = Array.isArray(parsed) ? parsed : []
-  //       }
-  //     } catch (error) {
-  //       console.error("Error reading existing bugs:", error)
-  //     }
-  
-  //     // Update localStorage
-  //     const updatedBugs = [newBug, ...existingBugs]
-  //     localStorage.setItem("bugs", JSON.stringify(updatedBugs))
-      
-  //     console.log("Bug saved successfully to API and localStorage")
-  
-  //     // Clear form
-  //     setTitle("")
-  //     setDescription("")
-  //     setSeverity("")
-  //     setLanguage("")
-  //     setCodeSnippet("")
-  //     setFile(null)
-  
-  //     // Navigate back to dashboard
-  //     navigate("/dashboard")
-  //   } catch (error) {
-  //     console.error("Error saving bug:", error)
-  //     alert("Failed to save bug. Please try again.")
-  //   }
-  // }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()

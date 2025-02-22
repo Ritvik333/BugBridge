@@ -19,18 +19,12 @@ export default function BugBoardPage() {
   const navigate = useNavigate();
   const menuRef = useRef(null); // Reference for the dropdown menu
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
+
 useEffect(() => {
   fetchBugsList();
 }, [filterSeverity, filterStatus, filterCreator, sortOption]);
 
 
-// useEffect(() => {
-//     fetch("http://localhost:8080/api/users")
-//         .then(res => res.json())
-//         .then(data => setUsers(Array.isArray(data) ? data : []))
-//         .catch(error => console.error("Error fetching users:", error));
-// }, []);
   useEffect(() => {
     const fetchUsersList = async () => {
       try {
@@ -45,16 +39,6 @@ useEffect(() => {
   }, []);
 
 
-  // const fetchBugsList = async () => {
-  //   try {
-  //     const filters = { filterSeverity, filterStatus, filterCreator, sortOption };
-  //     const data = await fetchBugs(filters); // Call fetchBugs from auth.js
-  //     setBugs(data);
-  //   } catch (error) {
-  //     console.error("Error fetching bugs:", error);
-  //   }
-  // };
-
   const loadBugsFromStorage = () => {
     try {
       const storedBugs = JSON.parse(localStorage.getItem("bugs") || "[]");
@@ -65,11 +49,6 @@ useEffect(() => {
       setBugs([]);
     }
   };
-  // Added new function:
-// const loadBugsFromStorage = () => {
-//   const storedBugs = JSON.parse(localStorage.getItem("bugs") || "[]");
-//   setBugs(storedBugs);
-// };
 
 // Modified fetchBugsList to include fallback:
 const fetchBugsList = async () => {
@@ -244,7 +223,7 @@ const fetchBugsList = async () => {
                     </h3>
                     <p className="text-sm text-gray-500">
                        <span className={getSeverityColor(bug.severity)}>{bug.severity}</span> | {" "}
-                       <span className={getStatusColor(bug.status)}>{bug.status}</span> |  Language:{" "}
+                       <span className={getStatusColor(bug.status)}>{bug.status}</span> | {" "}
                       {bug.language}
                     </p>
                   </div>
@@ -264,56 +243,3 @@ const fetchBugsList = async () => {
     </div>
   );
 }
-
-//future functionality for create, update, delete bugs
-  // const createBug = async (bugData) => {
-  //   try {
-  //     const response = await fetch("http://localhost:8080/api/bugs", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ ...bugData, creator_id: bugData.creator }),
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to create bug");
-  //     }
-  
-  //     fetchBugs(); // Refresh bugs after adding
-  //   } catch (error) {
-  //     console.error("Error creating bug:", error);
-  //   }
-  // };
-  
-  // const updateBug = async (bugId, updatedData) => {
-  //   try {
-  //     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(updatedData),
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update bug");
-  //     }
-  
-  //     fetchBugs(); // Refresh bugs after update
-  //   } catch (error) {
-  //     console.error("Error updating bug:", error);
-  //   }
-  // };
-  
-  // const deleteBug = async (bugId) => {
-  //   try {
-  //     const response = await fetch(`http://localhost:8080/api/bugs/${bugId}`, {
-  //       method: "DELETE",
-  //     });
-  
-  //     if (!response.ok) {
-  //       throw new Error("Failed to delete bug");
-  //     }
-  
-  //     fetchBugs(); // Refresh bugs after deletion
-  //   } catch (error) {
-  //     console.error("Error deleting bug:", error);
-  //   }
-  // };
