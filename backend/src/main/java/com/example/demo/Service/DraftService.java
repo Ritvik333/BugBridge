@@ -72,11 +72,9 @@ public class DraftService {
     }
     
 
-    public List<Draft> getDraftsForUser(User user) {
-        return draftRepository.findByUser(user);
+    public List<Draft> getDraftsForUser(Long userId) {
+        return draftRepository.findByUserId(userId); // Assuming this method exists in your DraftRepository
     }
 
-    public List<Draft> getDraftsForBug(User user, Bug bug) {
-        return draftRepository.findByUserAndBug(user, bug);
-    }
+
 }
