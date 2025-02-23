@@ -69,7 +69,7 @@ public class BugController {
         bug.setDescription(description);
 
         if (codeFile != null && !codeFile.isEmpty()) {
-            String filePath = fileStorageService.saveFile(codeFile);
+            String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), language);
             bug.setCodeFilePath(filePath);
         }
 
@@ -105,7 +105,7 @@ public class BugController {
         existingBug.setDescription(description);
 
         if (codeFile != null && !codeFile.isEmpty()) {
-            String filePath = fileStorageService.saveFile(codeFile);
+            String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), language);
             existingBug.setCodeFilePath(filePath);
         }
 
