@@ -1,8 +1,16 @@
 package com.example.demo.Model;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "bugs")
@@ -30,7 +38,10 @@ public class Bug {
     private LocalDateTime createdAt;
 
     
-
+    // public Bug(Long id) {
+    //     this.id = id;
+    // }
+    
     public Long getId() {
         return id;
     }
