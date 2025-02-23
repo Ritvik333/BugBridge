@@ -55,12 +55,11 @@ export const runCode = async (code, language) => {
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
-
 };
-export const fetchCodeFile = async (filename) => {
+
+export const fetchCodeFile = async (userId, username, language, filename) => {
   try {
-    const response = await apiClient.get(`/api/bugs/file/${filename}`);
-    console.log(response);
+    const response = await apiClient.get(`/api/bugs/file/${userId}/${username}/${language}/${filename}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
@@ -152,6 +151,15 @@ export const addComment = async (commentData) => {
   try {
     const response = await apiClient.post("/api/comments", commentData);
     return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+export const saveDraft = async (userData) => {
+  try {
+    console.log(userData)
+    const response = await apiClient.post('/drafts/save', userData);
+    return response.data; // Return the response data from the backend (e.g., success message or saved draft details)
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }

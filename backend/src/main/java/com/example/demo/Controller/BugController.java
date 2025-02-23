@@ -1,28 +1,41 @@
 package com.example.demo.Controller;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
-import com.example.demo.Model.Comment;
-import com.example.demo.Model.User;
-import com.example.demo.Service.CommentService;
-import lombok.Data;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.example.demo.Model.Bug;
+import com.example.demo.Model.Comment;
+import com.example.demo.Model.User;
 import com.example.demo.Service.BugService;
+import com.example.demo.Service.CommentService;
 import com.example.demo.Service.FileStorageService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.ResponseWrapper;
-import java.time.LocalDateTime;
+
+import lombok.Data;
 
 
 @RestController
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/bugs")
 public class BugController {
     @Autowired
@@ -77,7 +90,7 @@ public ResponseWrapper<Bug> createBug(
         bug.setDescription(description);
 
         if (codeFile != null && !codeFile.isEmpty()) {
-            String filePath = fileStorageService.saveFile(codeFile);
+            String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), language);
             bug.setCodeFilePath(filePath);
         }
 
@@ -119,7 +132,7 @@ public ResponseWrapper<Bug> createBug(
         existingBug.setDescription(description);
 
         if (codeFile != null && !codeFile.isEmpty()) {
-            String filePath = fileStorageService.saveFile(codeFile);
+            String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), language);
             existingBug.setCodeFilePath(filePath);
         }
 
@@ -132,13 +145,22 @@ public ResponseWrapper<Bug> createBug(
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
     
-    @GetMapping("/file/{filename}")
-    public ResponseEntity<String> getFileContent(@PathVariable String filename) throws IOException {
-        Path filePath = Paths.get("uploads", filename);
+    @GetMapping("/file/{userId}/{username}/{language}/{filename}")
+    public ResponseEntity<String> getFileContent(
+            @PathVariable Long userId, 
+            @PathVariable String username, 
+            @PathVariable String language, 
+            @PathVariable String filename) throws IOException {
+
+        // Construct the full path: uploads/userId_username/language/filename
+        Path filePath = Paths.get("uploads", userId + "_" + username, language, filename);
+        System.out.println(filePath);
+
         if (!Files.exists(filePath)) {
             return ResponseEntity.notFound().build();
         }
-        String content = Files.readString(filePath);
+
+        String content = Files.readString(filePath, StandardCharsets.UTF_8);
         return ResponseEntity.ok(content);
     }
 

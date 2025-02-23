@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
 
-import { runCode, fetchCodeFile, updateBug, fetchComments, addComment } from "../services/auth";
+import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft } from "../services/auth";
 
 import jsBeautify from "js-beautify";
 
@@ -41,26 +41,32 @@ export default function BugDetails({ currentUser }) {
 
     const loadCode = async () => {
       try {
+        console.log(bug)
+        const userId = bug.creator.id;
+        const username = bug.creator.username; // Extract username
+        const language = bug.language;
         const filepath = bug.codeFilePath;
-        const filename = filepath.split("/").pop(); // Get the file name from the path
-        const fetchedCode = await fetchCodeFile(filename);
-        console.log(bug);
-        console.log(fetchedCode); // Check the fetched code
-        setCode(fetchedCode || ""); // Set code if fetched, otherwise empty
-        originalCodeRef.current = fetchedCode || ""; // Store the original code for reset
-
-        // Check if there's saved code in localStorage
+        const filename = filepath.split("/").pop(); // Extract filename from path
+  
+       
+        const fetchedCode = await fetchCodeFile(userId, username, language, filename );
+      
+  
+        setCode(fetchedCode || ""); // Set fetched code
+        originalCodeRef.current = fetchedCode || ""; // Store original code
+  
+        // Check if there's a saved draft in localStorage
         const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
         if (savedCode) {
-          setCode(savedCode); // If there's saved code, use it
+          setCode(savedCode); // Load saved draft
         }
       } catch (error) {
         console.error("Error fetching code file:", error);
       } finally {
-        setLoading(false); // Set loading to false after fetching
+        setLoading(false); // Stop loading indicator
       }
     };
-
+  
     loadCode();
     setBugDescription(savedBugDescription || bug.description);
     setSavedDescription(savedBugDescription || bug.description);
@@ -176,6 +182,21 @@ setTimeout(() => {
       // setNewComment("");
     } catch (error) {
       console.error("Error adding comment:", error);
+    }
+  };
+  const handleSaveDraft = async () => {
+    try {
+      const userId=localStorage.getItem("rememberMe")
+      const bugId=bug.id;
+      const username=bug.creator.username
+      console.log(username)
+      // Call the saveDraft API function and pass the necessary parameters
+      const result = await saveDraft({userId, bugId, username,code});
+      console.log("Draft saved successfully:", result);
+      setSaveStatus("Saved"); // Update save status UI
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      setSaveStatus("Error saving draft");
     }
   };
 
@@ -312,7 +333,24 @@ setTimeout(() => {
           <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleResetCode}>
             Reset
           </button>
-          <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : "✔ Draft Saved"}</p>
+
+          {/* Save Status Indicator */}
+          <div className="text-sm text-gray-500 flex items-center">
+            {saveStatus === "Saving..." ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-t-2 border-gray-500 rounded-full mr-2"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                ✔ <span className="ml-1">Draft saved</span>
+              </>
+            )}
+          </div>
+          <button
+          onClick={handleSaveDraft}
+          className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
+        </button>
         </div>
 
         <h2 className="text-lg font-semibold mt-4">Output</h2>
