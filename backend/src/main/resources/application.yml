@@ -8,6 +8,10 @@ spring:
     password: ${DEVINT_DB_PASSWORD}
     url: ${DEVINT_DB_URL}
     username: ${DEVINT_DB_USER}
+    # password: password
+    # url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
+    # username: root
+
 
   mail:
     host: smtp.gmail.com
