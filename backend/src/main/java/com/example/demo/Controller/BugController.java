@@ -6,7 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
+import com.example.demo.Model.Comment;
+import com.example.demo.Model.User;
+import com.example.demo.Service.CommentService;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,13 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.example.demo.Model.Bug;
-import com.example.demo.Model.User;
 import com.example.demo.Service.BugService;
 import com.example.demo.Service.FileStorageService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.ResponseWrapper;
+import java.time.LocalDateTime;
 
 
 @RestController
@@ -158,7 +160,78 @@ public ResponseWrapper<Bug> createBug(
         return ResponseEntity.ok(content);
     }
 
+    @RestController
+    @RequestMapping("/api/comments")
+    public class CommentController {
 
+        @Autowired
+        private CommentService commentService;
 
+        @Autowired
+        private UserService userService;
+
+        // GET endpoint to retrieve comments for a given bugId
+        @GetMapping
+        public ResponseEntity<List<Comment>> getCommentsByBugId(@RequestParam Long bugId) {
+            List<Comment> comments = commentService.getCommentsByBugId(bugId);
+            return ResponseEntity.ok(comments);
+        }
+
+        // POST endpoint to create a new comment using a request DTO
+        @PostMapping
+        public ResponseWrapper<Comment> createComment(@RequestBody CommentRequest request) {
+            if (request.getBugId() == null || request.getUserId() == null || request.getText() == null || request.getText().isEmpty()) {
+                return new ResponseWrapper<>("error", "Bug ID, User ID, and text are required", null);
+            }
+            try {
+                User user = userService.getUserById(request.getUserId());
+                if (user == null) {
+                    return new ResponseWrapper<>("error", "Invalid user ID", null);
+                }
+                Comment comment = new Comment();
+                comment.setBugId(request.getBugId());
+                comment.setUser(user);
+                comment.setText(request.getText());
+                comment.setTimestamp(LocalDateTime.now());
+
+                Comment createdComment = commentService.createComment(comment);
+                return new ResponseWrapper<>("success", "Comment created successfully", createdComment);
+            } catch (Exception e) {
+                return new ResponseWrapper<>("error", "An unexpected error occurred: " + e.getMessage(), null);
+            }
+        }
+
+        @Data
+        static class CommentRequest {
+            private Long bugId;
+            private Long userId;
+            private String text;
+
+            public Long getBugId() {
+                return bugId;
+            }
+
+            public void setBugId(Long bugId) {
+                this.bugId = bugId;
+            }
+
+            public Long getUserId() {
+                return userId;
+            }
+
+            public void setUserId(Long userId) {
+                this.userId = userId;
+            }
+
+            public String getText() {
+                return text;
+            }
+
+            public void setText(String text) {
+                this.text = text;
+            }
+        }
+
+    }
 
 }

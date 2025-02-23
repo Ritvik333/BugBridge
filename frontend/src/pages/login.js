@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,12 +26,11 @@ const LoginPage = () => {
       localStorage.setItem("authToken", response.body.token);
       if (rememberMe) {
         localStorage.setItem("rememberMe", response.body.id);
-        console.log("uid:"+ localStorage.getItem("rememberMe"))
       } else {
         localStorage.removeItem("rememberMe");
       }
       console.log("succesfully logged in");
-      console.log(response.body.token);
+      console.log(response.body.id);
       navigate("/dashboard");
     } catch (err) {
       setError("Invalid credentials. Please try again.");
