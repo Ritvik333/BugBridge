@@ -21,7 +21,7 @@ import com.example.demo.Repository.DraftRepository;
 @Service
 public class DraftService {
 
-    private final String storagePath = "uploads/drafts/";
+    private final String storagePath = "uploads/";
     @Autowired
     private DraftRepository draftRepository;
     @Autowired
@@ -30,20 +30,20 @@ public class DraftService {
     private BugRepository bugRepository;
 
 
-    public Draft saveDraftFile(Long userId, Long bugId, String code) throws IOException {
+    public Draft saveDraftFile(Long userId, Long bugId, String username, String code) throws IOException {
         // Retrieve user and bug
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
         Bug bug = bugRepository.findById(bugId)
             .orElseThrow(() -> new RuntimeException("Bug not found"));
-    
+        Path directoryPath = Paths.get(storagePath, userId + "_" + username ,"drafts");
         // Map language to file extension
         String extension = mapLanguageToExtension(bug.getLanguage());
     
-        // Generate filename
+        // Generate filenames
         String filename = userId + "_" + bugId + extension;
-        Path filePath = Paths.get(storagePath, filename);
-    
+        Path filePath = directoryPath.resolve(filename);
+
         // Ensure directory exists
         Files.createDirectories(filePath.getParent());
     

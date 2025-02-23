@@ -55,12 +55,11 @@ export const runCode = async (code, language) => {
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
-
 };
-export const fetchCodeFile = async (filename) => {
+
+export const fetchCodeFile = async (userId, username, language, filename) => {
   try {
-    const response = await apiClient.get(`/api/bugs/file/${filename}`);
-    console.log(response);
+    const response = await apiClient.get(`/api/bugs/file/${userId}/${username}/${language}/${filename}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;

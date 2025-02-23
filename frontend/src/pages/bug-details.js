@@ -18,28 +18,36 @@ export default function BugDetails() {
   useEffect(() => {
     const loadCode = async () => {
       try {
+        console.log(bug)
+        const userId = bug.creator.id;
+        const username = bug.creator.username; // Extract username
+        const language = bug.language;
         const filepath = bug.codeFilePath;
-        const filename = filepath.split("/").pop(); // Get the file name from the path
-        const fetchedCode = await fetchCodeFile(filename);
-        console.log(bug);
-        console.log(fetchedCode); // Check the fetched code
-        setCode(fetchedCode || ""); // Set code if fetched, otherwise empty
-        originalCodeRef.current = fetchedCode || ""; // Store the original code for reset
-
-        // Check if there's saved code in localStorage
+        const filename = filepath.split("/").pop(); // Extract filename from path
+  
+       
+        const fetchedCode = await fetchCodeFile(userId, username, language, filename );
+      
+  
+        setCode(fetchedCode || ""); // Set fetched code
+        originalCodeRef.current = fetchedCode || ""; // Store original code
+  
+        // Check if there's a saved draft in localStorage
         const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
         if (savedCode) {
-          setCode(savedCode); // If there's saved code, use it
+          setCode(savedCode); // Load saved draft
         }
       } catch (error) {
         console.error("Error fetching code file:", error);
       } finally {
-        setLoading(false); // Set loading to false after fetching
+        setLoading(false); // Stop loading indicator
       }
     };
-
+  
     loadCode();
-  }, [bug.codeFilePath]); // Dependency on codeFilePath so that it refetches when changed
+  }, [bug.codeFilePath]);
+  
+  
 
   const handleCodeChange = (newCode) => {
     setCode(newCode);
@@ -76,8 +84,10 @@ export default function BugDetails() {
     try {
       const userId=localStorage.getItem("rememberMe")
       const bugId=bug.id;
+      const username=bug.creator.username
+      console.log(username)
       // Call the saveDraft API function and pass the necessary parameters
-      const result = await saveDraft({userId, bugId, code});
+      const result = await saveDraft({userId, bugId, username,code});
       console.log("Draft saved successfully:", result);
       setSaveStatus("Saved"); // Update save status UI
     } catch (error) {
