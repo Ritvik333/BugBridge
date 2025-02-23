@@ -29,6 +29,7 @@ useEffect(() => {
     const fetchUsersList = async () => {
       try {
         const usersData = await fetchUsers();
+        console.log(usersData)
         setUsers(Array.isArray(usersData) ? usersData : []);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -92,9 +93,11 @@ const fetchBugsList = async () => {
     .filter((bug) => !filterStatus || bug.status === filterStatus)
     .filter((bug) => {
       if (!filterCreator) return true;
-      if (!bug.creator) return false;
-      return String(bug.creator).toLowerCase().includes(filterCreator.toLowerCase());
+      if (!bug.creator || !bug.creator.username) return false;
+      return bug.creator.username.toLowerCase().includes(filterCreator.toLowerCase());
     })
+    
+    
         // .filter((bug) => !filterCreator || bug.creator.toLowerCase().includes(filterCreator.toLowerCase()))
     .sort((a, b) =>
       sortOption === "language"
@@ -120,9 +123,9 @@ const fetchBugsList = async () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "resolved":
+      case "Resolved":
         return "text-green-600"
-      case "in progress":
+      case "In Progress":
         return "text-orange-600"
       case "open":
         return "text-red-600"
@@ -135,9 +138,9 @@ const fetchBugsList = async () => {
     switch (status) {
       case "open":
         return <AlertCircle className="h-5 w-5 text-red-500" />
-      case "in progress":
+      case "In Progress":
         return <Clock className="h-5 w-5 text-yellow-500" />
-      case "resolved":
+      case "Resolved":
         return <CheckCircle className="h-5 w-5 text-green-500" />
       default:
         return null
@@ -190,7 +193,7 @@ const fetchBugsList = async () => {
           >
             <option value="">All Statuses</option>
             <option value="open">Open</option>
-            <option value="in Progress">In Progress</option>
+            <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
           <input
