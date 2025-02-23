@@ -220,7 +220,7 @@ const fetchBugsList = async () => {
                 >
                   <div>
                     <h3 className="font-medium">
-                      <div onClick={() => navigate(`/bug-details/${bug.id}`, { state: bug })} className="text-blue-500 hover:underline">
+                      <div onClick={() => navigate(`/bug/${bug.id}`, { state: bug })} className="text-blue-500 hover:underline">
                         {bug.title}
                       </div>
                     </h3>

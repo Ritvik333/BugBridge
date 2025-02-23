@@ -16,13 +16,13 @@ const AppRoutes = () => {
       <Route path="/register" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-      {/* <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} /> */}
-      <Route path="/dashboard" element={<BugBoardPage />} />
-      <Route path="/BugSubmissionForm" element={<BugSubmissionForm />} />
-      <Route path="/new-bug" element={<NewBugPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} />
+      {/* <Route path="/dashboard" element={<BugBoardPage />} /> */}
+      <Route path="/BugSubmissionForm" element={<ProtectedRoute><BugSubmissionForm /></ProtectedRoute>}/>
+      <Route path="/new-bug" element={<ProtectedRoute><NewBugPage /></ProtectedRoute>} />
       {/* Add route for BugDetails page */}
-      {/* <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} /> */}
-      <Route path="/bug-details/:id" element={<BugDetails />} />
+      <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
+      {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
 
 
     </Routes>

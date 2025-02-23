@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
 
-import { runCode, fetchCodeFile,saveDraft, updateBug, fetchComments, addComment } from "../services/auth";
+import { runCode, fetchCodeFile, updateBug, fetchComments, addComment,saveDraft } from "../services/auth";
 
 import jsBeautify from "js-beautify";
 
@@ -19,8 +19,10 @@ export default function BugDetails({ currentUser }) {
   const [code, setCode] = useState(""); // Initially empty
   const [bugDescription, setBugDescription] = useState(bug.description);
   const [savedDescription, setSavedDescription] = useState(bug.description);
+  const [saveStatus, setSaveStatus] = useState("Saved"); // "Saving..." | "Saved"
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
   const [descriptionMinimized, setDescriptionMinimized] = useState(false);
 
 
@@ -66,11 +68,12 @@ export default function BugDetails({ currentUser }) {
         setLoading(false); // Stop loading indicator
       }
     };
-  
+
     loadCode();
     setBugDescription(savedBugDescription || bug.description);
     setSavedDescription(savedBugDescription || bug.description);
   }, [bug.codeFilePath, bug.description, bug.id]);
+
 
   // Fetch comments for this bug when component mounts
   useEffect(() => {
@@ -184,9 +187,6 @@ setTimeout(() => {
       console.error("Error adding comment:", error);
     }
   };
-    localStorage.setItem(`bug_${bug.id}_code`, originalCodeRef.current);
-    setSaveStatus("Saved"); // Reset means it's back to the original
-  };
   const handleSaveDraft = async () => {
     try {
       const userId=localStorage.getItem("rememberMe")
@@ -202,7 +202,7 @@ setTimeout(() => {
       setSaveStatus("Error saving draft");
     }
   };
-  
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -337,24 +337,12 @@ setTimeout(() => {
           <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleResetCode}>
             Reset
           </button>
-
-          {/* Save Status Indicator */}
-          <div className="text-sm text-gray-500 flex items-center">
-            {saveStatus === "Saving..." ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-t-2 border-gray-500 rounded-full mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                ✔ <span className="ml-1">Draft saved</span>
-              </>
-            )}
-          </div>
+          <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : "✔ Draft Saved"}</p>
           <button
           onClick={handleSaveDraft}
           className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
         </button>
+
         </div>
 
         <h2 className="text-lg font-semibold mt-4">Output</h2>
