@@ -216,13 +216,14 @@ setTimeout(() => {
         </p>
 
         {/* Editable Bug Description */}
-        <textarea className={`w-full p-3 mt-2 border rounded-md ${descriptionMinimized ? "h-16" : "h-[420px]"} overflow-y-auto focus:outline-none ${isEditing ? "bg-gray-200" : "bg-white"}`}
+        <textarea 
+  className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
+  placeholder="Edit bug description..."
+  value={bugDescription}
+  onChange={handleDescriptionChange}
+  readOnly={!isEditing || !isCreator}
+/>
 
-          placeholder="Edit bug description..."
-          value={bugDescription}
-          onChange={handleDescriptionChange}
-          readOnly={!isEditing || !isCreator}
-        />
 
         {/* Save & Discard Buttons */}
         {isEditing && isCreator && (
