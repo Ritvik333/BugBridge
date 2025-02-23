@@ -164,7 +164,7 @@ const fetchBugsList = async () => {
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg p-2">
                 <p className="p-2 hover:bg-gray-100 cursor-pointer">My Account</p>
                 <p className="p-2 hover:bg-gray-100 cursor-pointer">Settings</p>
-                <p className="p-2 hover:bg-gray-100 cursor-pointer">Log Out</p>
+                <p onClick={handleLogout} className="p-2 hover:bg-gray-100 cursor-pointer">Log Out</p>
               </div>
             )}
           </div>
@@ -217,9 +217,9 @@ const fetchBugsList = async () => {
                 >
                   <div>
                     <h3 className="font-medium">
-                      <Link to={`/bug-details/${bug.id}`} className="text-blue-500 hover:underline">
+                      <div onClick={() => navigate(`/bug-details/${bug.id}`, { state: bug })} className="text-blue-500 hover:underline">
                         {bug.title}
-                      </Link>
+                      </div>
                     </h3>
                     <p className="text-sm text-gray-500">
                        <span className={getSeverityColor(bug.severity)}>{bug.severity}</span> | {" "}

@@ -25,7 +25,7 @@ function NewBugPage() {
       formData.append('language', language)
       formData.append('severity', severity)
       formData.append('status', 'open')
-      formData.append('creatorId', '1')
+      formData.append('creatorId', localStorage.getItem("rememberMe"))
   
       // Handle file path
       if (file) {
