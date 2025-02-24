@@ -21,14 +21,14 @@ export default function BugDetails({ currentUser }) {
   const [savedDescription, setSavedDescription] = useState(bug.description);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [descriptionMinimized, setDescriptionMinimized] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("Saved"); // "Saving..." | "Saved"
+
 
 
 
   // States for the comment section
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [loading, setLoading] = useState(true); // Loading while fetching the code
   const commentsContainerRef = useRef(null);
 
 
@@ -41,14 +41,12 @@ export default function BugDetails({ currentUser }) {
 
     const loadCode = async () => {
       try {
-        console.log(bug)
         const userId = bug.creator.id;
         const username = bug.creator.username; // Extract username
         const language = bug.language;
         const filepath = bug.codeFilePath;
         const filename = filepath.split("/").pop(); // Extract filename from path
   
-       
         const fetchedCode = await fetchCodeFile(userId, username, language, filename );
       
   
@@ -62,15 +60,13 @@ export default function BugDetails({ currentUser }) {
         }
       } catch (error) {
         console.error("Error fetching code file:", error);
-      } finally {
-        setLoading(false); // Stop loading indicator
-      }
+      } 
     };
   
     loadCode();
     setBugDescription(savedBugDescription || bug.description);
     setSavedDescription(savedBugDescription || bug.description);
-  }, [bug.codeFilePath, bug.description, bug.id]);
+  }, [bug]);
 
   // Fetch comments for this bug when component mounts
   useEffect(() => {
@@ -90,6 +86,8 @@ export default function BugDetails({ currentUser }) {
     const formattedCode = jsBeautify(newCode, { indent_size: 2 });
     setCode(formattedCode);
     setIsSaving(true);
+    console.log(isSaving)
+
 
     // Clear any previous timeout to debounce saving
     if (saveTimeoutRef.current) {
@@ -163,7 +161,7 @@ export default function BugDetails({ currentUser }) {
         text: newComment,
       };
       // Call the API to add the comment
-      const savedComment = await addComment(commentData);
+      await addComment(commentData);
       // After adding the comment, fetch the updated comments
 const updatedComments = await fetchComments(bug.id);
 
@@ -261,7 +259,7 @@ setTimeout(() => {
         {/* Comment Section */}
         <div className="mt-6">
           <h3 className="text-xl font-bold mb-2">Comments</h3>
-          <div ref={commentsContainerRef} className={`transition-all border p-2 rounded-md overflow-y-auto flex-grow ${descriptionMinimized ? "h-[calc(100vh-200px)]" : "h-48"}`}>
+          <div ref={commentsContainerRef} className={`transition-all border p-2 rounded-md overflow-y-auto flex-grow  h-48`}>
           {comments?.length === 0 ? (
             <p className="text-gray-500">No comments yet.</p>
   ) : (
