@@ -155,3 +155,17 @@ export const deleteComment = async (commendId) => {
     throw error.response ? error.response.data : error.message;
   }
 };
+
+  export const submitBug = async (formData) => {
+    try {
+      const response = await apiClient.post("/api/bugs", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+

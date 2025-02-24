@@ -7,7 +7,6 @@ import ProtectedRoute from "../pages/ProtectedRoute";
 import BugBoardPage from "../pages/bug-board";
 import NewBugPage from "../pages/new-bug";
 import BugDetails from "../pages/bug-details"; // Add BugDetails import
-import SavedDraftsPage from "../pages/my-draft";
 
 const AppRoutes = () => {
   return (
