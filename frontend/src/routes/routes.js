@@ -8,6 +8,7 @@ import BugBoardPage from "../pages/bug-board";
 import BugSubmissionForm from "../pages/BugSubmissionForm";
 import NewBugPage from "../pages/new-bug";
 import BugDetails from "../pages/bug-details"; // Add BugDetails import
+import SavedDraftsPage from "../pages/my-draft";
 
 const AppRoutes = () => {
   return (

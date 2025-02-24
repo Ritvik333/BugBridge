@@ -1,7 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
+
 import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft } from "../services/auth";
+
 import jsBeautify from "js-beautify";
 
 export default function BugDetails({ currentUser }) {
