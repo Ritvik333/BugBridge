@@ -1,164 +1,402 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
-import { runCode, fetchCodeFile } from "../services/auth";
 
-export default function BugDetails() {
-  const location = useLocation();
-  const bug = location.state;
-  const [output, setOutput] = useState("");
-  const [code, setCode] = useState(""); // Initially empty
-  const [saveStatus, setSaveStatus] = useState("Saved"); // "Saving..." | "Saved"
-  const [loading, setLoading] = useState(true); // Loading while fetching the code
-  const originalCodeRef = useRef(""); // To store the original code
-  const saveTimeoutRef = useRef(null); // To debounce saving
-  const [selectedLanguage, setSelectedLanguage] = useState(bug.language);
+import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
 
-  // Fetch the code from the file using bug.codeFilePath
-  useEffect(() => {
-    const loadCode = async () => {
-      try {
-        const filepath = bug.codeFilePath;
-        const filename = filepath.split("/").pop(); // Get the file name from the path
-        const fetchedCode = await fetchCodeFile(filename);
-        console.log(bug);
-        console.log(fetchedCode); // Check the fetched code
-        setCode(fetchedCode || ""); // Set code if fetched, otherwise empty
-        originalCodeRef.current = fetchedCode || ""; // Store the original code for reset
+import jsBeautify from "js-beautify";
+import {  Trash } from "lucide-react";
 
-        // Check if there's saved code in localStorage
-        const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
-        if (savedCode) {
-          setCode(savedCode); // If there's saved code, use it
+export default function BugDetails({ currentUser }) {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const bug = location.state;
+    const rememberMeId = parseInt(localStorage.getItem("rememberMe"), 10);
+    const isCreator = bug && bug.creator && bug.creator.id === rememberMeId;
+    const [selectedLanguage, setSelectedLanguage] = useState(bug.language || "python");
+    const [output, setOutput] = useState("");
+    const [code, setCode] = useState("");
+    const [bugDescription, setBugDescription] = useState(bug.description);
+    const [savedDescription, setSavedDescription] = useState(bug.description);
+    const [saveStatus, setSaveStatus] = useState("Saved"); // "Saving..." | "Saved"
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [descriptionMinimized, setDescriptionMinimized] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState("");
+    const [loading, setLoading] = useState(true);
+    const commentsContainerRef = useRef(null);
+    const originalCodeRef = useRef("");
+    const saveTimeoutRef = useRef(null);
+
+    // Debounce Timer Ref
+    const debounceTimerRef = useRef(null);
+    // Periodic Sync Interval Ref
+    const periodicSyncIntervalRef = useRef(null);
+
+    useEffect(() => {
+        const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
+
+        const loadCode = async () => {
+            try {
+                console.log(bug)
+                const userId = bug.creator.id;
+                const username = bug.creator.username; // Extract username
+                const language = bug.language;
+                const filepath = bug.codeFilePath;
+                if (!filepath) {
+                  console.error("codeFilePath is missing!", bug);
+                  return;
+                }
+                const filename = filepath.split(/[/\\]/).pop(); // Extract filename from path
+                const fetchedCode = await fetchCodeFile(userId, username, language, filename);
+
+                setCode(fetchedCode || "");
+                originalCodeRef.current = fetchedCode || "";
+
+                const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
+                if (savedCode) {
+                    setCode(savedCode);
+                }
+            } catch (error) {
+                console.error("Error fetching code file:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCode();
+        setBugDescription(savedBugDescription || bug.description);
+        setSavedDescription(savedBugDescription || bug.description);
+    }, [bug]);
+
+    useEffect(() => {
+        const getComments = async () => {
+            try {
+                const commentsData = await fetchComments(bug.id);
+                setComments(commentsData);
+            } catch (error) {
+                console.error("Error fetching comments:", error);
+            }
+        };
+        getComments();
+    }, [bug.id]);
+
+    // Debounced Save to DB Function
+    const debouncedSaveToDB = (codeToSave) => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
         }
-      } catch (error) {
-        console.error("Error fetching code file:", error);
-      } finally {
-        setLoading(false); // Set loading to false after fetching
-      }
+
+        debounceTimerRef.current = setTimeout(async () => {
+            try {
+                const userId = localStorage.getItem("rememberMe");
+                const bugId = bug.id;
+                const username = bug.creator.username;
+                await saveDraft({ userId, bugId, username, code: codeToSave });
+                setSaveStatus("Saved");
+            } catch (error) {
+                console.error("Error saving draft to DB:", error);
+                setSaveStatus("Error saving draft");
+            }
+        }, 3000); // 2-second debounce delay
     };
 
-    loadCode();
-  }, [bug.codeFilePath]); // Dependency on codeFilePath so that it refetches when changed
+    // Start Periodic Sync
+    useEffect(() => {
+        periodicSyncIntervalRef.current = setInterval(() => {
+            const codeToSave = localStorage.getItem(`bug_${bug.id}_code`);
+            if (codeToSave) {
+                // Save to DB using the same function as debounced save
+                console.log("periodic called")
+                debouncedSaveToDB(codeToSave);
+            }
+        }, 30000);  // Every 30 seconds
+
+        // Cleanup interval on unmount
+        return () => {
+            clearInterval(periodicSyncIntervalRef.current);
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [bug.id, bug.creator?.username]);
 
   const handleCodeChange = (newCode) => {
-    setCode(newCode);
-    setSaveStatus("Saving...");
+    // Beautify the new code and update state
+    const formattedCode = jsBeautify(newCode, { indent_size: 2 });
+    setCode(formattedCode);
+    setIsSaving(true);
+    console.log(isSaving)
 
-    // Clear any previous timeout to debounce saving
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
 
-    // Save to localStorage after 800ms debounce
-    saveTimeoutRef.current = setTimeout(() => {
-      localStorage.setItem(`bug_${bug.id}_code`, newCode);
-      setSaveStatus("Saved"); // Set status as "Draft saved"
-    }, 800);
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+            localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
+            setIsSaving(false);
+        }, 800);
+
+        // Trigger the debounced save
+        debouncedSaveToDB(formattedCode);
+        setSaveStatus("Saving Draft..."); // Update save status UI
+    };
+
+    const handleDescriptionChange = (e) => {
+        setBugDescription(e.target.value);
+    };
+
+    const saveChanges = async () => {
+        if (!isCreator) return;
+        try {
+            const updatedBug = {
+                ...bug,
+                description: bugDescription,
+            };
+
+            await updateBug(updatedBug);
+
+            setSavedDescription(bugDescription);
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Error updating bug description:", error);
+        }
+    };
+
+    const discardChanges = () => {
+        setBugDescription(savedDescription);
+        setIsEditing(false);
+    };
+
+    const handleRunCode = async () => {
+        try {
+            const result = await runCode(code, selectedLanguage);
+            setOutput(result || "No output");
+        } catch (error) {
+            console.error("Error running code:", error);
+            setOutput(`Unexpected Error: ${error.message || error}`);
+        }
+    };
+
+    const handleResetCode = () => {
+        setCode(originalCodeRef.current);
+        localStorage.removeItem(`bug_${bug.id}_code`);
+        alert("Code reset to original state.");
+    };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(code);
+    alert("Code copied to clipboard!");
   };
-
-  const handleRunCode = async () => {
+  const handleDeleteComment = async (commentId) => {
     try {
-      const result = await runCode(code, selectedLanguage);
-      setOutput(result || "No output");
+      // Call the API to delete the comment
+      await deleteComment(commentId);
+      // After deleting the comment, fetch the updated comments
+      const updatedComments = await fetchComments(bug.id);
+      // Update comments state to reflect the deletion
+      setComments(updatedComments);
     } catch (error) {
-      console.error("Error running code:", error);
-      setOutput(`Unexpected Error: ${error.message || error}`);
+      console.error("Error deleting comment:", error);
     }
   };
+ 
+  // Handler for adding comments using API
+  const handleAddComment = async () => {
+    if (newComment.trim() === "") return;
+    try {
+      const commentData = {
+        bugId: bug.id,
+        userId: localStorage.getItem("rememberMe"),
+        text: newComment,
+      };
+      // Call the API to add the comment
+      await addComment(commentData);
+      // After adding the comment, fetch the updated comments
+      const updatedComments = await fetchComments(bug.id);
 
-  const handleResetCode = () => {
-    setCode(originalCodeRef.current);
-    localStorage.setItem(`bug_${bug.id}_code`, originalCodeRef.current);
-    setSaveStatus("Saved"); // Reset means it's back to the original
-  };
+      // Update comments state to include the new comment
+      setComments(updatedComments);
+      setNewComment(""); // Reset the input field
 
-  console.log("cdoe:"+code);
+            setTimeout(() => {
+                commentsContainerRef.current?.scrollTo({ top: commentsContainerRef.current.scrollHeight, behavior: "smooth" });
+            }, 100);
+        } catch (error) {
+            console.error("Error adding comment:", error);
+        }
+    };
+
+    const handleSaveDraft = async () => {
+        try {
+            setSaveStatus("Saving Draft..."); // Update save status UI
+            const userId = localStorage.getItem("rememberMe");
+            const bugId = bug.id;
+            const username = bug.creator.username;
+            await saveDraft({ userId, bugId, username, code });
+            setSaveStatus("Saved"); // Update save status UI
+        } catch (error) {
+            console.error("Error saving draft:", error);
+            setSaveStatus("Error saving draft");
+        }
+    };
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Left: Bug Description */}
-      <div className="w-1/2 p-6 bg-white shadow-lg">
-        <h2 className="text-xl font-bold">{bug.title}</h2>
-        <p className="text-gray-600 mt-2">Severity: {bug.severity} | Status: {bug.status}</p>
-        <p className="mt-4">{bug.description}</p>
-      </div>
+      {/* Left: Bug Description & Comments */}
+      <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
 
-      {/* Right: Code Editor */}
-      <div className="w-1/2 p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Code</h2>
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center space-x-2 mb-4">
+          <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
+            ⬅ Bug Board
+          </button>
+        </div>
 
-          <div className="flex items-center space-x-2">
-            {bug.language && (
-              <select 
-                value={selectedLanguage} 
-                onChange={(e) => setSelectedLanguage(e.target.value)} 
-                className="p-1 border rounded-md"
-              >
-                <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-              </select>
+                {/* Bug Title & Edit Button */}
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold">{bug.title}</h2>
+                    {(isCreator && !isEditing) && (
+                        <button
+                            className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600" s
+                            onClick={async () => {
+                                if (isEditing) {
+                                    await saveChanges();
+                                } else {
+                                    setIsEditing(true);
+                                }
+                            }}
+                        >
+                            {"Edit"}
+                        </button>
+                    )}
+                </div>
+
+                {/* Severity & Status */}
+                <p className="text-gray-600 mt-2">
+                    <strong>Severity:</strong> {bug.severity} | <strong>Status:</strong> {bug.status}
+                </p>
+
+                {/* Editable Bug Description */}
+                <textarea
+                    className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
+                    placeholder="Edit bug description..."
+                    value={bugDescription}
+                    onChange={handleDescriptionChange}
+                    readOnly={!isEditing || !isCreator}
+                />
+                {/* Save & Discard Buttons */}
+                {isEditing && isCreator && (
+                    <div className="mt-2 flex space-x-4">
+                        <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={saveChanges}>
+                            Save Changes
+                        </button>
+                        <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={discardChanges}>
+                            Discard Changes
+                        </button>
+                    </div>
+                )}
+
+        {/* Comment Section */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold mb-2">Comments</h3>
+          <div ref={commentsContainerRef} className={`transition-all border p-2 rounded-md overflow-y-auto flex-grow  h-48`}>
+            {comments?.length === 0 ? (
+              <p className="text-gray-500">No comments yet.</p>
+            ) : (
+              comments?.map((comment) => (
+                <div key={comment?.id} style={{ justifyContent: 'space-between' }} className="mb-3 flex gap-2 ">
+
+                  <div className="mb-3 flex gap-2 ">
+                    <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">{comment?.user?.username[0].toUpperCase()}</div>
+                    <div>
+                      <p className="text-xs font-light text-gray-500">
+                      {comment?.user?.username}
+                    </p>
+                      <p className="text-sm text-gray-800">
+                        {comment?.text}
+                      </p>
+                      </div>
+
+                  </div>
+                  {isCreator && <div onClick={()=>handleDeleteComment(comment.id)} style={{cursor:"pointer"}} className="flex items-center space-x-2">
+                    <Trash className="h-4 w-4 text-red-500" />
+                  </div>}
+
+                </div>
+              ))
             )}
+          </div>
 
-            <button 
-              onClick={handleRunCode} 
-              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Run
+          <div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
+
+            <input
+              type="text"
+              className="flex-grow p-2 border rounded-md focus:outline-none"
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddComment();
+                }
+              }}
+            />
+            <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
+              Send
             </button>
           </div>
-        </div>
-        
-        {loading ? (
-          <p>Loading code...</p> // Show loading message while fetching
-        ) : (
-          <MonacoEditor
-            height="400px"
-            language={selectedLanguage}
-            theme="vs-dark"
-            value={code}
-            onChange={handleCodeChange}
-            options={{
-              minimap: { enabled: false },
-              automaticLayout: true,
-              fontSize: 14,
-              lineNumbers: "on",
-            }}
-          />
-        )}
 
-        {/* Reset Button & Save Status */}
-        <div className="flex items-center space-x-4 mt-2">
-          <button 
-            onClick={handleResetCode} 
-            className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          >
-            Reset
-          </button>
+                </div>
+            </div>
 
-          {/* Save Status Indicator */}
-          <div className="text-sm text-gray-500 flex items-center">
-            {saveStatus === "Saving..." ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-t-2 border-gray-500 rounded-full mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                ✔ <span className="ml-1">Draft saved</span>
-              </>
-            )}
-          </div>
-        </div>
+            {/* Right: Code Editor */}
+            <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-lg font-semibold">Code</h2>
+                    <div className="flex items-center space-x-2">
+                        {bug.language && (
+                            <select
+                                value={selectedLanguage}
+                                onChange={(e) => setSelectedLanguage(e.target.value)}
+                                className="p-1 border rounded-md"
+                            >
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                            </select>
+                        )}
+                        <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
+                            Run
+                        </button>
+                        <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={handleCopyCode}>
+                            Copy
+                        </button>
+                    </div>
+                </div>
 
-        {/* Output Section */}
-        <h2 className="text-lg font-semibold mt-4">Output</h2>
-        <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
-          <pre>{output}</pre>
+                <MonacoEditor height="500px" language={selectedLanguage} theme="vs-dark" value={code} onChange={handleCodeChange} />
+
+                <div className="mt-2 flex justify-between items-center">
+                    <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleResetCode}>
+                        Reset
+                    </button>
+                    <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
+                    <button
+                        onClick={handleSaveDraft}
+                        className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
+                    </button>
+
+                </div>
+
+                <h2 className="text-lg font-semibold mt-4">Output</h2>
+                <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
+                    <pre>{output}</pre>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
