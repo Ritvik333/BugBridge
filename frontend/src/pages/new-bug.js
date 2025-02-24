@@ -162,8 +162,6 @@ function NewBugPage() {
                   <option value="javascript">JavaScript</option>
                   <option value="python">Python</option>
                   <option value="java">Java</option>
-                  <option value="csharp">C#</option>
-                  <option value="other">Other</option>
                 </select>
               </div>
             </div>

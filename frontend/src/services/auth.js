@@ -157,7 +157,6 @@ export const addComment = async (commentData) => {
 };
 export const saveDraft = async (userData) => {
   try {
-    console.log(userData)
     const response = await apiClient.post('/drafts/save', userData);
     return response.data; // Return the response data from the backend (e.g., success message or saved draft details)
   } catch (error) {
