@@ -42,7 +42,6 @@ export default function BugDetails({ currentUser }) {
 
     const loadCode = async () => {
       try {
-        console.log(bug)
         const userId = bug.creator.id;
         const username = bug.creator.username; // Extract username
         const language = bug.language;

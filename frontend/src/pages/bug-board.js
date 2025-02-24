@@ -32,6 +32,7 @@ useEffect(() => {
         setUsers(Array.isArray(usersData) ? usersData : []);
       } catch (error) {
         console.error("Error fetching users:", error);
+        setUsers([]);
       }
     };
 
@@ -87,15 +88,16 @@ const fetchBugsList = async () => {
     }
   }, [])
 
+
+
   const filteredBugs = bugs
     .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
     .filter((bug) => !filterStatus || bug.status === filterStatus)
-    .filter((bug) => {
-      if (!filterCreator) return true;
-      if (!bug.creator) return false;
-      return String(bug.creator).toLowerCase().includes(filterCreator.toLowerCase());
-    })
-        // .filter((bug) => !filterCreator || bug.creator.toLowerCase().includes(filterCreator.toLowerCase()))
+    .filter((bug) =>
+      !filterCreator ||
+      (bug.creator && typeof bug.creator === "string" && bug.creator.toLowerCase().includes(filterCreator.toLowerCase())) ||
+      (bug.creator && typeof bug.creator.username === "string" && bug.creator.username.toLowerCase().includes(filterCreator.toLowerCase()))
+    )
     .sort((a, b) =>
       sortOption === "language"
         ? a.language.localeCompare(b.language)
@@ -196,6 +198,7 @@ const fetchBugsList = async () => {
           <input
             type="text"
             placeholder="Filter by Creator"
+            value={filterCreator}
             onChange={(e) => setFilterCreator(e.target.value)}
             className="p-2 border rounded hover:border-gray-400"
           />
