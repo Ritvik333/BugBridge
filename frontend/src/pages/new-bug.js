@@ -39,10 +39,13 @@ function NewBugPage() {
         };
         
         const fileExtension = extensions[language] || "txt"; // Default to txt if language is unknown
-        const formattedTitle = title.replace(/\s+/g, "_"); // Replace spaces with underscores
+        // Generate a random 6-character alphanumeric UUID
+        const generateUUID = () => Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        const uniqueFilename = `${generateUUID()}.${fileExtension}`;
         const textFile = new File(
           [codeSnippet], 
-          `${formattedTitle}.${fileExtension}`, 
+          `${uniqueFilename}`, 
           { type: "text/plain" }
         );
         
