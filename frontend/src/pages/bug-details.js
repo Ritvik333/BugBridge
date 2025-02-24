@@ -22,6 +22,7 @@ export default function BugDetails({ currentUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [descriptionMinimized, setDescriptionMinimized] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(""); //error without it 
 
 
 

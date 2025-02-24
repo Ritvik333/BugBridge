@@ -5,7 +5,6 @@ import ForgotPasswordPage from "../pages/forgot-password";
 import ResetPasswordPage from "../pages/reset-password";
 import ProtectedRoute from "../pages/ProtectedRoute";
 import BugBoardPage from "../pages/bug-board";
-import BugSubmissionForm from "../pages/BugSubmissionForm";
 import NewBugPage from "../pages/new-bug";
 import BugDetails from "../pages/bug-details"; // Add BugDetails import
 import SavedDraftsPage from "../pages/my-draft";
@@ -19,7 +18,6 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       {/* <Route path="/dashboard" element={<ProtectedRoute><BugBoardPage /></ProtectedRoute>} /> */}
       <Route path="/dashboard" element={<BugBoardPage />} />
-      <Route path="/BugSubmissionForm" element={<BugSubmissionForm />} />
       <Route path="/new-bug" element={<NewBugPage />} />
       {/* Add route for BugDetails page */}
       {/* <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} /> */}

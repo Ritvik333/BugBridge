@@ -31,11 +31,22 @@ function NewBugPage() {
       if (file) {
         formData.append('codeFilePath', file) // Send the actual file
       } else if (codeSnippet) {
-        // If no file but there's a code snippet, create a text file
-        const textFile = new File([codeSnippet], 'code-snippet.txt', {
-          type: 'text/plain',
-        })
-        formData.append('codeFilePath', textFile)
+        // Determine file extension based on language
+        const extensions = {
+          python: "py",
+          javascript: "js",
+          java: "java",
+        };
+        
+        const fileExtension = extensions[language] || "txt"; // Default to txt if language is unknown
+        const formattedTitle = title.replace(/\s+/g, "_"); // Replace spaces with underscores
+        const textFile = new File(
+          [codeSnippet], 
+          `${formattedTitle}.${fileExtension}`, 
+          { type: "text/plain" }
+        );
+        
+        formData.append("codeFilePath", textFile);
       }
   
       // Send to API
@@ -47,7 +58,7 @@ function NewBugPage() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+        
       // Also save to localStorage for local state
       const newBug = {
         id: Date.now().toString(),

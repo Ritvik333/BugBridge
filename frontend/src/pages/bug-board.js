@@ -1,16 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-<<<<<<< HEAD
-import { Bell, Menu } from "lucide-react";
-import { logout } from "../services/auth";
-import { fetchBugs, fetchUsers, createBug, updateBug, deleteBug } from "../services/auth"; // Import API functions
-import { useNavigate } from "react-router-dom";
-=======
 import { logout,fetchBugs, fetchUsers } from "../services/auth";
 import { Link, useNavigate } from "react-router-dom"
 import { Bell, Plus, Menu, AlertCircle, CheckCircle, Clock } from "lucide-react"
 
 
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
 
 export default function BugBoardPage() {
   const [notifications, setNotifications] = useState([]);
@@ -26,42 +19,6 @@ export default function BugBoardPage() {
   const navigate = useNavigate();
   const menuRef = useRef(null);
 
-<<<<<<< HEAD
-  useEffect(() => {
-    const loadBugs = async () => {
-      try {
-        const data = await fetchBugs({ filterSeverity, filterStatus, filterCreator, sortOption });
-        setBugs(data);
-      } catch (error) {
-        console.error("Error fetching bugs:", error);
-      }
-    };
-    loadBugs();
-  }, [filterSeverity, filterStatus, filterCreator, sortOption]);
-
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const data = await fetchUsers();
-        setUsers(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    loadUsers();
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  const filteredBugs = bugs
-    .filter((bug) => !filterSeverity || bug.severity === filterSeverity)
-    .filter((bug) => !filterStatus || bug.status === filterStatus)
-    .filter((bug) => !filterCreator || bug.creator.id === parseInt(filterCreator))
-    .sort((a, b) => (sortOption === "priority" ? a.priority - b.priority : new Date(a.creationDate) - new Date(b.creationDate)));
-=======
 
 useEffect(() => {
   fetchBugsList();
@@ -186,7 +143,6 @@ const fetchBugsList = async () => {
         return null
     }
   }
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -194,14 +150,10 @@ const fetchBugsList = async () => {
       <nav className="h-14 bg-white shadow-sm flex justify-between items-center px-4">
         <h1 className="text-lg font-semibold">Bug Board</h1>
         <div className="flex space-x-4">
-<<<<<<< HEAD
-          <button className="p-2 rounded-md text-gray-600 hover:bg-gray-100" onClick={() => setNotifications([...notifications, "New Bug Reported!"])}>
-=======
           <button
             className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
             onClick={() => setNotifications([...notifications, "New Bug Reported!"])}
           >
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
             <Bell className="h-5 w-5" />
           </button>
           <div className="relative" ref={menuRef}>
@@ -218,11 +170,6 @@ const fetchBugsList = async () => {
           </div>
         </div>
       </nav>
-<<<<<<< HEAD
-      <div className="flex-1 p-4">
-        <div className="flex gap-4 mb-4">
-          <select onChange={(e) => setFilterSeverity(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-=======
 
       {/* Main Content */}
       <div className="flex-1 p-4">
@@ -231,43 +178,27 @@ const fetchBugsList = async () => {
             onChange={(e) => setFilterSeverity(e.target.value)}
             className="p-2 border rounded hover:border-gray-400"
           >
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
             <option value="">All Severities</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
             <option value="critical">Critical</option>
           </select>
-<<<<<<< HEAD
-          <select onChange={(e) => setFilterStatus(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-=======
           <select
             onChange={(e) => setFilterStatus(e.target.value)}
             className="p-2 border rounded hover:border-gray-400"
           >
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
             <option value="">All Statuses</option>
             <option value="open">Open</option>
             <option value="in Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
-<<<<<<< HEAD
-          <select onChange={(e) => setFilterCreator(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-            <option value="">All Creators</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.username}
-              </option>
-            ))}
-          </select>
-=======
           <input
             type="text"
             placeholder="Filter by Creator"
             onChange={(e) => setFilterCreator(e.target.value)}
             className="p-2 border rounded hover:border-gray-400"
           />
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
           <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
             <option value="creationDate">Sort by Creation Date</option>
             <option value="language">Sort by Language</option>
@@ -276,14 +207,6 @@ const fetchBugsList = async () => {
         <div className="bg-white p-4 rounded shadow">
           <h2 className="font-semibold mb-2">Detected Bugs</h2>
           <div className="space-y-2">
-<<<<<<< HEAD
-            {filteredBugs.map((bug) => (
-              <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-100" onClick={() => navigate(`/bug/${bug.id}`, { state: bug })}>
-                <h3 className="font-medium">{bug.title}</h3>
-                <p className="text-sm text-gray-500">Severity: {bug.severity} | Status: {bug.status}</p>
-              </div>
-            ))}
-=======
             {filteredBugs.length === 0 ? (
               <p className="text-gray-500">No bugs found. Add a new bug to get started!</p>
             ) : (
@@ -308,7 +231,6 @@ const fetchBugsList = async () => {
                 </div>
               ))
             )}
->>>>>>> 527a87d2b0e20dfee3e4ca12a02da3afa1e5a7f3
           </div>
         </div>
         <button
