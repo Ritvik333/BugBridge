@@ -122,30 +122,38 @@ export default function BugDetails({ currentUser }) {
         };
     }, [bug.id, bug.creator?.username]);
 
-  const handleCodeChange = (newCode) => {
-    // Beautify the new code and update state
-    const formattedCode = jsBeautify(newCode, { indent_size: 2 });
-    setCode(formattedCode);
-    setIsSaving(true);
-    console.log(isSaving)
-
-
-        if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-        }
-
-        saveTimeoutRef.current = setTimeout(() => {
-            localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
-            setIsSaving(false);
-        }, 800);
-
-        // Trigger the debounced save
-        debouncedSaveToDB(formattedCode);
-        setSaveStatus("Saving Draft..."); // Update save status UI
+    const handleCodeChange = (newCode) => {
+      // Beautify the new code and update state
+      const formattedCode = jsBeautify(newCode, { indent_size: 2 });
+      setCode(formattedCode);
+      setIsSaving(true);
+  
+      // Immediately save to localStorage
+      localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
+  
+      // Clear any previous timeout to debounce saving
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+  
+      // Save to localStorage after 800ms debounce
+      saveTimeoutRef.current = setTimeout(() => {
+        setIsSaving(false);
+      }, 800);
+  
+      // Trigger the debounced save
+      debouncedSaveToDB(formattedCode);
+      setSaveStatus("Saving Draft..."); // Update save status UI
     };
+  
 
     const handleDescriptionChange = (e) => {
-        setBugDescription(e.target.value);
+      const newDescription = e.target.value;
+      setBugDescription(newDescription);
+      setIsSaving(true);  
+  
+      // Save to localStorage
+      localStorage.setItem(`bug_${bug.id}_description`, newDescription);
     };
 
     const saveChanges = async () => {

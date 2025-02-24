@@ -68,40 +68,22 @@ export const fetchCodeFile = async (userId, username, language, filename) => {
 
 export const fetchBugs = async (filters) => {
   try {
-    // First try to fetch from API
-    const response = await fetch("http://localhost:8080/api/bugs");
-    if (response.ok) {
-      const data = await response.json();
-      // Store the fetched data in localStorage
-      localStorage.setItem("bugs", JSON.stringify(data));
-      return data;
-    }
-    
-    // If API fails, try to get from localStorage
-    const storedBugs = localStorage.getItem("bugs");
-    if (storedBugs) {
-      const bugs = JSON.parse(storedBugs);
-      return Array.isArray(bugs) ? bugs : [];
-    }
-    
-    return []; // Return empty array if both API and localStorage fail
+    const queryParams = new URLSearchParams();
+
+    // Add filters to query parameters
+    if (filters.filterSeverity) queryParams.append("severity", filters.filterSeverity);
+    if (filters.filterStatus) queryParams.append("status", filters.filterStatus);
+    if (filters.filterCreator) queryParams.append("creator", filters.filterCreator);
+    queryParams.append("sortBy", filters.sortOption);
+    queryParams.append("order", "asc");
+
+    const response = await apiClient.get(`/api/bugs?${queryParams}`);
+    return response.data; // Return the fetched bugs
   } catch (error) {
-    console.error("Error fetching bugs:", error);
-    
-    // Try localStorage as fallback
-    try {
-      const storedBugs = localStorage.getItem("bugs");
-      if (storedBugs) {
-        const bugs = JSON.parse(storedBugs);
-        return Array.isArray(bugs) ? bugs : [];
-      }
-    } catch (storageError) {
-      console.error("Error reading from localStorage:", storageError);
-    }
-    
-    return []; // Return empty array if everything fails
+    throw error.response ? error.response.data : error.message;
   }
 };
+
 
 export const fetchUsers = async () => {
   try {
