@@ -205,6 +205,20 @@ public ResponseWrapper<Bug> createBug(
             }
         }
 
+        @DeleteMapping("/{commentId}")
+        public ResponseWrapper<Void> deleteComment(@PathVariable Long commentId) {
+            try {
+                boolean deleted = commentService.deleteCommentById(commentId);
+                if (deleted) {
+                    return new ResponseWrapper<>("success", "Comment deleted successfully", null);
+                } else {
+                    return new ResponseWrapper<>("error", "Comment not found", null);
+                }
+            } catch (Exception e) {
+                return new ResponseWrapper<>("error", "An unexpected error occurred: " + e.getMessage(), null);
+            }
+        }
+
         @Data
         static class CommentRequest {
             private Long bugId;

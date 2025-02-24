@@ -155,10 +155,20 @@ export const addComment = async (commentData) => {
     throw error.response ? error.response.data : error.message;
   }
 };
+
 export const saveDraft = async (userData) => {
   try {
     const response = await apiClient.post('/drafts/save', userData);
     return response.data; // Return the response data from the backend (e.g., success message or saved draft details)
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const deleteComment = async (commendId) => {
+  try {
+    const response = await apiClient.delete(`/api/comments/${commendId}`);
+    return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
