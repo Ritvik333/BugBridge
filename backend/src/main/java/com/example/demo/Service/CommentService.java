@@ -18,6 +18,15 @@ import com.example.demo.Repository.CommentRepository;
         public Comment createComment(Comment comment) {
             return commentRepository.save(comment);
         }
+
+        public boolean deleteCommentById(Long commentId) {
+            if (commentRepository.existsById(commentId)) {
+                commentRepository.deleteById(commentId);
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
 

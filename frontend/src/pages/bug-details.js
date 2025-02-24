@@ -2,9 +2,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
 
-import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft } from "../services/auth";
+import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
 
 import jsBeautify from "js-beautify";
+import {  Trash } from "lucide-react";
 
 export default function BugDetails({ currentUser }) {
   const location = useLocation();
@@ -46,13 +47,13 @@ export default function BugDetails({ currentUser }) {
         const language = bug.language;
         const filepath = bug.codeFilePath;
         const filename = filepath.split("/").pop(); // Extract filename from path
-  
-        const fetchedCode = await fetchCodeFile(userId, username, language, filename );
-      
-  
+
+        const fetchedCode = await fetchCodeFile(userId, username, language, filename);
+
+
         setCode(fetchedCode || ""); // Set fetched code
         originalCodeRef.current = fetchedCode || ""; // Store original code
-  
+
         // Check if there's a saved draft in localStorage
         const savedCode = localStorage.getItem(`bug_${bug.id}_code`);
         if (savedCode) {
@@ -60,9 +61,9 @@ export default function BugDetails({ currentUser }) {
         }
       } catch (error) {
         console.error("Error fetching code file:", error);
-      } 
+      }
     };
-  
+
     loadCode();
     setBugDescription(savedBugDescription || bug.description);
     setSavedDescription(savedBugDescription || bug.description);
@@ -74,6 +75,7 @@ export default function BugDetails({ currentUser }) {
       try {
         const commentsData = await fetchComments(bug.id);
         setComments(commentsData);
+        console.log(commentsData)
       } catch (error) {
         console.error("Error fetching comments:", error);
       }
@@ -113,10 +115,10 @@ export default function BugDetails({ currentUser }) {
         ...bug, // existing bug details
         description: bugDescription, // updated description from textarea
       };
-  
+
       // Call the API to update the bug
       await updateBug(updatedBug);
-  
+
       // Update state to reflect the saved changes and exit editing mode.
       setSavedDescription(bugDescription);
       setIsEditing(false);
@@ -150,29 +152,41 @@ export default function BugDetails({ currentUser }) {
     navigator.clipboard.writeText(code);
     alert("Code copied to clipboard!");
   };
-
+  const handleDeleteComment = async (commentId) => {
+    try {
+      // Call the API to delete the comment
+      await deleteComment(commentId);
+      // After deleting the comment, fetch the updated comments
+      const updatedComments = await fetchComments(bug.id);
+      // Update comments state to reflect the deletion
+      setComments(updatedComments);
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    }
+  };
+ 
   // Handler for adding comments using API
   const handleAddComment = async () => {
     if (newComment.trim() === "") return;
     try {
       const commentData = {
         bugId: bug.id,
-        userId: localStorage.getItem("rememberMe"), 
+        userId: localStorage.getItem("rememberMe"),
         text: newComment,
       };
       // Call the API to add the comment
       await addComment(commentData);
       // After adding the comment, fetch the updated comments
-const updatedComments = await fetchComments(bug.id);
+      const updatedComments = await fetchComments(bug.id);
 
-// Update comments state to include the new comment
-setComments(updatedComments);
-setNewComment(""); // Reset the input field
+      // Update comments state to include the new comment
+      setComments(updatedComments);
+      setNewComment(""); // Reset the input field
 
-// Scroll to the latest comment after updating state
-setTimeout(() => {
-  commentsContainerRef.current?.scrollTo({ top: commentsContainerRef.current.scrollHeight, behavior: "smooth" });
-}, 100);
+      // Scroll to the latest comment after updating state
+      setTimeout(() => {
+        commentsContainerRef.current?.scrollTo({ top: commentsContainerRef.current.scrollHeight, behavior: "smooth" });
+      }, 100);
 
 
       // // Update comments state to include the new comment
@@ -184,12 +198,12 @@ setTimeout(() => {
   };
   const handleSaveDraft = async () => {
     try {
-      const userId=localStorage.getItem("rememberMe")
-      const bugId=bug.id;
-      const username=bug.creator.username
+      const userId = localStorage.getItem("rememberMe")
+      const bugId = bug.id;
+      const username = bug.creator.username
       console.log(username)
       // Call the saveDraft API function and pass the necessary parameters
-      const result = await saveDraft({userId, bugId, username,code});
+      const result = await saveDraft({ userId, bugId, username, code });
       console.log("Draft saved successfully:", result);
       setSaveStatus("Saved"); // Update save status UI
     } catch (error) {
@@ -201,9 +215,9 @@ setTimeout(() => {
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Left: Bug Description & Comments */}
-       <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
-      
-         {/* Breadcrumb Navigation */}
+      <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
+
+        {/* Breadcrumb Navigation */}
         <div className="flex items-center space-x-2 mb-4">
           <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
             ⬅ Bug Board
@@ -213,8 +227,8 @@ setTimeout(() => {
         {/* Bug Title & Edit Button */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">{bug.title}</h2>
-          {(isCreator && !isEditing )&&(
-            <button 
+          {(isCreator && !isEditing) && (
+            <button
               className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600" s
               onClick={async () => {
                 if (isEditing) {
@@ -224,7 +238,7 @@ setTimeout(() => {
                 }
               }}
             >
-              { "Edit"}
+              {"Edit"}
             </button>
           )}
         </div>
@@ -235,13 +249,13 @@ setTimeout(() => {
         </p>
 
         {/* Editable Bug Description */}
-        <textarea 
-  className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
-  placeholder="Edit bug description..."
-  value={bugDescription}
-  onChange={handleDescriptionChange}
-  readOnly={!isEditing || !isCreator}
-/>
+        <textarea
+          className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
+          placeholder="Edit bug description..."
+          value={bugDescription}
+          onChange={handleDescriptionChange}
+          readOnly={!isEditing || !isCreator}
+        />
 
 
         {/* Save & Discard Buttons */}
@@ -260,42 +274,52 @@ setTimeout(() => {
         <div className="mt-6">
           <h3 className="text-xl font-bold mb-2">Comments</h3>
           <div ref={commentsContainerRef} className={`transition-all border p-2 rounded-md overflow-y-auto flex-grow  h-48`}>
-          {comments?.length === 0 ? (
-            <p className="text-gray-500">No comments yet.</p>
-  ) : (
-    comments?.map((comment) => (
-      <div key={comment?.id} className="mb-3 flex gap-2">
-        <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">{comment?.user?.username[0].toUpperCase()}</div>
-        <div><p className="text-xs font-light text-gray-500">
-          {comment?.user?.username}
-        </p>
-        <p className="text-sm text-gray-800">
-          {comment?.text}
-        </p></div>
-      </div>
-    ))
-  )}
-</div>
+            {comments?.length === 0 ? (
+              <p className="text-gray-500">No comments yet.</p>
+            ) : (
+              comments?.map((comment) => (
+                <div key={comment?.id} style={{ justifyContent: 'space-between' }} className="mb-3 flex gap-2 ">
 
-<div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
+                  <div className="mb-3 flex gap-2 ">
+                    <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">{comment?.user?.username[0].toUpperCase()}</div>
+                    <div>
+                      <p className="text-xs font-light text-gray-500">
+                      {comment?.user?.username}
+                    </p>
+                      <p className="text-sm text-gray-800">
+                        {comment?.text}
+                      </p>
+                      </div>
 
-  <input 
-    type="text" 
-    className="flex-grow p-2 border rounded-md focus:outline-none" 
-    placeholder="Add a comment..." 
-    value={newComment} 
-    onChange={(e) => setNewComment(e.target.value)} 
-    onKeyDown={(e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleAddComment();
-      }
-    }}
-  />
-  <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
-    Send
-  </button>
-</div>
+                  </div>
+                  {isCreator && <div onClick={()=>handleDeleteComment(comment.id)} style={{cursor:"pointer"}} className="flex items-center space-x-2">
+                    <Trash className="h-4 w-4 text-red-500" />
+                  </div>}
+
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
+
+            <input
+              type="text"
+              className="flex-grow p-2 border rounded-md focus:outline-none"
+              placeholder="Add a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddComment();
+                }
+              }}
+            />
+            <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
+              Send
+            </button>
+          </div>
 
         </div>
       </div>
@@ -306,9 +330,9 @@ setTimeout(() => {
           <h2 className="text-lg font-semibold">Code</h2>
           <div className="flex items-center space-x-2">
             {bug.language && (
-              <select 
-                value={selectedLanguage} 
-                onChange={(e) => setSelectedLanguage(e.target.value)} 
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="p-1 border rounded-md"
               >
                 <option value="javascript">JavaScript</option>
@@ -346,9 +370,9 @@ setTimeout(() => {
             )}
           </div>
           <button
-          onClick={handleSaveDraft}
-          className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
-        </button>
+            onClick={handleSaveDraft}
+            className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
+          </button>
         </div>
 
         <h2 className="text-lg font-semibold mt-4">Output</h2>
