@@ -43,6 +43,10 @@ export default function BugDetails({ currentUser }) {
                 const username = bug.creator.username; // Extract username
                 const language = bug.language;
                 const filepath = bug.codeFilePath;
+                if (!filepath) {
+                  console.error("codeFilePath is missing!", bug);
+                  return;
+                }
                 const filename = filepath.split(/[/\\]/).pop(); // Extract filename from path
                 const fetchedCode = await fetchCodeFile(userId, username, language, filename);
 
