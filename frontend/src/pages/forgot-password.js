@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoArrowBackCircle, IoSend } from "react-icons/io5";
 import { forgot, validate_token } from "../services/auth";
+import "../styles/BugModal.css";
+
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState("");
@@ -9,27 +11,29 @@ const ForgotPasswordPage = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleSendOtp = async () => {
-        console.log(email);
         if (!email) {
             setError("Please enter an email to receive OTP.");
+            setOtpSent(false);
             return;
         }
+
         setLoading(true);
         setError("");
+        setSuccessMessage("");
 
         try {
-            console.log("function call");
-            // Simulate API Call (Replace with actual API call)
-            await forgot({email});
-            console.log(otpSent);
+            await forgot({ email }); // Simulate API Call
             setOtpSent(true);
-            console.log("otp sent");
-            alert("OTP sent successfully!");
+            setSuccessMessage("OTP sent successfully!");
+            setIsModalOpen(true);
         } catch (err) {
             setError("Failed to send OTP. Please try again.");
+            setOtpSent(false);
         } finally {
             setLoading(false);
         }
@@ -39,6 +43,7 @@ const ForgotPasswordPage = () => {
         event.preventDefault();
         setLoading(true);
         setError("");
+        setSuccessMessage("");
 
         if (!code) {
             setError("Please enter the OTP.");
@@ -50,9 +55,10 @@ const ForgotPasswordPage = () => {
             const isValid = await validate_token(code); // API returns true or false
 
             if (isValid) {
-                localStorage.setItem("resetToken", code); // Store the token securely
-                alert("OTP verified successfully!");
-                navigate("/reset-password"); // No token in URL
+                localStorage.setItem("resetToken", code);
+                setSuccessMessage("OTP verified successfully!");
+                setIsModalOpen(true);
+                setTimeout(() => navigate("/reset-password"), 1500);
             } else {
                 setError("Invalid or expired OTP. Please try again.");
             }
@@ -66,15 +72,18 @@ const ForgotPasswordPage = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#e5e5e5] px-4">
             <div className="bg-white p-8 shadow-lg rounded-xl max-w-4xl w-full flex flex-col md:flex-row">
-            <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-r from-[#2D3E50] to-[#A3D8F4] text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
-            <h2 className="text-2xl md:text-3xl font-bold text-center">Recover Your Account</h2>
+                <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-r from-[#2D3E50] to-[#A3D8F4] text-white p-8 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+                    <h2 className="text-2xl md:text-3xl font-bold text-center">Recover Your Account</h2>
                 </div>
                 <div className="md:w-1/2 p-8">
                     <div className="flex items-center gap-2 mb-6">
                         <IoArrowBackCircle className="text-3xl text-gray-700 cursor-pointer" onClick={() => navigate("/")} />
                         <h1 className="text-2xl font-semibold">Forgot Password</h1>
                     </div>
+                    
+                    {/* Error Message */}
                     {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-gray-700 text-sm font-medium">Enter Registered Email</label>
@@ -98,6 +107,18 @@ const ForgotPasswordPage = () => {
                     </form>
                 </div>
             </div>
+
+            {/* Success Modal */}
+            {isModalOpen && successMessage && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <p className="text-green-600">{successMessage}</p>
+                        <button onClick={() => setIsModalOpen(false)} className="modal button">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

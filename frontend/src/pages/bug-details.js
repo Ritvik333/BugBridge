@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
+import "../styles/BugModal.css";
 
 import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
 
@@ -27,6 +28,7 @@ export default function BugDetails({ currentUser }) {
     const [loading, setLoading] = useState(true);
     const commentsContainerRef = useRef(null);
     const originalCodeRef = useRef("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const saveTimeoutRef = useRef(null);
 
     // Debounce Timer Ref
@@ -188,11 +190,17 @@ export default function BugDetails({ currentUser }) {
         }
     };
 
+    // const handleResetCode = () => {
+    //     setCode(originalCodeRef.current);
+    //     localStorage.removeItem(`bug_${bug.id}_code`);
+    //     alert("Code reset to original state.");
+    // };
     const handleResetCode = () => {
-        setCode(originalCodeRef.current);
-        localStorage.removeItem(`bug_${bug.id}_code`);
-        alert("Code reset to original state.");
-    };
+      setCode(originalCodeRef.current);
+      localStorage.removeItem(`bug_${bug.id}_code`);
+      setIsModalOpen(false); // Close modal after reset
+  };
+    
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code);
@@ -389,9 +397,19 @@ export default function BugDetails({ currentUser }) {
                 <MonacoEditor height="500px" language={selectedLanguage} theme="vs-dark" value={code} onChange={handleCodeChange} />
 
                 <div className="mt-2 flex justify-between items-center">
-                    <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleResetCode}>
-                        Reset
-                    </button>
+                <div>
+            <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={() => setIsModalOpen(true)}>Reset Code</button>
+
+            {isModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <p>Are you sure you want to reset the code?</p>
+                        <button onClick={handleResetCode}>Yes</button>
+                        <button onClick={() => setIsModalOpen(false)}>No</button>
+                    </div>
+                </div>
+            )}
+        </div>
                     <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
                     <button
                         onClick={handleSaveDraft}
