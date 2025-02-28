@@ -66,12 +66,15 @@ export const fetchCodeFile = async (userId, username, language, filename) => {
   }
 };
 
-export const fetchBugs = async (filters) => {
+export const fetchBugs = async () => {
   try {
     // First try to fetch from API
-    const response = await fetch("http://localhost:8080/api/bugs");
-    if (response.ok) {
-      const data = await response.json();
+    const response = await apiClient.get("/api/bugs");
+    // console.log(response.data)
+    if (response.status == 200 || response.status == 201) {
+      const data = response.data;
+      console.log("Fetched bugs from API:");
+      console.log(response);
       // Store the fetched data in localStorage
       localStorage.setItem("bugs", JSON.stringify(data));
       return data;
@@ -166,11 +169,21 @@ export const saveDraft = async (userData) => {
   }
 };
 
-export const deleteComment = async (commendId) => {
+export const deleteComment = async (commentId) => {
   try {
-    const response = await apiClient.delete(`/api/comments/${commendId}`);
+    const response = await apiClient.delete(`/api/comments/${commentId}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const fetchUserDrafts = async (userId) => {
+  try {
+    const response = await apiClient.get(`/drafts/${userId}`);
+    return response.data || []; // Ensure it always returns an array
+  } catch (error) {
+    console.error("Error fetching drafts:", error);
+    return []; // Return empty array instead of null
   }
 };

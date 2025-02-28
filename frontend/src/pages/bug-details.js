@@ -104,7 +104,12 @@ export default function BugDetails({ currentUser }) {
   };
 
   const handleDescriptionChange = (e) => {
+    const newDescription = e.target.value;
     setBugDescription(e.target.value);
+
+    // Save to localStorage
+    localStorage.setItem(`bug_${bug.id}_description`, newDescription);
+
   };
 
   const saveChanges = async () => {

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import apiClient from "../utils/apiClient"
 
 function NewBugPage() {
   const navigate = useNavigate()
@@ -39,14 +40,26 @@ function NewBugPage() {
       }
   
       // Send to API
-      const response = await fetch('http://localhost:8080/api/bugs', {
-        method: 'POST',
-        body: formData
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+
+      try {
+        const response = await apiClient.post('/api/bugs', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      
+        // If you need to access response data:
+        console.log(response.data);
+      } catch (error) {
+        if (error.response) {
+          // Server responded with status other than 2xx
+          console.error(`HTTP error! status: ${error.response.status}`);
+        } else {
+          // Other errors (network issues, etc.)
+          console.error('Error:', error.message);
+        }
       }
+      
   
       // Also save to localStorage for local state
       const newBug = {
@@ -201,7 +214,7 @@ function NewBugPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Submit Bug
               </button>
