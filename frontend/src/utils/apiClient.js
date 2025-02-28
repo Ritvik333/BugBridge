@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080/",  //process.env.REACT_APP_BACKEND_BASE_URL , // replace with your API base URL
+  baseURL: process.env.REACT_APP_BACKEND_BASE_URL , // replace with your API base URL
+  // baseURL:'http://localhost:8080',
   timeout: 10000, // optional timeout, in ms
   headers: {
     'Content-Type': 'application/json',
@@ -14,10 +15,10 @@ apiClient.interceptors.request.use(
   (config) => {
     // Optionally attach token or modify headers
     // Example:
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers['Authorization'] = `Bearer ${token}`;
-    // }
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)

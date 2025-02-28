@@ -89,22 +89,10 @@ export const fetchBugs = async () => {
     
     return []; // Return empty array if both API and localStorage fail
   } catch (error) {
-    console.error("Error fetching bugs:", error);
-    
-    // Try localStorage as fallback
-    try {
-      const storedBugs = localStorage.getItem("bugs");
-      if (storedBugs) {
-        const bugs = JSON.parse(storedBugs);
-        return Array.isArray(bugs) ? bugs : [];
-      }
-    } catch (storageError) {
-      console.error("Error reading from localStorage:", storageError);
-    }
-    
-    return []; // Return empty array if everything fails
+    throw error.response ? error.response.data : error.message;
   }
 };
+
 
 export const fetchUsers = async () => {
   try {
@@ -161,8 +149,8 @@ export const addComment = async (commentData) => {
 
 export const saveDraft = async (userData) => {
   try {
-    console.log(userData)
     const response = await apiClient.post('/drafts/save', userData);
+    console.log(response.data);
     return response.data; // Return the response data from the backend (e.g., success message or saved draft details)
   } catch (error) {
     throw error.response ? error.response.data : error.message;
@@ -180,10 +168,24 @@ export const deleteComment = async (commentId) => {
 
 export const fetchUserDrafts = async (userId) => {
   try {
-    const response = await apiClient.get(`/drafts/${userId}`);
+    const response = await apiClient.get(`/drafts/user/${userId}`);
+    console.log(response.data);
     return response.data || []; // Ensure it always returns an array
   } catch (error) {
     console.error("Error fetching drafts:", error);
     return []; // Return empty array instead of null
   }
 };
+  export const submitBug = async (formData) => {
+    try {
+      const response = await apiClient.post("/api/bugs", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+

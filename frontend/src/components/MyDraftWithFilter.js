@@ -19,7 +19,7 @@ const BugListWithFilters = ({ showAddButton = true }) => {
     try {
       const response = await fetchUserDrafts(userId);
       if (response?.status === "success") {
-        setDrafts(response.data);
+        setDrafts(response.body);
       } else {
         console.error("Failed to fetch drafts.");
         setDrafts([]);
@@ -30,7 +30,7 @@ const BugListWithFilters = ({ showAddButton = true }) => {
     }
   };
 
-  const filteredDrafts = drafts
+  const filteredDrafts = drafts&&drafts
     .filter((draft) => !filterSeverity || draft.severity === filterSeverity)
     .filter((draft) => !filterStatus || draft.status === filterStatus)
       .sort((a, b) =>
@@ -107,17 +107,17 @@ const BugListWithFilters = ({ showAddButton = true }) => {
       <div className="bg-white p-4 rounded shadow">
         <h2 className="font-semibold mb-2">Saved Drafts</h2>
         <div className="space-y-2">
-          {filteredDrafts.length === 0 ? (
+          {filteredDrafts&&filteredDrafts.length === 0 ? (
             <p className="text-gray-500">No drafts found.</p>
           ) : (
-            filteredDrafts.map((draft) => (
+            filteredDrafts&&filteredDrafts.map((draft) => (
               <div key={draft.id} className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition">
-                <h3 className="font-medium text-blue-500 hover:underline" onClick={() => navigate(`/draft-details/${draft.id}`, { state: draft })}>
-                  {draft.bugTitle || "Untitled Draft"}
+                <h3 className="font-medium text-blue-500 hover:underline" onClick={() => navigate(`/bug-details/${draft.id}`, { state: draft.bug })}>
+                  {draft.bug.title || "Untitled Draft"}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  <span className={getSeverityColor(draft.severity)}>{draft.severity}</span> |{" "}
-                  <span className={getStatusColor(draft.status)}>{draft.status}</span> | {draft.language || "Unknown"}
+                  <span className={getSeverityColor(draft.bug.severity)}>{draft.bug.severity}</span> |{" "}
+                  <span className={getStatusColor(draft.bug.status)}>{draft.bug.status}</span> | {draft.bug.language || "Unknown"}
                 </p>
               </div>
             ))

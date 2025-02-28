@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import apiClient from "../utils/apiClient"
+import { submitBug } from "../services/auth"; 
 
 function NewBugPage() {
   const navigate = useNavigate()
@@ -14,29 +15,39 @@ function NewBugPage() {
   const [file, setFile] = useState(null)
 
 
-
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    try {
-      // Create FormData object
-      const formData = new FormData()
-      formData.append('title', title)
-      formData.append('description', description)
-      formData.append('language', language)
-      formData.append('severity', severity)
-      formData.append('status', 'open')
-      formData.append('creatorId', localStorage.getItem("rememberMe"))
+    e.preventDefault();
   
-      // Handle file path
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("language", language);
+      formData.append("severity", severity);
+      formData.append("status", "open");
+      formData.append("creatorId", localStorage.getItem("rememberMe"));
+  
       if (file) {
-        formData.append('codeFilePath', file) // Send the actual file
+        formData.append("codeFilePath", file);
       } else if (codeSnippet) {
-        // If no file but there's a code snippet, create a text file
-        const textFile = new File([codeSnippet], 'code-snippet.txt', {
-          type: 'text/plain',
-        })
-        formData.append('codeFilePath', textFile)
+        const extensions = { 
+          python: "py", 
+          javascript: "js", 
+          java: "java" 
+        };
+        const fileExtension = extensions[language] || "txt";
+
+        const generateUUID = () => Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        const uniqueFilename = `${generateUUID()}.${fileExtension}`;
+
+        const textFile = new File(
+          [codeSnippet], 
+          `${uniqueFilename}`, 
+          { type: "text/plain" }
+        );
+  
+        formData.append("codeFilePath", textFile);
       }
   
       // Send to API
@@ -62,6 +73,9 @@ function NewBugPage() {
       
   
       // Also save to localStorage for local state
+      await submitBug(formData);
+  
+      // Save locally and reset form
       const newBug = {
         id: Date.now().toString(),
         title,
@@ -69,45 +83,29 @@ function NewBugPage() {
         severity,
         language,
         codeSnippet,
-        codeFilePath: file ? file.name : 'code-snippet.txt', // Save the file name
+        codeFilePath: file ? file.name : "code-snippet.txt",
         status: "open",
         creator: "1",
         creationDate: new Date().toISOString(),
-      }
+      };
   
-      // Get existing bugs from localStorage
-      let existingBugs = []
-      try {
-        const stored = localStorage.getItem("bugs")
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          existingBugs = Array.isArray(parsed) ? parsed : []
-        }
-      } catch (error) {
-        console.error("Error reading existing bugs:", error)
-      }
+      const existingBugs = JSON.parse(localStorage.getItem("bugs")) || [];
+      localStorage.setItem("bugs", JSON.stringify([newBug, ...existingBugs]));
   
-      // Update localStorage
-      const updatedBugs = [newBug, ...existingBugs]
-      localStorage.setItem("bugs", JSON.stringify(updatedBugs))
-      
-      console.log("Bug saved successfully to API and localStorage")
+      console.log("Bug saved successfully");
+      setTitle("");
+      setDescription("");
+      setSeverity("");
+      setLanguage("");
+      setCodeSnippet("");
+      setFile(null);
   
-      // Clear form
-      setTitle("")
-      setDescription("")
-      setSeverity("")
-      setLanguage("")
-      setCodeSnippet("")
-      setFile(null)
-  
-      // Navigate back to dashboard
-      navigate("/dashboard")
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error saving bug:", error)
-      alert("Failed to save bug. Please try again.")
+      console.error("Error saving bug:", error);
+      alert("Failed to save bug. Please try again.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -175,8 +173,6 @@ function NewBugPage() {
                   <option value="javascript">JavaScript</option>
                   <option value="python">Python</option>
                   <option value="java">Java</option>
-                  <option value="csharp">C#</option>
-                  <option value="other">Other</option>
                 </select>
               </div>
             </div>

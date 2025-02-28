@@ -26,7 +26,6 @@ const LoginPage = () => {
       localStorage.setItem("authToken", response.body.token);
       if (rememberMe) {
         localStorage.setItem("rememberMe", response.body.id);
-        console.log("uid:"+ localStorage.getItem("rememberMe"))
       } else {
         localStorage.removeItem("rememberMe");
       }
