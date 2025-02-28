@@ -10,4 +10,5 @@ import com.example.demo.Model.Draft;
 @Repository
 public interface DraftRepository extends JpaRepository<Draft, Long> {
     List<Draft> findByUserId(Long userId);
+    Draft findByUserIdAndBugId(Long userId, Long bugId); // Add this method
 }
