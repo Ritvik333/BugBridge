@@ -77,6 +77,7 @@ export default function BugDetails({ currentUser }) {
             try {
                 const commentsData = await fetchComments(bug.id);
                 setComments(commentsData);
+                console.log(commentsData)
             } catch (error) {
                 console.error("Error fetching comments:", error);
             }
@@ -337,7 +338,7 @@ export default function BugDetails({ currentUser }) {
                       </div>
 
                   </div>
-                  {isCreator && <div onClick={()=>handleDeleteComment(comment.id)} style={{cursor:"pointer"}} className="flex items-center space-x-2">
+                  {(isCreator || rememberMeId == comment.user.id) && <div onClick={()=>handleDeleteComment(comment.id)} style={{cursor:"pointer"}} className="flex items-center space-x-2">
                     <Trash className="h-4 w-4 text-red-500" />
                   </div>}
 

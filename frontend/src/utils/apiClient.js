@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // Create an Axios instance
 const apiClient = axios.create({
@@ -31,6 +32,8 @@ apiClient.interceptors.response.use(
     // Handle errors globally (e.g., show toast notifications, redirect on 401)
     if (error.response && error.response.status === 401) {
       // Handle unauthorized access
+      localStorage.removeItem("authToken");
+      useNavigate("/")
     }
     return Promise.reject(error);
   }
