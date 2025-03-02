@@ -168,4 +168,15 @@ export const deleteComment = async (commendId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
+  export const submitCode = async (userData) => {
+    try {
+      console.log(userData);
+      const response = await apiClient.post('/submissions/save', userData);
+      console.log(response);
+      return response.data; // Return the response data from the backend
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  
 
