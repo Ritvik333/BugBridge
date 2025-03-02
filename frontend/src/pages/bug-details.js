@@ -1,9 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
-import "../styles/BugModal.css";
+import "../styles/SubmitModal.css";
 
-import { runCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
+import { runCode, submitCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
 
 import jsBeautify from "js-beautify";
 import {  Trash } from "lucide-react";
@@ -35,6 +35,19 @@ export default function BugDetails({ currentUser }) {
     const debounceTimerRef = useRef(null);
     // Periodic Sync Interval Ref
     const periodicSyncIntervalRef = useRef(null);
+    const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [description, setDescription] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  // Handle opening and closing of the modal
+  const handleOpenSubmitModal = () => setShowSubmitModal(true);
+  const handleCloseSubmitModal = () => setShowSubmitModal(false);
+
+  // Handle file selection
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
 
     useEffect(() => {
         const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
@@ -191,11 +204,46 @@ export default function BugDetails({ currentUser }) {
         }
     };
 
-    // const handleResetCode = () => {
-    //     setCode(originalCodeRef.current);
-    //     localStorage.removeItem(`bug_${bug.id}_code`);
-    //     alert("Code reset to original state.");
-    // };
+  //   const handleSubmitCode = async () => {
+  //     try{
+  //       const userId = localStorage.getItem("rememberMe");
+  //       const bugId = bug.id;
+  //       const desc = "no desc for now";
+
+  //       const response = await submitCode({userId,bugId,desc,code});
+  //       console.log(response);
+
+  //     } catch(error){
+  //       console.log("error submitting solution: ", error);
+  //     }
+      
+  // };
+  const handleSubmitCode = async () => {
+    try {
+      const userId = localStorage.getItem("rememberMe");
+      const bugId = bug.id;
+      const desc = description;
+
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("bugId", bugId);
+      formData.append("desc", description);
+
+      if (selectedFile) {
+        formData.append("file", selectedFile); // Send file if selected
+      } else {
+        formData.append("code", code); // Send code from the editor
+      }
+
+      await submitCode({userId,bugId,desc,code});
+      alert("Code submitted successfully!");
+      handleCloseSubmitModal();
+    } catch (error) {
+      console.error("Error submitting code:", error);
+      alert("Failed to submit code.");
+    }
+  };
+
     const handleResetCode = () => {
       setCode(originalCodeRef.current);
       localStorage.removeItem(`bug_${bug.id}_code`);
@@ -389,6 +437,49 @@ export default function BugDetails({ currentUser }) {
                         <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
                             Run
                         </button>
+                        {/* <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleSubmitCode}>
+                            Submit
+                        </button> */}
+                        <div>
+      <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600"onClick={handleOpenSubmitModal}>Submit</button>
+
+      {showSubmitModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Submit Code</h2>
+            <label>Description:</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter a brief description..."
+            />
+            
+            <label>Upload File (Optional):</label>
+            <input type="file" onChange={handleFileChange} />
+
+            <h4>OR</h4>
+
+            <label>Code Preview:</label>
+            <MonacoEditor
+              theme="vs-dark"
+              height="250px"
+              defaultLanguage="javascript" // Change based on your language
+              value={code}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false }, // Hide minimap
+                scrollbar: { vertical: "hidden" },
+                lineNumbers: "on",
+                automaticLayout: true,
+              }}
+            />
+
+            <button onClick={handleSubmitCode}>Submit</button>
+            <button onClick={handleCloseSubmitModal}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
                         <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={handleCopyCode}>
                             Copy
                         </button>
