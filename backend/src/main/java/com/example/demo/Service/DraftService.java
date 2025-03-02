@@ -36,28 +36,35 @@ public class DraftService {
             .orElseThrow(() -> new RuntimeException("User not found"));
         Bug bug = bugRepository.findById(bugId)
             .orElseThrow(() -> new RuntimeException("Bug not found"));
-        Path directoryPath = Paths.get(storagePath, userId + "_" + username ,"drafts");
-        // Map language to file extension
-        String extension = mapLanguageToExtension(bug.getLanguage());
     
-        // Generate filenames
+        Path directoryPath = Paths.get(storagePath, userId + "_" + username, "drafts");
+        String extension = mapLanguageToExtension(bug.getLanguage());
         String filename = userId + "_" + bugId + extension;
         Path filePath = directoryPath.resolve(filename);
-
+    
         // Ensure directory exists
         Files.createDirectories(filePath.getParent());
     
         // Write code to file
         Files.write(filePath, code.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     
-        // Create and save Draft entity
-        Draft draft = new Draft();
-        draft.setUser(user);
-        draft.setBug(bug);
-        draft.setCodeFilePath(filePath.toString());
-    
-        return draftRepository.save(draft);
+        // Check if a draft already exists for the user and bug
+        Draft existingDraft = draftRepository.findByUserIdAndBugId(userId, bugId);
+        
+        if (existingDraft != null) {
+            // Update existing draft
+            existingDraft.setCodeFilePath(filePath.toString());
+            return draftRepository.save(existingDraft);
+        } else {
+            // Create new draft
+            Draft draft = new Draft();
+            draft.setUser(user);
+            draft.setBug(bug);
+            draft.setCodeFilePath(filePath.toString());
+            return draftRepository.save(draft);
+        }
     }
+    
     
     // Utility method for mapping languages to file extensions
     private String mapLanguageToExtension(String language) {
