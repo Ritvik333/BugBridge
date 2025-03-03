@@ -1,6 +1,8 @@
 
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -124,5 +126,46 @@ void testSaveSubmissionSuccess() throws IOException {
         assertEquals(".js", submitService.mapLanguageToExtension("javascript"));
         assertEquals(".txt", submitService.mapLanguageToExtension("other"));
         assertEquals(".txt", submitService.mapLanguageToExtension(null));
+    }
+
+    @Test
+    void testGetSubmissionsForUserAndBugSuccess() {
+        // Arrange
+        Long userId = 1L;
+        Long bugId = 2L;
+
+        Submit submit1 = new Submit();
+        submit1.setId(1L);
+        Submit submit2 = new Submit();
+        submit2.setId(2L);
+
+        List<Submit> expectedSubmissions = Arrays.asList(submit1, submit2);
+        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(expectedSubmissions);
+
+        // Act
+        List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(expectedSubmissions, result);
+        verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
+    }
+
+    @Test
+    void testGetSubmissionsForUserAndBugNoResults() {
+        // Arrange
+        Long userId = 1L;
+        Long bugId = 2L;
+
+        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(Arrays.asList());
+
+        // Act
+        List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
     }
 }

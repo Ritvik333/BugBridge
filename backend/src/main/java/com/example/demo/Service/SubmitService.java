@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,5 +77,7 @@ public class SubmitService {
             default: return ".txt";
         }
     }
-    
+    public List<Submit> getSubmissionsForUserAndBug(Long userId, Long bugId) {
+        return Collections.EMPTY_LIST;
+    }
 }
