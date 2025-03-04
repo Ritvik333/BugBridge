@@ -46,4 +46,10 @@ public class SubmitService {
             default: return ".txt";
         }
     }
+
+    public String approveSubmission(Long submissionId, Long approverId) {
+
+        return "Submission approved successfully.";
+    }
+
 }
