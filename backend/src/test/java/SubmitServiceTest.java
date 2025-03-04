@@ -28,6 +28,7 @@ import com.example.demo.Model.User;
 import com.example.demo.Model.UserRepository;
 import com.example.demo.Repository.BugRepository;
 import com.example.demo.Repository.SubmitRepository;
+import com.example.demo.Service.NotificationService;
 import com.example.demo.Service.SubmitService;
 
 class SubmitServiceTest {
@@ -44,9 +45,17 @@ class SubmitServiceTest {
     @InjectMocks  // This will automatically inject the mocks into the submitService
     private SubmitService submitService;
 
+    @Mock  // This will automatically inject the mocks into the submitService
+    private NotificationService notificationService;
+
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);  // Initializes the mocks
+        
+        // Making sure NotificationService is properly mocked
+        doNothing().when(notificationService).createNotification(any(Long.class), any(String.class)); // It doesn't need to return anything, just prevent null error
+
     }
 
     @Test

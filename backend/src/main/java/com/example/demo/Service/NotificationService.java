@@ -5,7 +5,6 @@ import com.example.demo.Repository.NotificationRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,20 +21,31 @@ public class NotificationService {
     }
 
     public List<Notification> getUserNotifications(Long userId) {
-        return Collections.emptyList();
+        return notificationRepository.findByUserId(userId);
     }
 
     public List<Notification> getUnreadNotifications(Long userId) {
-        return Collections.emptyList();
+        return notificationRepository.findByUserIdAndIsReadFalse(userId);
     }
 
     public void markAllAsRead(Long userId) {
-      
+        List<Notification> notifications = notificationRepository.findByUserIdAndIsReadFalse(userId);
+        for (Notification notification : notifications) {
+            notification.setRead(true);
+        }
+        notificationRepository.saveAll(notifications);
     }
 
     public String markAsRead(Long notificationId) {
+        Optional<Notification> notificationOpt = notificationRepository.findById(notificationId);
+
+        if (notificationOpt.isPresent()) {
+            Notification notification = notificationOpt.get();
+            notification.setRead(true); // ✅ Mark as read
+            notificationRepository.save(notification);
+            return "Notification marked as read";
+        }
 
         return "Notification not found";
     }
 }
-

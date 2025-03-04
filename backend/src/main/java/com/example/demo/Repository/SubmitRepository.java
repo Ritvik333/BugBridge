@@ -10,5 +10,5 @@ import com.example.demo.Model.Submit;
 @Repository
 public interface SubmitRepository extends JpaRepository<Submit, Long> {
     List<Submit> findByApprovalStatus(String status);
-    List<Submit> findByUserIdAndBugId(Long userId, Long bugId); // Add this method
+    List<Submit> findByUserIdAndBugId(Long userId, Long bugId);
 }

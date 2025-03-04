@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,10 @@ public class SubmitService {
     
     @Autowired
     private BugRepository bugRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
 
     public Submit saveSubmission(Long userId, Long bugId, String username, String desc, String code) throws IOException {
         User user = userRepository.findById(userId)
@@ -64,7 +69,14 @@ public class SubmitService {
             submit.setBug(bug);
             submit.setDescription(desc);
             submit.setCodeFilePath(filePath.toString());
-            return submitRepository.save(submit);
+            Submit savedSubmit= submitRepository.save(submit);
+
+             // Create notification
+            notificationService.createNotification( userId, "Your submission for bug #" + bug.getId() + " has been submitted."
+        );
+
+        return savedSubmit;
+
     }
 
     public String mapLanguageToExtension(String language) {
@@ -81,8 +93,38 @@ public class SubmitService {
     }
 
     public String approveSubmission(Long submissionId, Long approverId) {
+        if (submissionId == null || approverId == null) {
+            throw new NullPointerException("Submission ID and Approver ID cannot be null");
+        }
+
+        Optional<Submit> submissionOptional = submitRepository.findById(submissionId);
+        
+        if (submissionOptional.isEmpty()) {
+            return "Submission not found.";
+        }
+
+        Submit submission = submissionOptional.get();
+        Bug bug = submission.getBug();
+
+        if (!bug.getCreator().getId().equals(approverId)) {
+            return "Only the bug creator can approve submissions.";
+        }        
+
+        submission.setApprovalStatus("approved");
+        submitRepository.save(submission);
+
+        notificationService.createNotification(submission.getUser().getId(), 
+            "Your submission for bug #" + bug.getId() + " has been approved.");
 
         return "Submission approved successfully.";
     }
 
+    public List<Submit> getUnapprovedSubmissions() {
+        return submitRepository.findByApprovalStatus("unapproved");
+    }
+
+    public List<Submit> getApprovedSubmissions() {
+        return submitRepository.findByApprovalStatus("approved");
+    }
 }
+

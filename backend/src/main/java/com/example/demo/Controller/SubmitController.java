@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.Model.Submit;
@@ -55,4 +58,23 @@ public class SubmitController {
             return new ResponseWrapper<>("error", "Failed to fetch submissions", null);
         }
     }
+
+        @PutMapping("/approve/{submissionId}")
+    public ResponseEntity<ResponseWrapper<String>> approveSubmission(@PathVariable Long submissionId, @RequestParam Long approverId) {
+        String result = submitService.approveSubmission(submissionId, approverId);
+        return ResponseEntity.ok(new ResponseWrapper<>("success", result, null));
+    }
+
+    @GetMapping("/unapproved")
+    public ResponseEntity<List<Submit>> getUnapprovedSubmissions() {
+        List<Submit> submissions = submitService.getUnapprovedSubmissions();
+        return ResponseEntity.ok(submissions);
+    }
+
+    @GetMapping("/approved")
+    public ResponseEntity<List<Submit>> getApprovedSubmissions() {
+        List<Submit> submissions = submitService.getApprovedSubmissions();
+        return ResponseEntity.ok(submissions);
+    }
+
 }
