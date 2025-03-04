@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import "../styles/SubmitModal.css";
 
-import { runCode, submitCode, fetchCodeFile, updateBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
+import { runCode, submitCode, fetchCodeFile, updateBug, fetchUserSubmissionsByBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
 
 import jsBeautify from "js-beautify";
 import {  Trash } from "lucide-react";
@@ -26,6 +26,7 @@ export default function BugDetails({ currentUser }) {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("description");
     const commentsContainerRef = useRef(null);
     const originalCodeRef = useRef("");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -306,214 +307,280 @@ export default function BugDetails({ currentUser }) {
             setSaveStatus("Error saving draft");
         }
     };
+    const [submissions, setSubmissions] = useState([]);
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Left: Bug Description & Comments */}
-      <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        weekday: 'long', // "Monday"
+        year: 'numeric', // "2025"
+        month: 'long', // "March"
+        day: 'numeric', // "2"
+        hour: 'numeric', // "2"
+        minute: 'numeric', // "29"
+        second: 'numeric', // "38"
+        hour12: true, // Use 12-hour clock with AM/PM
+      });
+    };
+    const fetchSubmissions = async () => {
+        try {
+            const userId = localStorage.getItem("rememberMe");
+            const bugId = bug.id;
+        const submitData = await fetchUserSubmissionsByBug(userId,bugId);
+        console.log("sub",submitData.body);
+        setSubmissions(submitData.body);
+        } catch (error) {
+        console.error("Error fetching submissions:", error);
+        }
+    };
 
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center space-x-2 mb-4">
-          <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
-            ⬅ Bug Board
-          </button>
-        </div>
-
-                {/* Bug Title & Edit Button */}
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-bold">{bug.title}</h2>
-                    {(isCreator && !isEditing) && (
-                        <button
-                            className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600" s
-                            onClick={async () => {
-                                if (isEditing) {
-                                    await saveChanges();
-                                } else {
-                                    setIsEditing(true);
-                                }
-                            }}
-                        >
-                            {"Edit"}
-                        </button>
-                    )}
-                </div>
-
-                {/* Severity & Status */}
-                <p className="text-gray-600 mt-2">
-                    <strong>Severity:</strong> {bug.severity} | <strong>Status:</strong> {bug.status}
-                </p>
-
-                {/* Editable Bug Description */}
-                <textarea
-                    className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
-                    placeholder="Edit bug description..."
-                    value={bugDescription}
-                    onChange={handleDescriptionChange}
-                    readOnly={!isEditing || !isCreator}
-                />
-                {/* Save & Discard Buttons */}
-                {isEditing && isCreator && (
-                    <div className="mt-2 flex space-x-4">
-                        <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={saveChanges}>
-                            Save Changes
-                        </button>
-                        <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={discardChanges}>
-                            Discard Changes
-                        </button>
-                    </div>
-                )}
-
-        {/* Comment Section */}
-        <div className="mt-6">
-          <h3 className="text-xl font-bold mb-2">Comments</h3>
-          <div ref={commentsContainerRef} className={`transition-all border p-2 rounded-md overflow-y-auto flex-grow  h-48`}>
-            {comments?.length === 0 ? (
-              <p className="text-gray-500">No comments yet.</p>
-            ) : (
-              comments?.map((comment) => (
-                <div key={comment?.id} style={{ justifyContent: 'space-between' }} className="mb-3 flex gap-2 ">
-
-                  <div className="mb-3 flex gap-2 ">
-                    <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">{comment?.user?.username[0].toUpperCase()}</div>
-                    <div>
-                      <p className="text-xs font-light text-gray-500">
-                      {comment?.user?.username}
-                    </p>
-                      <p className="text-sm text-gray-800">
-                        {comment?.text}
-                      </p>
-                      </div>
-
-                  </div>
-                  {isCreator && <div onClick={()=>handleDeleteComment(comment.id)} style={{cursor:"pointer"}} className="flex items-center space-x-2">
-                    <Trash className="h-4 w-4 text-red-500" />
-                  </div>}
-
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
-
-            <input
-              type="text"
-              className="flex-grow p-2 border rounded-md focus:outline-none"
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddComment();
-                }
-              }}
-            />
-            <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
-              Send
+    return (
+      <div className="min-h-screen bg-gray-100 flex">
+        {/* Left: Bug Description & Comments */}
+        <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
+          
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center space-x-2 mb-4">
+            <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
+              ⬅ Bug Board
             </button>
           </div>
-
-                </div>
-            </div>
-
-            {/* Right: Code Editor */}
-            <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-lg font-semibold">Code</h2>
-                    <div className="flex items-center space-x-2">
-                        {bug.language && (
-                            <select
-                                value={selectedLanguage}
-                                onChange={(e) => setSelectedLanguage(e.target.value)}
-                                className="p-1 border rounded-md"
-                            >
-                                <option value="javascript">JavaScript</option>
-                                <option value="python">Python</option>
-                                <option value="java">Java</option>
-                            </select>
-                        )}
-                        <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
-                            Run
-                        </button>
-                        {/* <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleSubmitCode}>
-                            Submit
-                        </button> */}
-                        <div>
-      <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600"onClick={handleOpenSubmitModal}>Submit</button>
-
-      {showSubmitModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Submit Code</h2>
-            <label>Description:</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter a brief description..."
-            />
-            
-            <label>Upload File (Optional):</label>
-            <input type="file" onChange={handleFileChange} />
-
-            <h4>OR</h4>
-
-            <label>Code Preview:</label>
-            <MonacoEditor
-              theme="vs-dark"
-              height="250px"
-              defaultLanguage="javascript" // Change based on your language
-              value={code}
-              options={{
-                readOnly: true,
-                minimap: { enabled: false }, // Hide minimap
-                scrollbar: { vertical: "hidden" },
-                lineNumbers: "on",
-                automaticLayout: true,
+    
+          {/* Tab Navigation */}
+          <div className="tabs mb-4">
+            <button
+              className={`tab-button ${activeTab === "description" ? "active" : ""}`}
+              onClick={() => setActiveTab("description")}
+            >
+              Description
+            </button>
+            <button
+              className={`tab-button ${activeTab === "submissions" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("submissions");
+                fetchSubmissions(); // Fetch submissions when Submissions tab is clicked
               }}
-            />
-
-            <button onClick={handleSubmitCode}>Submit</button>
-            <button onClick={handleCloseSubmitModal}>Cancel</button>
+            >
+              Submissions
+            </button>
+          </div>
+    
+          {/* Bug Title & Edit Button */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">{bug.title}</h2>
+            {isCreator && !isEditing && (
+              <button
+                className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit
+              </button>
+            )}
+          </div>
+    
+          {/* Severity & Status */}
+          <p className="text-gray-600 mt-2">
+            <strong>Severity:</strong> {bug.severity} | <strong>Status:</strong> {bug.status}
+          </p>
+    
+          {/* Tab Content */}
+          {activeTab === "description" && (
+            <>
+              {/* Editable Bug Description */}
+              <textarea
+                className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
+                placeholder="Edit bug description..."
+                value={bugDescription}
+                onChange={handleDescriptionChange}
+                readOnly={!isEditing || !isCreator}
+              />
+              {/* Save & Discard Buttons */}
+              {isEditing && isCreator && (
+                <div className="mt-2 flex space-x-4">
+                  <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={saveChanges}>
+                    Save Changes
+                  </button>
+                  <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={discardChanges}>
+                    Discard Changes
+                  </button>
+                </div>
+              )}
+              {/* Submissions Content */}
+              <div className="mt-6">
+                <h3 className="text-xl font-bold mb-2">Comments</h3>
+                <div ref={commentsContainerRef} className="transition-all border p-2 rounded-md overflow-y-auto flex-grow h-48">
+                  {comments?.length === 0 ? (
+                    <p className="text-gray-500">No comments yet.</p>
+                  ) : (
+                    comments?.map((comment) => (
+                      <div key={comment?.id} style={{ justifyContent: 'space-between' }} className="mb-3 flex gap-2">
+                        <div className="mb-3 flex gap-2">
+                          <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">
+                            {comment?.user?.username[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-xs font-light text-gray-500">
+                              {comment?.user?.username}
+                            </p>
+                            <p className="text-sm text-gray-800">
+                              {comment?.text}
+                            </p>
+                          </div>
+                        </div>
+                        {isCreator && (
+                          <div onClick={() => handleDeleteComment(comment.id)} style={{ cursor: "pointer" }} className="flex items-center space-x-2">
+                            <Trash className="h-4 w-4 text-red-500" />
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+    
+                <div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
+                  <input
+                    type="text"
+                    className="flex-grow p-2 border rounded-md focus:outline-none"
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddComment();
+                      }
+                    }}
+                  />
+                  <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
+                    Send
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+    
+          {activeTab === "submissions" && (
+            <>
+              <div className="space-y-2">
+      {submissions.length === 0 ? (
+        <p className="text-gray-500">No submissions found.</p>
+      ) : (
+        submissions.map((submission) => (
+          <div
+            key={submission.id}
+            className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out flex justify-between items-center"
+          >
+            <div>
+              <h3 className="font-medium">
+                <div 
+                //   onClick={() => navigate(`/submission/${submission.id}`, { state: submission })} 
+                  className="text-orange-500"
+                >
+                  {submission.approvalStatus}
+                </div>
+              </h3>
+              <p className="text-sm text-gray-500">
+                <span>{formatDate(submission.submittedAt)}</span>
+              </p>
+            </div>
+          </div>
+        ))
+      )}
+            </div>
+            </>
+          )}
+        </div>
+    
+        {/* Right: Code Editor */}
+        <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">Code</h2>
+            <div className="flex items-center space-x-2">
+              {bug.language && (
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="p-1 border rounded-md"
+                >
+                  <option value="javascript">JavaScript</option>
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                </select>
+              )}
+              <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
+                Run
+              </button>
+              <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleOpenSubmitModal}>Submit</button>
+    
+              {showSubmitModal && (
+                <div className="modal-overlay">
+                  <div className="modal">
+                    <h2>Submit Code</h2>
+                    <label>Description:</label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter a brief description..."
+                    />
+    
+                    <label>Upload File (Optional):</label>
+                    <input type="file" onChange={handleFileChange} />
+    
+                    <h4>OR</h4>
+    
+                    <label>Code Preview:</label>
+                    <MonacoEditor
+                      theme="vs-dark"
+                      height="250px"
+                      defaultLanguage="javascript"
+                      value={code}
+                      options={{
+                        readOnly: true,
+                        minimap: { enabled: false },
+                        scrollbar: { vertical: "hidden" },
+                        lineNumbers: "on",
+                        automaticLayout: true,
+                      }}
+                    />
+    
+                    <button onClick={handleSubmitCode}>Submit</button>
+                    <button onClick={handleCloseSubmitModal}>Cancel</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+    
+          <MonacoEditor height="500px" language={selectedLanguage} theme="vs-dark" value={code} onChange={handleCodeChange} />
+    
+          <div className="mt-2 flex justify-between items-center">
+            <div>
+              <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={() => setIsModalOpen(true)}>
+                Reset Code
+              </button>
+    
+              {isModalOpen && (
+                <div className="modal-overlay">
+                  <div className="modal">
+                    <p>Are you sure you want to reset the code?</p>
+                    <button onClick={handleResetCode}>Yes</button>
+                    <button onClick={() => setIsModalOpen(false)}>No</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
+            <button
+              onClick={handleSaveDraft}
+              className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
+            </button>
+          </div>
+    
+          <h2 className="text-lg font-semibold mt-4">Output</h2>
+          <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
+            <pre>{output}</pre>
           </div>
         </div>
-      )}
-    </div>
-                        <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={handleCopyCode}>
-                            Copy
-                        </button>
-                    </div>
-                </div>
-
-                <MonacoEditor height="500px" language={selectedLanguage} theme="vs-dark" value={code} onChange={handleCodeChange} />
-
-                <div className="mt-2 flex justify-between items-center">
-                <div>
-            <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={() => setIsModalOpen(true)}>Reset Code</button>
-
-            {isModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal">
-                        <p>Are you sure you want to reset the code?</p>
-                        <button onClick={handleResetCode}>Yes</button>
-                        <button onClick={() => setIsModalOpen(false)}>No</button>
-                    </div>
-                </div>
-            )}
-        </div>
-                    <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
-                    <button
-                        onClick={handleSaveDraft}
-                        className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
-                    </button>
-
-                </div>
-
-                <h2 className="text-lg font-semibold mt-4">Output</h2>
-                <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
-                    <pre>{output}</pre>
-                </div>
-            </div>
-        </div>
+      </div>
     );
-}
+  }    

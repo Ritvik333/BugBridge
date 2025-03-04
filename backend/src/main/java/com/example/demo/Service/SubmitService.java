@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +77,6 @@ public class SubmitService {
         }
     }
     public List<Submit> getSubmissionsForUserAndBug(Long userId, Long bugId) {
-        return Collections.EMPTY_LIST;
+        return submitRepository.findByUserIdAndBugId(userId, bugId);
     }
 }
