@@ -1,8 +1,11 @@
 package com.example.demo.Controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,13 +46,13 @@ public class SubmitController {
         }
     }
 
-    // @GetMapping("/user/{userId}")
-    // public ResponseWrapper<List<Submit>> getUserSubmissions(@PathVariable Long userId) {
-    //     try {
-    //         List<Submit> submissions = submitService.getSubmissionsForUser(userId);
-    //         return new ResponseWrapper<>("success", "Fetched submissions successfully", submissions);
-    //     } catch (Exception e) {
-    //         return new ResponseWrapper<>("error", "Failed to fetch submissions", null);
-    //     }
-    // }
+    @GetMapping("/user/{userId}/bug/{bugId}")
+    public ResponseWrapper<List<Submit>> getUserSubmissionsByBug(@PathVariable Long userId, @PathVariable Long bugId) {
+        try {
+            List<Submit> submissions = submitService.getSubmissionsForUserAndBug(userId, bugId);
+            return new ResponseWrapper<>("success", "Fetched submissions successfully", submissions);
+        } catch (Exception e) {
+            return new ResponseWrapper<>("error", "Failed to fetch submissions", null);
+        }
+    }
 }

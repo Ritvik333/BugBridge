@@ -178,5 +178,15 @@ export const deleteComment = async (commendId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
+  export const fetchUserSubmissionsByBug = async (userId, bugId) => {
+    try {
+      console.log(userId);
+      const response = await apiClient.get(`/submissions/user/${userId}/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
   
 
