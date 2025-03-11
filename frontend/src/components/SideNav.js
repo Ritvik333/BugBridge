@@ -23,6 +23,14 @@ const SideNav = () => {
             <FileText className="h-5 w-5" />
             <span>My Drafts</span>
           </button>
+
+          <button
+              onClick={() => navigate("/SubmissionsPage")}
+              className="flex items-center space-x-2 p-3 rounded-md hover:bg-gray-700 transition"
+          >
+            <FileText className="h-5 w-5" />
+            <span>Submissions</span>
+          </button>
         </nav>
       </div>
   );
