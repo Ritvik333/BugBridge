@@ -1,4 +1,4 @@
-import { Home, FileText } from "lucide-react";
+import { Home, FileText, ClipboardCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
@@ -28,7 +28,7 @@ const SideNav = () => {
               onClick={() => navigate("/SubmissionsPage")}
               className="flex items-center space-x-2 p-3 rounded-md hover:bg-gray-700 transition"
           >
-            <FileText className="h-5 w-5" />
+            <ClipboardCheck className="h-5 w-5" />
             <span>Submissions</span>
           </button>
         </nav>
