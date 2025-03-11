@@ -1,6 +1,10 @@
 package com.example.demo.Controller;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +62,63 @@ public class SubmitController {
             return new ResponseWrapper<>("error", "Failed to fetch submissions", null);
         }
     }
+    @GetMapping("/{submissionId}")
+public ResponseWrapper<Submit> getSubmissionById(@PathVariable Long submissionId) {
+    try {
+        Submit submission = submitService.getSubmissionById(submissionId);
+        if (submission != null) {
+            return new ResponseWrapper<>("success", "Fetched submission successfully", submission);
+        } else {
+            return new ResponseWrapper<>("error", "Submission not found", null);
+        }
+    } catch (Exception e) {
+        return new ResponseWrapper<>("error", "Failed to fetch submission", null);
+    }
+    
+}
+
+@GetMapping("/approved/bug/{bugId}")
+public ResponseWrapper<List<Submit>> getApprovedSubmissionsForBug(@PathVariable Long bugId) {
+    try {
+        List<Submit> approvedSubmissions = submitService.findApprovedSubmissionsByBugId(bugId);
+        return new ResponseWrapper<>("success", "Fetched approved submissions for bug successfully", approvedSubmissions);
+    } catch (Exception e) {
+        return new ResponseWrapper<>("error", "Failed to fetch approved submissions", null);
+    }
+}
+
+
+    @GetMapping("/file/{userId}/{username}/{bugId}/{subId}/{language}")
+public ResponseEntity<String> getFileContent(
+        @PathVariable Long userId, 
+        @PathVariable String username,
+        @PathVariable String language,
+        @PathVariable Long subId,
+        @PathVariable Long bugId) throws IOException {
+
+
+    // Determine the file extension based on bug.language
+    String extension = switch (language) {
+        case "python" -> ".py";
+        case "javascript" -> ".js";
+        case "java" -> ".java";
+        default -> ""; // Handle unknown languages
+    };
+
+    // Construct the file path: uploads/userId_username/submissions/userId_bugId.extension
+    Path filePath = Paths.get("uploads", userId + "_" + username, "submissions", userId + "_" + bugId + "_" + subId+ extension);
+    System.out.println("Attempting to read file: " + filePath);
+
+    if (!Files.exists(filePath)) {
+        return ResponseEntity.notFound().build();
+    }
+
+    // Read and return file content
+    String content = Files.readString(filePath, StandardCharsets.UTF_8);
+    return ResponseEntity.ok(content);
+}
+
+
 
         @PutMapping("/approve/{submissionId}")
     public ResponseEntity<ResponseWrapper<String>> approveSubmission(@PathVariable Long submissionId, @RequestParam Long approverId) {

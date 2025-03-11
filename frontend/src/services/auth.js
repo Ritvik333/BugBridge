@@ -66,6 +66,16 @@ export const fetchCodeFile = async (userId, username, language, filename) => {
   }
 };
 
+export const fetchSubCodeFile = async (userId, username, language, bugId, subId) => {
+  try {
+    const response = await apiClient.get(`/submissions/file/${userId}/${username}/${bugId}/${subId}/${language}`);
+    console.log("sub code",response.data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export const fetchBugs = async (filters) => {
   try {
     const queryParams = new URLSearchParams();
@@ -188,5 +198,22 @@ export const deleteComment = async (commendId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
-  
+  export const fetchSubmission = async (id) => {
+    try {
+      const response = await apiClient.get(`/submissions/${id}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchSolution = async (bugId) => {
+    try {
+      const response = await apiClient.get(`/submissions/approved/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
 

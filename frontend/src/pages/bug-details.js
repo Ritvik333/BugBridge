@@ -2,11 +2,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import "../styles/SubmitModal.css";
-
-import { runCode, submitCode, fetchCodeFile, updateBug, fetchUserSubmissionsByBug, fetchComments, addComment, saveDraft, deleteComment } from "../services/auth";
-
+import { runCode, submitCode, fetchSolution, fetchCodeFile, updateBug, fetchUserSubmissionsByBug, fetchComments, addComment, saveDraft, deleteComment, fetchSubCodeFile } from "../services/auth";
 import jsBeautify from "js-beautify";
-import {  Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 
 export default function BugDetails({ currentUser }) {
     const location = useLocation();
@@ -31,40 +29,43 @@ export default function BugDetails({ currentUser }) {
     const originalCodeRef = useRef("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const saveTimeoutRef = useRef(null);
+    const [selectedItem, setSelectedItem] = useState(null);
 
     // Debounce Timer Ref
     const debounceTimerRef = useRef(null);
     // Periodic Sync Interval Ref
     const periodicSyncIntervalRef = useRef(null);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [description, setDescription] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
+    const [description, setDescription] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [submissions, setSubmissions] = useState([]);
+    const [solutions, setSolutions] = useState([]);
 
-  // Handle opening and closing of the modal
-  const handleOpenSubmitModal = () => setShowSubmitModal(true);
-  const handleCloseSubmitModal = () => setShowSubmitModal(false);
+    // Handle opening and closing of the modal
+    const handleOpenSubmitModal = () => setShowSubmitModal(true);
+    const handleCloseSubmitModal = () => setShowSubmitModal(false);
 
-  // Handle file selection
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
+    // Handle file selection
+    const handleFileChange = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
 
     useEffect(() => {
         const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
 
         const loadCode = async () => {
             try {
-                console.log(bug)
+                console.log(bug);
                 const userId = bug.creator.id;
-                const username = bug.creator.username; // Extract username
+                const username = bug.creator.username;
                 const language = bug.language;
                 const filepath = bug.codeFilePath;
                 if (!filepath) {
-                  console.error("codeFilePath is missing!", bug);
-                  return;
+                    console.error("codeFilePath is missing!", bug);
+                    return;
                 }
-                const filename = filepath.split(/[/\\]/).pop(); // Extract filename from path
+                const filename = filepath.split(/[/\\]/).pop();
                 const fetchedCode = await fetchCodeFile(userId, username, language, filename);
 
                 setCode(fetchedCode || "");
@@ -98,7 +99,6 @@ export default function BugDetails({ currentUser }) {
         getComments();
     }, [bug.id]);
 
-    // Debounced Save to DB Function
     const debouncedSaveToDB = (codeToSave) => {
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
@@ -115,21 +115,18 @@ export default function BugDetails({ currentUser }) {
                 console.error("Error saving draft to DB:", error);
                 setSaveStatus("Error saving draft");
             }
-        }, 3000); // 2-second debounce delay
+        }, 3000);
     };
 
-    // Start Periodic Sync
     useEffect(() => {
         periodicSyncIntervalRef.current = setInterval(() => {
             const codeToSave = localStorage.getItem(`bug_${bug.id}_code`);
             if (codeToSave) {
-                // Save to DB using the same function as debounced save
-                console.log("periodic called")
+                console.log("periodic called");
                 debouncedSaveToDB(codeToSave);
             }
-        }, 30000);  // Every 30 seconds
+        }, 30000);
 
-        // Cleanup interval on unmount
         return () => {
             clearInterval(periodicSyncIntervalRef.current);
             if (debounceTimerRef.current) {
@@ -139,49 +136,36 @@ export default function BugDetails({ currentUser }) {
     }, [bug.id, bug.creator?.username]);
 
     const handleCodeChange = (newCode) => {
-      // Beautify the new code and update state
-      const formattedCode = jsBeautify(newCode, { indent_size: 2 });
-      setCode(formattedCode);
-      setIsSaving(true);
-  
-      // Immediately save to localStorage
-      localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
-  
-      // Clear any previous timeout to debounce saving
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-  
-      // Save to localStorage after 800ms debounce
-      saveTimeoutRef.current = setTimeout(() => {
-        setIsSaving(false);
-      }, 800);
-  
-      // Trigger the debounced save
-      debouncedSaveToDB(formattedCode);
-      setSaveStatus("Saving Draft..."); // Update save status UI
+        const formattedCode = jsBeautify(newCode, { indent_size: 2 });
+        setCode(formattedCode);
+        setIsSaving(true);
+
+        localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
+
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+            setIsSaving(false);
+        }, 800);
+
+        debouncedSaveToDB(formattedCode);
+        setSaveStatus("Saving Draft...");
     };
-  
 
     const handleDescriptionChange = (e) => {
-      const newDescription = e.target.value;
-      setBugDescription(newDescription);
-      setIsSaving(true);  
-  
-      // Save to localStorage
-      localStorage.setItem(`bug_${bug.id}_description`, newDescription);
+        const newDescription = e.target.value;
+        setBugDescription(newDescription);
+        setIsSaving(true);
+        localStorage.setItem(`bug_${bug.id}_description`, newDescription);
     };
 
     const saveChanges = async () => {
         if (!isCreator) return;
         try {
-            const updatedBug = {
-                ...bug,
-                description: bugDescription,
-            };
-
+            const updatedBug = { ...bug, description: bugDescription };
             await updateBug(updatedBug);
-
             setSavedDescription(bugDescription);
             setIsEditing(false);
         } catch (error) {
@@ -204,88 +188,65 @@ export default function BugDetails({ currentUser }) {
         }
     };
 
-  //   const handleSubmitCode = async () => {
-  //     try{
-  //       const userId = localStorage.getItem("rememberMe");
-  //       const bugId = bug.id;
-  //       const desc = "no desc for now";
+    const handleSubmitCode = async () => {
+        try {
+            const userId = localStorage.getItem("rememberMe");
+            const bugId = bug.id;
+            const desc = description;
 
-  //       const response = await submitCode({userId,bugId,desc,code});
-  //       console.log(response);
+            const formData = new FormData();
+            formData.append("userId", userId);
+            formData.append("bugId", bugId);
+            formData.append("desc", desc);
 
-  //     } catch(error){
-  //       console.log("error submitting solution: ", error);
-  //     }
-      
-  // };
-  const handleSubmitCode = async () => {
-    try {
-      const userId = localStorage.getItem("rememberMe");
-      const bugId = bug.id;
-      const desc = description;
+            if (selectedFile) {
+                formData.append("file", selectedFile);
+            } else {
+                formData.append("code", code);
+            }
 
-      const formData = new FormData();
-      formData.append("userId", userId);
-      formData.append("bugId", bugId);
-      formData.append("desc", description);
-
-      if (selectedFile) {
-        formData.append("file", selectedFile); // Send file if selected
-      } else {
-        formData.append("code", code); // Send code from the editor
-      }
-
-      await submitCode({userId,bugId,desc,code});
-      alert("Code submitted successfully!");
-      handleCloseSubmitModal();
-    } catch (error) {
-      console.error("Error submitting code:", error);
-      alert("Failed to submit code.");
-    }
-  };
+            await submitCode({ userId, bugId, desc, code });
+            setSuccessMessage("✅ Code submitted successfully!");
+            fetchSubmissions();
+        } catch (error) {
+            console.error("Error submitting code:", error);
+            setSuccessMessage("Failed to submit code");
+        }
+    };
 
     const handleResetCode = () => {
-      setCode(originalCodeRef.current);
-      localStorage.removeItem(`bug_${bug.id}_code`);
-      setIsModalOpen(false); // Close modal after reset
-  };
-    
+        setCode(originalCodeRef.current);
+        localStorage.removeItem(`bug_${bug.id}_code`);
+        setIsModalOpen(false);
+    };
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(code);
-    alert("Code copied to clipboard!");
-  };
-  const handleDeleteComment = async (commentId) => {
-    try {
-      // Call the API to delete the comment
-      await deleteComment(commentId);
-      // After deleting the comment, fetch the updated comments
-      const updatedComments = await fetchComments(bug.id);
-      // Update comments state to reflect the deletion
-      setComments(updatedComments);
-    } catch (error) {
-      console.error("Error deleting comment:", error);
-    }
-  };
- 
-  // Handler for adding comments using API
-  const handleAddComment = async () => {
-    if (newComment.trim() === "") return;
-    try {
-      const commentData = {
-        bugId: bug.id,
-        userId: localStorage.getItem("rememberMe"),
-        text: newComment,
-      };
-      // Call the API to add the comment
-      await addComment(commentData);
-      // After adding the comment, fetch the updated comments
-      const updatedComments = await fetchComments(bug.id);
+    const handleCopyCode = () => {
+        navigator.clipboard.writeText(code);
+        alert("Code copied to clipboard!");
+    };
 
-      // Update comments state to include the new comment
-      setComments(updatedComments);
-      setNewComment(""); // Reset the input field
+    const handleDeleteComment = async (commentId) => {
+        try {
+            await deleteComment(commentId);
+            const updatedComments = await fetchComments(bug.id);
+            setComments(updatedComments);
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+        }
+    };
 
+    const handleAddComment = async () => {
+        if (newComment.trim() === "") return;
+        try {
+            const commentData = {
+                bugId: bug.id,
+                userId: localStorage.getItem("rememberMe"),
+                text: newComment,
+            };
+            await addComment(commentData);
+            const updatedComments = await fetchComments(bug.id);
+            setComments(updatedComments);
+            setNewComment("");
             setTimeout(() => {
                 commentsContainerRef.current?.scrollTo({ top: commentsContainerRef.current.scrollHeight, behavior: "smooth" });
             }, 100);
@@ -296,291 +257,409 @@ export default function BugDetails({ currentUser }) {
 
     const handleSaveDraft = async () => {
         try {
-            setSaveStatus("Saving Draft..."); // Update save status UI
+            setSaveStatus("Saving Draft...");
             const userId = localStorage.getItem("rememberMe");
             const bugId = bug.id;
             const username = bug.creator.username;
             await saveDraft({ userId, bugId, username, code });
-            setSaveStatus("Saved"); // Update save status UI
+            setSaveStatus("Saved");
         } catch (error) {
             console.error("Error saving draft:", error);
             setSaveStatus("Error saving draft");
         }
     };
-    const [submissions, setSubmissions] = useState([]);
 
     const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      return date.toLocaleString('en-US', {
-        weekday: 'long', // "Monday"
-        year: 'numeric', // "2025"
-        month: 'long', // "March"
-        day: 'numeric', // "2"
-        hour: 'numeric', // "2"
-        minute: 'numeric', // "29"
-        second: 'numeric', // "38"
-        hour12: true, // Use 12-hour clock with AM/PM
-      });
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: true,
+        });
     };
+
     const fetchSubmissions = async () => {
         try {
             const userId = localStorage.getItem("rememberMe");
             const bugId = bug.id;
-        const submitData = await fetchUserSubmissionsByBug(userId,bugId);
-        console.log("sub",submitData.body);
-        setSubmissions(submitData.body);
+            const submitData = await fetchUserSubmissionsByBug(userId, bugId);
+            console.log("sub", submitData.body);
+            setSubmissions(submitData.body||[]);
         } catch (error) {
-        console.error("Error fetching submissions:", error);
+            console.error("Error fetching submissions:", error);
+        }
+    };
+
+    const fetchSolutions = async () => {
+        try {
+            const bugId = bug.id;
+            const solutionData = await fetchSolution(bugId);
+            console.log("sol", solutionData.body);
+            setSolutions(solutionData.body||[]);
+        } catch (error) {
+            console.error("Error fetching solutions:", error);
         }
     };
 
     return (
-      <div className="min-h-screen bg-gray-100 flex">
-        {/* Left: Bug Description & Comments */}
-        <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
-          
-          {/* Breadcrumb Navigation */}
-          <div className="flex items-center space-x-2 mb-4">
-            <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
-              ⬅ Bug Board
-            </button>
-          </div>
-    
-          {/* Tab Navigation */}
-          <div className="tabs mb-4">
-            <button
-              className={`tab-button ${activeTab === "description" ? "active" : ""}`}
-              onClick={() => setActiveTab("description")}
-            >
-              Description
-            </button>
-            <button
-              className={`tab-button ${activeTab === "submissions" ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab("submissions");
-                fetchSubmissions(); // Fetch submissions when Submissions tab is clicked
-              }}
-            >
-              Submissions
-            </button>
-          </div>
-    
-          {/* Bug Title & Edit Button */}
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">{bug.title}</h2>
-            {isCreator && !isEditing && (
-              <button
-                className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit
-              </button>
-            )}
-          </div>
-    
-          {/* Severity & Status */}
-          <p className="text-gray-600 mt-2">
-            <strong>Severity:</strong> {bug.severity} | <strong>Status:</strong> {bug.status}
-          </p>
-    
-          {/* Tab Content */}
-          {activeTab === "description" && (
-            <>
-              {/* Editable Bug Description */}
-              <textarea
-                className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
-                placeholder="Edit bug description..."
-                value={bugDescription}
-                onChange={handleDescriptionChange}
-                readOnly={!isEditing || !isCreator}
-              />
-              {/* Save & Discard Buttons */}
-              {isEditing && isCreator && (
-                <div className="mt-2 flex space-x-4">
-                  <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={saveChanges}>
-                    Save Changes
-                  </button>
-                  <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={discardChanges}>
-                    Discard Changes
-                  </button>
+        <div className="min-h-screen bg-gray-100 flex">
+            {/* Left: Bug Description & Comments */}
+            <div className="w-1/2 flex flex-col p-6 bg-white shadow-lg h-screen">
+                {/* Breadcrumb Navigation */}
+                <div className="flex items-center space-x-2 mb-4">
+                    <button className="text-blue-500 hover:underline text-lg font-semibold" onClick={() => navigate("/dashboard")}>
+                        ⬅ Bug Board
+                    </button>
                 </div>
-              )}
-              {/* Submissions Content */}
-              <div className="mt-6">
-                <h3 className="text-xl font-bold mb-2">Comments</h3>
-                <div ref={commentsContainerRef} className="transition-all border p-2 rounded-md overflow-y-auto flex-grow h-48">
-                  {comments?.length === 0 ? (
-                    <p className="text-gray-500">No comments yet.</p>
-                  ) : (
-                    comments?.map((comment) => (
-                      <div key={comment?.id} style={{ justifyContent: 'space-between' }} className="mb-3 flex gap-2">
-                        <div className="mb-3 flex gap-2">
-                          <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">
-                            {comment?.user?.username[0].toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-xs font-light text-gray-500">
-                              {comment?.user?.username}
-                            </p>
-                            <p className="text-sm text-gray-800">
-                              {comment?.text}
-                            </p>
-                          </div>
-                        </div>
-                        {isCreator && (
-                          <div onClick={() => handleDeleteComment(comment.id)} style={{ cursor: "pointer" }} className="flex items-center space-x-2">
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </div>
+
+                {/* Tab Navigation */}
+                <div className="tabs mb-4">
+                    <button
+                        className={`tab-button ${activeTab === "description" ? "active" : ""}`}
+                        onClick={() => setActiveTab("description")}
+                    >
+                        Description
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === "submissions" ? "active" : ""}`}
+                        onClick={() => {
+                            setActiveTab("submissions");
+                            fetchSubmissions();
+                        }}
+                    >
+                        Submissions
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === "solutions" ? "active" : ""}`}
+                        onClick={() => {
+                            setActiveTab("solutions");
+                            fetchSolutions();
+                        }}
+                    >
+                        Solutions
+                    </button>
+                </div>
+
+                {/* Bug Title & Edit Button */}
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold">{bug.title}</h2>
+                    {isCreator && !isEditing && (
+                        <button
+                            className="p-1 px-3 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                            onClick={() => setIsEditing(true)}
+                        >
+                            Edit
+                        </button>
+                    )}
+                </div>
+
+                {/* Severity & Status */}
+                <p className="text-gray-600 mt-2">
+                    <strong>Severity:</strong> {bug.severity} | <strong>Status:</strong> {bug.status}
+                </p>
+
+                {/* Tab Content */}
+                {activeTab === "description" && (
+                    <>
+                        <textarea
+                            className="w-full p-3 mt-2 border rounded-md h-[420px] overflow-y-auto focus:outline-none bg-white resize-none"
+                            placeholder="Edit bug description..."
+                            value={bugDescription}
+                            onChange={handleDescriptionChange}
+                            readOnly={!isEditing || !isCreator}
+                        />
+                        {isEditing && isCreator && (
+                            <div className="mt-2 flex space-x-4">
+                                <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={saveChanges}>
+                                    Save Changes
+                                </button>
+                                <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={discardChanges}>
+                                    Discard Changes
+                                </button>
+                            </div>
                         )}
-                      </div>
-                    ))
-                  )}
-                </div>
-    
-                <div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
-                  <input
-                    type="text"
-                    className="flex-grow p-2 border rounded-md focus:outline-none"
-                    placeholder="Add a comment..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddComment();
-                      }
-                    }}
-                  />
-                  <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
-                    Send
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-    
-          {activeTab === "submissions" && (
-            <>
-              <div className="space-y-2">
-      {submissions.length === 0 ? (
-        <p className="text-gray-500">No submissions found.</p>
-      ) : (
-        submissions.map((submission) => (
-          <div
-            key={submission.id}
-            className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out flex justify-between items-center"
-          >
-            <div>
-              <h3 className="font-medium">
-                <div 
-                //   onClick={() => navigate(`/submission/${submission.id}`, { state: submission })} 
-                  className="text-orange-500"
-                >
-                  {submission.approvalStatus}
-                </div>
-              </h3>
-              <p className="text-sm text-gray-500">
-                <span>{formatDate(submission.submittedAt)}</span>
-              </p>
+                        <div className="mt-6">
+                            <h3 className="text-xl font-bold mb-2">Comments</h3>
+                            <div ref={commentsContainerRef} className="transition-all border p-2 rounded-md overflow-y-auto flex-grow h-48">
+                                {comments?.length === 0 ? (
+                                    <p className="text-gray-500">No comments yet.</p>
+                                ) : (
+                                    comments?.map((comment) => (
+                                        <div key={comment?.id} style={{ justifyContent: 'space-between' }} className="mb-3 flex gap-2">
+                                            <div className="mb-3 flex gap-2">
+                                                <div className="bg-black rounded-full w-[30px] text-white flex justify-center items-center font-bold">
+                                                    {comment?.user?.username[0].toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-light text-gray-500">
+                                                        {comment?.user?.username}
+                                                    </p>
+                                                    <p className="text-sm text-gray-800">
+                                                        {comment?.text}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {isCreator && (
+                                                <div onClick={() => handleDeleteComment(comment.id)} style={{ cursor: "pointer" }} className="flex items-center space-x-2">
+                                                    <Trash className="h-4 w-4 text-red-500" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <div className="mt-2 flex space-x-2 sticky bottom-0 bg-white p-2">
+                                <input
+                                    type="text"
+                                    className="flex-grow p-2 border rounded-md focus:outline-none"
+                                    placeholder="Add a comment..."
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleAddComment();
+                                        }
+                                    }}
+                                />
+                                <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleAddComment}>
+                                    Send
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+{activeTab === "submissions" && (
+                    <div className="space-y-2">
+                        {submissions.length === 0 || !Array.isArray(submissions) ? (
+                            <p className="text-gray-500">No submissions found.</p>
+                        ) : (
+                            submissions.map((submission) => (
+                                <div
+                                    key={submission.id}
+                                    className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out flex justify-between items-center"
+                                    onClick={() => setSelectedItem(submission)}
+                                >
+                                    <div>
+                                        <h3 className="font-medium">
+                                            <span className={submission.approvalStatus === "approved" ? "text-green-500" : "text-orange-500"}>
+                                                {submission.approvalStatus}
+                                            </span>
+                                        </h3>
+                                        <p className="text-sm text-gray-500">
+                                            <span>{formatDate(submission.submittedAt)}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+
+                {activeTab === "solutions" && (
+                    <div className="space-y-2">
+                        {solutions.length === 0 ? (
+                            <p className="text-gray-500">No solutions found.</p>
+                        ) : (
+                            solutions.map((solution) => (
+                                <div
+                                    key={solution.id}
+                                    className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out flex justify-between items-center"
+                                    onClick={() => setSelectedItem(solution)}
+                                >
+                                    <div>
+                                        <h3 className="font-medium">
+                                            <span className={solution.approvalStatus === "approved" ? "text-green-500" : "text-orange-500"}>
+                                                Solution by: {solution.user.username}
+                                            </span>
+                                        </h3>
+                                        <p className="text-sm text-gray-500">
+                                            <span>{formatDate(solution.submittedAt)}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
             </div>
-          </div>
-        ))
-      )}
+
+            {/* Right: Code Editor */}
+            <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-lg font-semibold">Code</h2>
+                    <div className="flex items-center space-x-2">
+                        {bug.language && (
+                            <select
+                                value={selectedLanguage}
+                                onChange={(e) => setSelectedLanguage(e.target.value)}
+                                className="p-1 border rounded-md"
+                            >
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                            </select>
+                        )}
+                        <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
+                            Run
+                        </button>
+                        <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleOpenSubmitModal}>
+                            Submit
+                        </button>
+
+                        {showSubmitModal && (
+                            <div className="modal-overlay">
+                                <div className="modal">
+                                    <h2>Submit Code</h2>
+                                    <label>Description:</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Enter a brief description..."
+                                    />
+                                    <label>Upload File (Optional):</label>
+                                    <input type="file" onChange={handleFileChange} />
+                                    <h4>OR</h4>
+                                    <label>Code Preview:</label>
+                                    <MonacoEditor
+                                        theme="vs-dark"
+                                        height="250px"
+                                        defaultLanguage="javascript"
+                                        value={code}
+                                        options={{
+                                            readOnly: true,
+                                            minimap: { enabled: false },
+                                            scrollbar: { vertical: "hidden" },
+                                            lineNumbers: "on",
+                                            automaticLayout: true,
+                                        }}
+                                    />
+                                    {successMessage && (
+                                        <p className="text-green-500 mt-2">{successMessage}</p>
+                                    )}
+                                    <button onClick={handleSubmitCode}>Submit</button>
+                                    <button onClick={handleCloseSubmitModal}>Close</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <MonacoEditor
+                    height="500px"
+                    language={selectedLanguage}
+                    theme="vs-dark"
+                    value={code}
+                    onChange={handleCodeChange}
+                />
+
+                <div className="mt-2 flex justify-between items-center">
+                    <div>
+                        <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={() => setIsModalOpen(true)}>
+                            Reset Code
+                        </button>
+                        {isModalOpen && (
+                            <div className="modal-overlay">
+                                <div className="modal">
+                                    <p>Are you sure you want to reset the code?</p>
+                                    <button onClick={handleResetCode}>Yes</button>
+                                    <button onClick={() => setIsModalOpen(false)}>No</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
+                    <button
+                        onClick={handleSaveDraft}
+                        className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                    >
+                        Save Draft
+                    </button>
+                </div>
+
+                <h2 className="text-lg font-semibold mt-4">Output</h2>
+                <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
+                    <pre>{output}</pre>
+                </div>
             </div>
-            </>
-          )}
+
+            {selectedItem && (
+                <SubmissionModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+            )}
         </div>
-    
-        {/* Right: Code Editor */}
-        <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold">Code</h2>
-            <div className="flex items-center space-x-2">
-              {bug.language && (
-                <select
-                  value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
-                  className="p-1 border rounded-md"
-                >
-                  <option value="javascript">JavaScript</option>
-                  <option value="python">Python</option>
-                  <option value="java">Java</option>
-                </select>
-              )}
-              <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
-                Run
-              </button>
-              <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleOpenSubmitModal}>Submit</button>
-    
-              {showSubmitModal && (
-                <div className="modal-overlay">
-                  <div className="modal">
-                    <h2>Submit Code</h2>
-                    <label>Description:</label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Enter a brief description..."
-                    />
-    
-                    <label>Upload File (Optional):</label>
-                    <input type="file" onChange={handleFileChange} />
-    
-                    <h4>OR</h4>
-    
-                    <label>Code Preview:</label>
-                    <MonacoEditor
-                      theme="vs-dark"
-                      height="250px"
-                      defaultLanguage="javascript"
-                      value={code}
-                      options={{
-                        readOnly: true,
-                        minimap: { enabled: false },
-                        scrollbar: { vertical: "hidden" },
-                        lineNumbers: "on",
-                        automaticLayout: true,
-                      }}
-                    />
-    
-                    <button onClick={handleSubmitCode}>Submit</button>
-                    <button onClick={handleCloseSubmitModal}>Cancel</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-    
-          <MonacoEditor height="500px" language={selectedLanguage} theme="vs-dark" value={code} onChange={handleCodeChange} />
-    
-          <div className="mt-2 flex justify-between items-center">
-            <div>
-              <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={() => setIsModalOpen(true)}>
-                Reset Code
-              </button>
-    
-              {isModalOpen && (
-                <div className="modal-overlay">
-                  <div className="modal">
-                    <p>Are you sure you want to reset the code?</p>
-                    <button onClick={handleResetCode}>Yes</button>
-                    <button onClick={() => setIsModalOpen(false)}>No</button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
-            <button
-              onClick={handleSaveDraft}
-              className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600">Save Draft
-            </button>
-          </div>
-    
-          <h2 className="text-lg font-semibold mt-4">Output</h2>
-          <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
-            <pre>{output}</pre>
-          </div>
-        </div>
-      </div>
     );
-  }    
+}
+
+function SubmissionModal({ item, onClose }) {
+  const [loading, setLoading] = useState(true);
+  const [Submittedcode, setsubCode] = useState("");
+
+  useEffect(() => {
+      const loadSubCode = async () => {
+          try {
+            const subId = item.id;
+              const userId = item.user.id;
+              const bugId = item.bug.id;
+              const username = item.user.username;
+              const language = item.bug.language;
+              console.log(userId, bugId, username, language);
+              const fetchedCode = await fetchSubCodeFile(userId, username, language, bugId, subId);
+              console.log('fetch', fetchedCode);
+
+              setsubCode(fetchedCode || ""); // Set the fetched code
+          } catch (error) {
+              console.error("Error fetching code file:", error);
+              setsubCode("Error loading code."); // Optional: Set an error message
+          } finally {
+              setLoading(false); // Always update loading state
+          }
+      };
+
+      loadSubCode();
+  }, [item]);
+
+  // Optional: Log the state after it updates (for debugging)
+  useEffect(() => {
+      console.log('Updated Submittedcode:', Submittedcode);
+  }, [Submittedcode]);
+
+  return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-3/4 h-3/4 overflow-auto">
+              <h2 className="text-xl font-bold mb-4">Submission Details</h2>
+              <h3 className="text-lg font-semibold mb-2">Description</h3>
+              <p className="text-gray-700 mb-4">{item.description}</p>
+              <h3 className="text-lg font-semibold mb-2">Code</h3>
+              {loading ? (
+                  <p>Loading code...</p>
+              ) : (
+                  <MonacoEditor
+                      height="400px"
+                      language={item.bug.language || "javascript"}
+                      theme="vs-dark"
+                      value={Submittedcode}
+                      options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          scrollbar: { vertical: "hidden" },
+                          lineNumbers: "on",
+                          automaticLayout: true,
+                      }}
+                  />
+              )}
+              <button
+                  className="mt-4 p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  onClick={onClose}
+              >
+                  Close
+              </button>
+          </div>
+      </div>
+  );
+}
