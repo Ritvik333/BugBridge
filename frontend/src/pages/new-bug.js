@@ -51,28 +51,6 @@ function NewBugPage() {
       }
   
       // Send to API
-
-      try {
-        const response = await apiClient.post('/api/bugs', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-      
-        // If you need to access response data:
-        console.log(response.data);
-      } catch (error) {
-        if (error.response) {
-          // Server responded with status other than 2xx
-          console.error(`HTTP error! status: ${error.response.status}`);
-        } else {
-          // Other errors (network issues, etc.)
-          console.error('Error:', error.message);
-        }
-      }
-      
-  
-      // Also save to localStorage for local state
       await submitBug(formData);
   
       // Save locally and reset form

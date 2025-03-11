@@ -116,67 +116,68 @@ const BugListWithFilters = ({ showAddButton = true }) => {
   };
 
   return (
-    <div className="relative flex-1 p-4">
-      {/* Filters */}
-      <div className="flex gap-4 mb-4">
-        <select onChange={(e) => setFilterSeverity(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-          <option value="">All Severities</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="critical">Critical</option>
-        </select>
-        <select onChange={(e) => setFilterStatus(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-          <option value="">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="in progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Filter by Creator"
-          onChange={(e) => setFilterCreator(e.target.value)}
-          className="p-2 border rounded hover:border-gray-400"
-        />
-        <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
-          <option value="creationDate">Sort by Creation Date</option>
-          <option value="language">Sort by Language</option>
-        </select>
-      </div>
-
-      {/* Bug List */}
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="font-semibold mb-2">Detected Bugs</h2>
-        <div className="space-y-2">
-          {filteredBugs.length === 0 ? (
-            <p className="text-gray-500">No bugs found.</p>
-          ) : (
-            filteredBugs.map((bug) => (
-              <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition">
-                <h3 className="font-medium text-blue-500 hover:underline" onClick={() => navigate(`/bug-details/${bug.id}`, { state: bug })}>
-                  {bug.title}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  <span className={getSeverityColor(bug.severity)}>{bug.severity}</span> |{" "}
-                  <span className={getStatusColor(bug.status)}>{bug.status}</span> | {bug.language}
-                </p>
-              </div>
-            ))
-          )}
+      <div className="relative flex-1 p-4 pt-16 ml-48"> {/* Added pt-16 & ml-48 */}
+        {/* Filters */}
+        <div className="flex gap-4 mb-4">
+          <select onChange={(e) => setFilterSeverity(e.target.value)} className="p-2 border rounded hover:border-gray-400">
+            <option value="">All Severities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+          <select onChange={(e) => setFilterStatus(e.target.value)} className="p-2 border rounded hover:border-gray-400">
+            <option value="">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="in progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+          <input
+              type="text"
+              placeholder="Filter by Creator"
+              onChange={(e) => setFilterCreator(e.target.value)}
+              className="p-2 border rounded hover:border-gray-400"
+          />
+          <select onChange={(e) => setSortOption(e.target.value)} className="p-2 border rounded hover:border-gray-400">
+            <option value="creationDate">Sort by Creation Date</option>
+            <option value="language">Sort by Language</option>
+          </select>
         </div>
-      </div>
 
-      {/* Floating Plus Button (only if showAddButton is true) */}
-      {showAddButton && (
-        <button
-          onClick={() => navigate("/new-bug")}
-          className="fixed bottom-8 right-8 w-16 h-16 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
-        >
-          <Plus className="h-8 w-8" />
-        </button>
-      )}
-    </div>
+        {/* Bug List */}
+        <div className="bg-white p-4 rounded shadow">
+          <h2 className="font-semibold mb-2">Detected Bugs</h2>
+          <div className="space-y-2">
+            {filteredBugs.length === 0 ? (
+                <p className="text-gray-500">No bugs found.</p>
+            ) : (
+                filteredBugs.map((bug) => (
+                    <div key={bug.id} className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition">
+                      <h3 className="font-medium text-blue-500 hover:underline" onClick={() => navigate(`/bug-details/${bug.id}`, { state: {bug:bug,codeFilePath:""} })}>
+                        {bug.title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        <span className={getSeverityColor(bug.severity)}>{bug.severity}</span> |{" "}
+                        <span className={getStatusColor(bug.status)}>{bug.status}</span> | {bug.language}
+                      </p>
+                    </div>
+                ))
+            )}
+          </div>
+        </div>
+
+        {/* Floating Plus Button (only if showAddButton is true) */}
+        {showAddButton && (
+            <button
+                onClick={() => navigate("/new-bug")}
+                className="fixed bottom-8 right-8 w-16 h-16 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out"
+            >
+              <Plus className="h-8 w-8" />
+            </button>
+        )}
+      </div>
   );
+
 };
 
 export default BugListWithFilters;
