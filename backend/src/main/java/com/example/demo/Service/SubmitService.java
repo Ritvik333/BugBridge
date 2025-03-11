@@ -65,6 +65,12 @@ public class SubmitService {
         Files.write(filePath, code.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         savedSubmit.setCodeFilePath(filePath.toString());
+        notificationService.createNotification( userId, "Your submission for bug #" + bug.getId() + " has been submitted.");
+
+            // Notify the bug creator
+            Long bugCreatorId = bug.getCreator().getId();
+            notificationService.createNotification(bugCreatorId, 
+                "A new submission has been made for your bug #" + bug.getId() + " by " + user.getUsername() + ".");
         
         // Submit existingSubmission = submitRepository.findByUserIdAndBugId(userId, bugId);
         
@@ -77,15 +83,7 @@ public class SubmitService {
         // } else {
             return submitRepository.save(savedSubmit);
         // }
-             // Create notification
-            notificationService.createNotification( userId, "Your submission for bug #" + bug.getId() + " has been submitted.");
-
-            // Notify the bug creator
-            Long bugCreatorId = bug.getCreator().getId();
-            notificationService.createNotification(bugCreatorId, 
-                "A new submission has been made for your bug #" + bug.getId() + " by " + user.getUsername() + ".");
-
-        return savedSubmit;
+        
 
     }
 
@@ -101,6 +99,12 @@ public class SubmitService {
 
     public List<Submit> findApprovedSubmissionsByBugId(Long bugId) {
         List<Submit> approvedSubmissions = submitRepository.findByBugIdAndApprovalStatus(bugId, "approved");
+        if (!approvedSubmissions.isEmpty()) {
+            Bug bug = bugRepository.findById(bugId)
+                .orElseThrow(() -> new RuntimeException("Bug not found"));
+            bug.setStatus("Resolved");
+            bugRepository.save(bug);
+        }
         
         // Group by userId and get the most recent submission for each user
         Map<Long, Submit> latestPerUser = new HashMap<>();

@@ -43,13 +43,8 @@ export default function BugDetails({ currentUser }) {
     const [solutions, setSolutions] = useState([]);
 
     // Handle opening and closing of the modal
-    const handleOpenSubmitModal = () => setShowSubmitModal(true);
-    const handleCloseSubmitModal = () => setShowSubmitModal(false);
-
-    // Handle file selection
-    const handleFileChange = (event) => {
-        setSelectedFile(event.target.files[0]);
-    };
+    const handleOpenSubmitModal = () => {setShowSubmitModal(true);setoldCode(code);}
+    const handleCloseSubmitModal = () => {setShowSubmitModal(false);}
 
     useEffect(() => {
         const savedBugDescription = localStorage.getItem(`bug_${bug.id}_description`);
@@ -188,6 +183,41 @@ export default function BugDetails({ currentUser }) {
         }
     };
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
+    const [oldcode, setoldCode] = useState("");
+
+const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            setSuccessMessage("File size exceeds 10 MB limit. Please upload a smaller file.");
+            setSelectedFile(null);
+            setCode(oldcode); // Reset code if file is too large
+            event.target.value = null; // Reset the file input
+            return;
+        }
+
+        setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const fileContent = e.target.result; // File content as a string
+            setCode(fileContent); // Set the file content as the code
+        };
+        reader.onerror = (e) => {
+            console.error("Error reading file:", e);
+            setSuccessMessage("Failed to read file");
+            setSelectedFile(null);
+            setCode("");
+            event.target.value = null;
+        };
+        reader.readAsText(file); // Read the file as text
+    } else {
+        setSelectedFile(null);
+        setCode(""); // Reset code if no file is selected
+    }
+};
+
     const handleSubmitCode = async () => {
         try {
             const userId = localStorage.getItem("rememberMe");
@@ -198,13 +228,8 @@ export default function BugDetails({ currentUser }) {
             formData.append("userId", userId);
             formData.append("bugId", bugId);
             formData.append("desc", desc);
-
-            if (selectedFile) {
-                formData.append("file", selectedFile);
-            } else {
-                formData.append("code", code);
-            }
-
+            formData.append("code", code);
+            
             await submitCode({ userId, bugId, desc, code });
             setSuccessMessage("✅ Code submitted successfully!");
             fetchSubmissions();
