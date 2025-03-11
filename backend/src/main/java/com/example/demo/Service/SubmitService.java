@@ -72,8 +72,12 @@ public class SubmitService {
             Submit savedSubmit= submitRepository.save(submit);
 
              // Create notification
-            notificationService.createNotification( userId, "Your submission for bug #" + bug.getId() + " has been submitted."
-        );
+            notificationService.createNotification( userId, "Your submission for bug #" + bug.getId() + " has been submitted.");
+
+            // Notify the bug creator
+            Long bugCreatorId = bug.getCreator().getId();
+            notificationService.createNotification(bugCreatorId, 
+                "A new submission has been made for your bug #" + bug.getId() + " by " + user.getUsername() + ".");
 
         return savedSubmit;
 
@@ -88,6 +92,7 @@ public class SubmitService {
             default: return ".txt";
         }
     }
+    
     public List<Submit> getSubmissionsForUserAndBug(Long userId, Long bugId) {
         return submitRepository.findByUserIdAndBugId(userId, bugId);
     }
