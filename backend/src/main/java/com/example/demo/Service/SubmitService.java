@@ -84,7 +84,19 @@ public class SubmitService {
     }
 
     public List<Submit> findApprovedSubmissionsByBugId(Long bugId) {
-        return new ArrayList<>();
+        List<Submit> approvedSubmissions = submitRepository.findByBugIdAndApprovalStatus(bugId, "approved");
+        
+        // Group by userId and get the most recent submission for each user
+        Map<Long, Submit> latestPerUser = new HashMap<>();
+        for (Submit submit : approvedSubmissions) {
+            Long userId = submit.getUser().getId();
+            Submit existing = latestPerUser.get(userId);
+            if (existing == null || submit.getSubmittedAt().isAfter(existing.getSubmittedAt())) {
+                latestPerUser.put(userId, submit);
+            }
+        }
+        
+        return new ArrayList<>(latestPerUser.values());
     }
       
     public List<Submit> getSubmissionsForUserAndBug(Long userId, Long bugId) {
