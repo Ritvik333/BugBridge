@@ -15,7 +15,15 @@ export default function CodeEditor({ bug, draftCodeFilePath,rememberMeId }) {
     const [isSaving, setIsSaving] = useState(false);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
     const [description, setDescription] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [submissions, setSubmissions] = useState([]);
+    const [solutions, setSolutions] = useState([]);
+
+    // Handle opening and closing of the modal
+    const handleOpenSubmitModal = () => {setShowSubmitModal(true);setoldCode(code);}
+
 
     const saveTimeoutRef = useRef(null);
     const debounceTimerRef = useRef(null);
@@ -121,31 +129,6 @@ export default function CodeEditor({ bug, draftCodeFilePath,rememberMeId }) {
             setCode(savedCode);
         }
     }, [bug.id]);
-    const handleSubmitCode = async () => {
-        try {
-            const userId = localStorage.getItem("rememberMe");
-            const bugId = bug.id;
-            const desc = description;
-
-            const formData = new FormData();
-            formData.append("userId", userId);
-            formData.append("bugId", bugId);
-            formData.append("desc", description);
-
-            if (selectedFile) {
-                formData.append("file", selectedFile); // Send file if selected
-            } else {
-                formData.append("code", code); // Send code from the editor
-            }
-
-            await submitCode({userId,bugId,desc,code});
-            alert("Code submitted successfully!");
-            handleCloseSubmitModal();
-        } catch (error) {
-            console.error("Error submitting code:", error);
-            alert("Failed to submit code.");
-        }
-    };
 
     const debouncedSaveToDB = (codeToSave) => {
         clearTimeout(debounceTimerRef.current);
@@ -180,6 +163,7 @@ export default function CodeEditor({ bug, draftCodeFilePath,rememberMeId }) {
         };
     }, [bug.id, bug.creator?.username]);
 
+
     const handleSaveDraft = async () => {
         try {
             setSaveStatus("Saving Draft..."); // Update save status UI
@@ -212,6 +196,7 @@ export default function CodeEditor({ bug, draftCodeFilePath,rememberMeId }) {
     const handleResetCode = () => {
         setCode(originalCodeRef.current);
         localStorage.removeItem(`bug_${bug.id}_code`);
+        setIsModalOpen(false);
     };
     const handleCodeChange = (newCode) => {
         // Beautify the new code and update state
@@ -237,33 +222,162 @@ export default function CodeEditor({ bug, draftCodeFilePath,rememberMeId }) {
         setSaveStatus("Saving Draft..."); // Update save status UI
     };
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
+    const [oldcode, setoldCode] = useState("");
+
+const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            setSuccessMessage("File size exceeds 10 MB limit. Please upload a smaller file.");
+            setSelectedFile(null);
+            setCode(oldcode); // Reset code if file is too large
+            event.target.value = null; // Reset the file input
+            return;
+        }
+
+        setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const fileContent = e.target.result; // File content as a string
+            setCode(fileContent); // Set the file content as the code
+        };
+        reader.onerror = (e) => {
+            console.error("Error reading file:", e);
+            setSuccessMessage("Failed to read file");
+            setSelectedFile(null);
+            setCode("");
+            event.target.value = null;
+        };
+        reader.readAsText(file); // Read the file as text
+    } else {
+        setSelectedFile(null);
+        setCode(""); // Reset code if no file is selected
+    }
+};
+
+    const handleSubmitCode = async () => {
+        try {
+            const userId = localStorage.getItem("rememberMe");
+            const bugId = bug.id;
+            const desc = description;
+
+            const formData = new FormData();
+            formData.append("userId", userId);
+            formData.append("bugId", bugId);
+            formData.append("desc", desc);
+            formData.append("code", code);
+            
+            await submitCode({ userId, bugId, desc, code });
+            setSuccessMessage("✅ Code submitted successfully!");
+            // fetchSubmissions();
+        } catch (error) {
+            console.error("Error submitting code:", error);
+            setSuccessMessage("Failed to submit code");
+        }
+    };
+
 
     return (
         <div className="w-1/2 p-6 bg-white shadow-lg flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold">Code</h2>
-                <div className="flex items-center space-x-2">
-                    <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="p-1 border rounded-md">
-                        <option value="javascript">JavaScript</option>
-                        <option value="python">Python</option>
-                        <option value="java">Java</option>
-                    </select>
-                    <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}><Play /></button>
-                    <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleSubmitCode}><Upload /></button>
-                    <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={handleCopyCode}><Copy /></button>
+                <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-lg font-semibold">Code</h2>
+                    <div className="flex items-center space-x-2">
+                        {bug.language && (
+                            <select
+                                value={selectedLanguage}
+                                onChange={(e) => setSelectedLanguage(e.target.value)}
+                                className="p-1 border rounded-md"
+                            >
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                            </select>
+                        )}
+                        <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleRunCode}>
+                            Run
+                        </button>
+                        <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleOpenSubmitModal}>
+                            Submit
+                        </button>
+
+                        {showSubmitModal && (
+                            <div className="modal-overlay">
+                                <div className="modal">
+                                    <h2>Submit Code</h2>
+                                    <label>Description:</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Enter a brief description..."
+                                    />
+                                    <label>Upload File (Optional):</label>
+                                    <input type="file" onChange={handleFileChange} />
+                                    <h4>OR</h4>
+                                    <label>Code Preview:</label>
+                                    <MonacoEditor
+                                        theme="vs-dark"
+                                        height="250px"
+                                        defaultLanguage="javascript"
+                                        value={code}
+                                        options={{
+                                            readOnly: true,
+                                            minimap: { enabled: false },
+                                            scrollbar: { vertical: "hidden" },
+                                            lineNumbers: "on",
+                                            automaticLayout: true,
+                                        }}
+                                    />
+                                    {successMessage && (
+                                        <p className="text-green-500 mt-2">{successMessage}</p>
+                                    )}
+                                    <button onClick={handleSubmitCode}>Submit</button>
+                                    <button onClick={handleCloseSubmitModal}>Close</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <MonacoEditor
+                    height="500px"
+                    language={selectedLanguage}
+                    theme="vs-dark"
+                    value={code}
+                    onChange={handleCodeChange}
+                />
+
+                <div className="mt-2 flex justify-between items-center">
+                    <div>
+                        <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={() => setIsModalOpen(true)}>
+                            Reset Code
+                        </button>
+                        {isModalOpen && (
+                            <div className="modal-overlay">
+                                <div className="modal">
+                                    <p>Are you sure you want to reset the code?</p>
+                                    <button onClick={handleResetCode}>Yes</button>
+                                    <button onClick={() => setIsModalOpen(false)}>No</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
+                    <button
+                        onClick={handleSaveDraft}
+                        className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                    >
+                        Save Draft
+                    </button>
+                </div>
+
+                <h2 className="text-lg font-semibold mt-4">Output</h2>
+                <div className="mt-2 p-4 bg-gray-800 text-white rounded-md">
+                    <pre>{output}</pre>
                 </div>
             </div>
 
-            <MonacoEditor height="500px" language={selectedLanguage} theme="vs-dark" value={code} onChange={handleCodeChange} />
-
-            <div className="mt-2 flex justify-between items-center">
-                <button className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleResetCode}><RotateCw /></button>
-                <p className="text-sm text-gray-500">{isSaving ? "Saving Draft..." : saveStatus}</p>
-                <button onClick={handleSaveDraft} className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600"><Save /></button>
-            </div>
-
-            <h2 className="text-lg font-semibold mt-4">Output</h2>
-            <div className="mt-2 p-4 bg-gray-800 text-white rounded-md"><pre>{output}</pre></div>
-        </div>
+            
     );
 }
