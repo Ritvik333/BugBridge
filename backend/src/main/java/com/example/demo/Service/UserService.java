@@ -47,8 +47,8 @@ public class UserService {
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
 
-    @Autowired
-    private PasswordResetService passwordResetService;
+    // @Autowired
+    // private PasswordResetService passwordResetService;
 
     public UserDto login(CredentialsDto credentialsDto) {
         User user = userRepository.findByEmail(credentialsDto.getEmail())
