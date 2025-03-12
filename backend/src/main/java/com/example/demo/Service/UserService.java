@@ -10,6 +10,8 @@ import com.example.demo.Model.User;
 import com.example.demo.exceptions.AppException;
 import com.example.demo.mappers.UserMapper;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityNotFoundException;
 
 import com.example.demo.Model.UserRepository;
@@ -19,11 +21,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @RequiredArgsConstructor
 @Service
@@ -36,7 +42,13 @@ public class UserService {
     private final UserMapper userMapper;
 
     @Autowired
+    private JavaMailSender mailSender;
+
+    @Autowired
     private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     public UserDto login(CredentialsDto credentialsDto) {
         User user = userRepository.findByEmail(credentialsDto.getEmail())
@@ -98,76 +110,117 @@ public class UserService {
 
     public ResponseWrapper<String> updateUserAccount(Long userId, UserDto updatedUserDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
-
+            .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+    
         boolean updated = false;
 
-        // ✅ Update Username
+        // Update username
         if (updatedUserDto.getUsername() != null && !updatedUserDto.getUsername().isEmpty()) {
             user.setUsername(updatedUserDto.getUsername());
             updated = true;
         }
 
-        // ✅ Send OTP for Email Change (No immediate update)
+        // Update email with verification
         if (updatedUserDto.getEmail() != null && !updatedUserDto.getEmail().isEmpty() &&
-                !updatedUserDto.getEmail().equals(user.getEmail())) {
+        !updatedUserDto.getEmail().equals(user.getEmail())) {
+        
             createEmailVerificationToken(userId, updatedUserDto.getEmail());
-            return new ResponseWrapper<>("success", "Email verification OTP Sent", null);
+            return new ResponseWrapper<String>("success", "Email verification OTP Sent", null); // Return early since verification is pending
         }
-
-        // ✅ Directly Update Password (No OTP Required)
+    
+        // Update password
         if (updatedUserDto.getPassword() != null && !updatedUserDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword()));
-            updated = true;
-            userRepository.save(user);
+            user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword())); 
+            userRepository.save(user); 
             return new ResponseWrapper<>("success", "Password updated successfully", null);
         }
 
         if (!updated) {
             throw new AppException("No valid fields to update", HttpStatus.BAD_REQUEST);
         }
-
+    
         userRepository.save(user);
-        return new ResponseWrapper<>("success", "User updated successfully", null);
+        return new ResponseWrapper<String>("success", "User updated successfully", null);
     }
-
-    // ✅ Minimal Email Verification Token Generation
+    
+    // Send OTP for email verification
     public String createEmailVerificationToken(Long userId, String newEmail) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             return "User not found";
         }
-
+    
         User user = userOpt.get();
 
-        // ✅ Remove existing token before creating a new one
-        tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
+        // Delete any existing token before creating a new one
+        Optional<PasswordResetToken> existingTokenOpt = tokenRepository.findByUser(user);
+        existingTokenOpt.ifPresent(tokenRepository::delete);
 
-        String otp = "123456"; // Hardcoded OTP for test simplicity
 
-        PasswordResetToken verificationToken = new PasswordResetToken(otp, user, LocalDateTime.now().plusHours(1), newEmail);
-        tokenRepository.save(verificationToken);
 
+        Random random = new Random();
+        String otp = String.valueOf(100000 + random.nextInt(900000));
+    
+        // Save the OTP as a token for verification
+        PasswordResetToken verificationToken = new PasswordResetToken(otp, user, LocalDateTime.now().plusHours(1));
+        verificationToken.setNewEmail(newEmail);
+        tokenRepository.save(verificationToken); 
+    
+        sendVerificationEmail(newEmail, otp);
         return "Verification email sent";
     }
-
-    // ✅ Minimal Email Verification Functionality
+    
+    // Send email verification OTP
+    private void sendVerificationEmail(String email, String otp) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    
+            String emailContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;'>"
+                    + "<h2 style='color: #333;'>Email Verification</h2>"
+                    + "<p style='font-size: 16px;'>Hello,</p>"
+                    + "<p style='font-size: 16px;'>We received a request to update your email. Use the OTP below to verify your new email address:</p>"
+                    + "<div style='text-align: center; margin: 20px 0; padding: 10px; background-color: #eee; border-radius: 5px; font-size: 18px; font-weight: bold; letter-spacing: 1px;'>"
+                    + otp + "</div>"
+                    + "<p style='font-size: 14px; color: #777;'>Copy this OTP and enter it in the verification form.</p>"
+                    + "<p style='font-size: 14px; color: #777;'>This OTP will expire in 1 hour.</p>"
+                    + "<p style='font-size: 14px; color: #777;'>If you did not request this, please ignore this email.</p>"
+                    + "<p style='font-size: 14px; color: #777;'>Thank you,<br>The Support Team</p>"
+                    + "</div>";
+    
+            helper.setTo(email);
+            helper.setSubject("BugBoard Email Verification OTP");
+            helper.setText(emailContent, true);
+            helper.setFrom("support@bugboard.com", "BugBoard Support Team");
+    
+            mailSender.send(message);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Verify OTP and update email
     public boolean verifyEmail(String otp, Long userId) {
         Optional<PasswordResetToken> tokenOpt = tokenRepository.findByToken(otp);
+    
         if (!tokenOpt.isPresent()) {
             return false;
         }
-
+    
         PasswordResetToken token = tokenOpt.get();
         if (token.getExpiryDate().isBefore(LocalDateTime.now()) || !token.getUser().getId().equals(userId)) {
             return false;
         }
-
+    
         User user = token.getUser();
-        user.setEmail(token.getNewEmail());
+        if (token.getNewEmail() != null) {
+            user.setEmail(token.getNewEmail());
+        } else {
+            return false; 
+        }
         userRepository.save(user);
+    
         tokenRepository.delete(token);
-
         return true;
     }
 }

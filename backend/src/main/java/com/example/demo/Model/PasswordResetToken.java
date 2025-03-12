@@ -18,10 +18,10 @@ public class PasswordResetToken {
     private User user;
 
     private LocalDateTime expiryDate;
-    
+
     @Column(nullable = true) // Store new email if email update is requested
     private String newEmail;
-
+    
     public PasswordResetToken() {}
 
     public PasswordResetToken(String token, User user, LocalDateTime expiryDate) {
