@@ -66,6 +66,16 @@ export const fetchCodeFile = async (userId, username, language, filename) => {
   }
 };
 
+export const fetchSubCodeFile = async (userId, username, language, bugId, subId) => {
+  try {
+    const response = await apiClient.get(`/submissions/file/${userId}/${username}/${bugId}/${subId}/${language}`);
+    console.log("sub code",response.data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export const fetchDraftCodeFile = async (userId, username, language, filename) => {
   try {
     const response = await apiClient.get(`/drafts/file/${userId}/${username}/${language}/${filename}`);
@@ -207,6 +217,34 @@ export const fetchUserDrafts = async (userId) => {
       const response = await apiClient.post('/submissions/save', userData);
       console.log(response);
       return response.data; // Return the response data from the backend
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchUserSubmissionsByBug = async (userId, bugId) => {
+    try {
+      console.log(userId);
+      const response = await apiClient.get(`/submissions/user/${userId}/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchSubmission = async (id) => {
+    try {
+      const response = await apiClient.get(`/submissions/${id}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchSolution = async (bugId) => {
+    try {
+      const response = await apiClient.get(`/submissions/approved/bug/${bugId}`);
+      console.log(response);
+      return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error.message;
     }

@@ -1,17 +1,17 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT}
   error:
     include-message: always
     include-binding-errors: always
 
 spring:
   datasource:
-    # password: ${DEVINT_DB_PASSWORD}
-    # url: ${DEVINT_DB_URL}
-    # username: ${DEVINT_DB_USER}
-    password: password
-    url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
-    username: root
+    password: ${DEVINT_DB_PASSWORD}
+    url: ${DEVINT_DB_URL}
+    username: ${DEVINT_DB_USER}
+    # password: password
+    # url: jdbc:mysql://127.0.0.1:3306/user_reg?reconnect=true
+    # username: root
 
 
   mail:
