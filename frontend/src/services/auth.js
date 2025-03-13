@@ -66,6 +66,15 @@ export const fetchCodeFile = async (userId, username, language, filename) => {
   }
 };
 
+export const fetchDraftCodeFile = async (userId, username, language, filename) => {
+  try {
+    const response = await apiClient.get(`/drafts/file/${userId}/${username}/${language}/${filename}`);
+    console.log(response)
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
 export const fetchBugs = async () => {
   try {
     // First try to fetch from API
@@ -114,8 +123,8 @@ export const updateBug = async (bug) => {
     formData.append("language", bug.language);
     formData.append("description", bug.description);
     // Append file if provided
-    if (bug.codeFile) {
-      formData.append("codeFilePath", bug.codeFile);
+    if (bug.codeFilePath) {
+      formData.append("codeFilePath", bug.codeFilePath);
     }
 
     const response = await apiClient.put(`/api/bugs/${bug.id}`, formData, {
@@ -178,11 +187,15 @@ export const fetchUserDrafts = async (userId) => {
 };
   export const submitBug = async (formData) => {
     try {
+      console.log("Tetsing subit bug")
+      console.log(formData);
       const response = await apiClient.post("/api/bugs", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      console.log("Tetsing subit bug")
+      console.log(response.data);
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error.message;
@@ -198,5 +211,17 @@ export const fetchUserDrafts = async (userId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
-  
 
+  export const createSession = async (rememberMeId,bugId) => {
+    try {
+      // Make a call to your backend to create a session
+      const response = await apiClient.post(`/session/create?ownerId=${rememberMeId}&bugId=${bugId}`, null, {
+        params: { ownerId: rememberMeId,bugId:bugId },
+      });
+      // The backend should respond with a JSON object that contains sessionId
+      return response.data;
+    } catch (error) {
+      console.error("Error creating session:", error);
+    }
+  };
+  

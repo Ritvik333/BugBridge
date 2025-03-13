@@ -24,6 +24,8 @@ const LoginPage = () => {
     try {
       const response = await login({ email, password });
       localStorage.setItem("authToken", response.body.token);
+      localStorage.setItem("userName", response.body.username);
+      console.log(response)
       if (rememberMe) {
         localStorage.setItem("rememberMe", response.body.id);
       } else {

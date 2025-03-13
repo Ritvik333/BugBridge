@@ -1,15 +1,16 @@
 package com.example.demo.Controller;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
+import com.example.demo.dto.DraftFileRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.Model.Draft;
 import com.example.demo.Model.User;
@@ -54,5 +55,36 @@ public class DraftController {
         } catch (Exception e) {
             return new ResponseWrapper<>("error", "Failed to fetch drafts", null);
         }
+    }
+
+    @GetMapping("/file/{userId}/{username}/{language}/{filename}")
+    public ResponseEntity<String> getFileContent(
+            @PathVariable Long userId,
+            @PathVariable String username,
+            @PathVariable String language,
+            @PathVariable String filename) throws IOException {
+
+        // Construct the full path: uploads/userId_username/language/filename
+        Path filePath = Paths.get("uploads", userId + "_" + username,"drafts",userId+"_"+language+"."+getExtension(filename));
+        System.out.println(filePath);
+
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String content = Files.readString(filePath, StandardCharsets.UTF_8);
+        return ResponseEntity.ok(content);
+    }
+
+    public static String getExtension(String filename) {
+        if (filename == null) {
+            return null;
+        }
+        int dotIndex = filename.lastIndexOf('.');
+        // Check if a dot exists and isn't the last character
+        if (dotIndex == -1 || dotIndex == filename.length() - 1) {
+            return "";  // Return empty string if no extension found
+        }
+        return filename.substring(dotIndex + 1);
     }
 }

@@ -25,6 +25,8 @@ const AppRoutes = () => {
       <Route path="/draft" element={<SavedDraftsPage />} />
       <Route path="/saved-drafts" element={<MyDraftPagePage />} />
       <Route path="/bug-details/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
+        <Route path="/bug-details/:id/solution" element={<BugDetails />} />
+        <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
 
 
