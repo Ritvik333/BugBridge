@@ -7,6 +7,8 @@ import ProtectedRoute from "../pages/ProtectedRoute";
 import BugBoardPage from "../pages/bug-board";
 import NewBugPage from "../pages/new-bug";
 import BugDetails from "../pages/bug-details"; // Add BugDetails import
+import SavedDraftsPage from "../pages/my-draft";
+import MyDraftPagePage from "../pages/my-draft";
 
 const AppRoutes = () => {
   return (
@@ -19,7 +21,12 @@ const AppRoutes = () => {
       {/* <Route path="/dashboard" element={<BugBoardPage />} /> */}
       <Route path="/new-bug" element={<ProtectedRoute><NewBugPage /></ProtectedRoute>} />
       {/* Add route for BugDetails page */}
-      <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
+      {/* <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} /> */}
+      <Route path="/draft" element={<SavedDraftsPage />} />
+      <Route path="/saved-drafts" element={<MyDraftPagePage />} />
+      <Route path="/bug-details/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
+        <Route path="/bug-details/:id/solution" element={<BugDetails />} />
+        <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
 
 
