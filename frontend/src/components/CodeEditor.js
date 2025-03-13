@@ -182,8 +182,10 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
         }
         const loadCode = async () => {
             try {
-                const userId = bug.creator?.id;
-                const username = bug.creator?.username;
+                const userId = localStorage.getItem("rememberMe");
+                const username = localStorage.getItem("userName");
+                console.log("User ID:", userId);
+                console.log("Username:", username);
                 const language = bug.language;
                 const filepath = bug.codeFilePath;
                 const filename = filepath.split(/[/\\]/).pop();
@@ -233,7 +235,7 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 await saveDraft({
                     userId,
                     bugId: bug.id,
-                    username: bug.creator.username,
+                    username: localStorage.getItem("userName"),
                     code: codeToSave,
                 });
                 setSaveStatus("Saved");
@@ -323,6 +325,8 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 timestamp: new Date().toISOString(),
             });
         }
+        localStorage.setItem(`bug_${bug.id}_code`, formattedCode);
+
     };
     const [showJoinRequests, setShowJoinRequests] = useState(false);
 
