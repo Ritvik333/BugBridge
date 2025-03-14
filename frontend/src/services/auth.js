@@ -3,9 +3,16 @@ import apiClient from "../utils/apiClient";
 // Function for logging in
 export const login = async (credentials) => {
   try {
-    const response = await apiClient.post('/auth/login', credentials); // Replace with your login endpoint
+    const response = await apiClient.post('/auth/login', credentials);
+    if (response.data.body && response.data.body.id) { 
+      sessionStorage.setItem("userId", response.data.body.id); 
+      sessionStorage.setItem("authToken", response.data.body.token);
+    } else {
+      console.error("User ID not found in login response.");
+    }
     return response.data;  // Assuming the API returns the user data or token
   } catch (error) {
+    console.error("Login Error:", error.response ? error.response.data : error.message);
     throw error.response ? error.response.data : error.message;
   }
 };
@@ -18,6 +25,7 @@ export const signup = async (userData) => {
       throw error.response ? error.response.data : error.message;
   }
 };
+
 export const forgot = async (userData) => {
   try {
       const response = await apiClient.post('/auth/forgot-password', userData);
@@ -26,6 +34,7 @@ export const forgot = async (userData) => {
       throw error.response ? error.response.data : error.message;
   }
 };
+
 export const validate_token = async (token) => {
   try {
       const response = await apiClient.get(`/auth/validate-reset-token?token=${token}`);
@@ -34,6 +43,7 @@ export const validate_token = async (token) => {
       throw error.response ? error.response.data : error.message;
   }
 };
+
 export const reset_password = async (userData) => {
   try {
       const response = await apiClient.post('/auth/reset-password', userData);
@@ -42,6 +52,7 @@ export const reset_password = async (userData) => {
       throw error.response ? error.response.data : error.message;
   }
 };
+
 export const logout = () => {
   console.log(localStorage.getItem("authToken"));
   localStorage.removeItem("authToken"); // Remove authentication token
@@ -84,7 +95,6 @@ export const fetchBugs = async (filters) => {
   }
 };
 
-
 export const fetchUsers = async () => {
   try {
     const response = await apiClient.get("/api/users");
@@ -93,7 +103,6 @@ export const fetchUsers = async () => {
     throw error.response ? error.response.data : error.message;
   }
 };
-
 
 export const updateBug = async (bug) => {
   try {
@@ -120,6 +129,7 @@ export const updateBug = async (bug) => {
   }
 
 };
+
 export const fetchComments = async (bugId) => {
   try {
     const response = await apiClient.get(`/api/comments?bugId=${bugId}`);
@@ -167,7 +177,8 @@ export const deleteComment = async (commendId) => {
     } catch (error) {
       throw error.response ? error.response.data : error.message;
     }
-  };
+};
+
   export const submitCode = async (userData) => {
     try {
       console.log(userData);
@@ -177,7 +188,8 @@ export const deleteComment = async (commendId) => {
     } catch (error) {
       throw error.response ? error.response.data : error.message;
     }
-  };
+};
+
   export const fetchUserSubmissionsByBug = async (userId, bugId) => {
     try {
       console.log(userId);
@@ -188,5 +200,73 @@ export const deleteComment = async (commendId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
+
+  export const getAuthenticatedUser = async (userId) => {
+    try {
+      if (!userId) {
+        throw new Error("User ID is required but not provided.");
+      }
+ 
+      const response = await apiClient.get(`/api/users/${userId}`);
+
+      // console.log("Fetched User Data:", response.data); //Log response data
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user:", error.response ? error.response.data : error.message); //Log errors
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  
+  
+  export const updateUser = async (userData) => {
+    try {
+      const token = sessionStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Authentication token is missing. Please log in again.");
+      }
+  
+      console.log("Sending profile update request with token:", token);
+      console.log("User Data Being Sent:", userData);
+  
+      const response = await apiClient.put(`/api/users/update?userId=${userData.userId}`, userData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      console.log("Profile Update Response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("updateUser Error:", error.response ? error.response.data : error.message);
+      throw error.response ? error.response.data : error.message;
+    }
+  };
   
 
+  export const sendOtp = async (userId, email) => {
+    try {
+      console.log("Calling send-verification-mail API with email:", email);
+      const response = await apiClient.post("/api/users/send-verification-mail", null, {
+        params: { userId, email }, 
+      });
+      console.log("OTP Sent Response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("sendOtp Error:", error.response ? error.response.data : error.message);
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  
+  export const verifyOtp = async (userId, otp) => {
+    try {
+      console.log("Calling verify-email API with userId:", userId, "and otp:", otp);
+      const response = await apiClient.post("/api/users/verify-email", null, {
+        params: { userId, otp }, 
+      });
+      console.log("OTP Verification Response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("verifyOtp Error:", error.response ? error.response.data : error.message);
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  
+  

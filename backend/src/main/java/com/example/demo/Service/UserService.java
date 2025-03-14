@@ -108,6 +108,13 @@ public class UserService {
         return userRepository.findUsersWithBugs();
     }
 
+    public UserDto getUserDetails(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+        
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), null); // ✅ No password returned
+    }
+
     public ResponseWrapper<String> updateUserAccount(Long userId, UserDto updatedUserDto) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
@@ -127,12 +134,18 @@ public class UserService {
             createEmailVerificationToken(userId, updatedUserDto.getEmail());
             return new ResponseWrapper<String>("success", "Email verification OTP Sent", null); // Return early since verification is pending
         }
+
+        Optional<PasswordResetToken> tokenOpt = tokenRepository.findByUser(user);
+        if (tokenOpt.isPresent() && tokenOpt.get().getNewEmail() != null) {
+            user.setEmail(tokenOpt.get().getNewEmail()); //Only update email if OTP was verified
+            tokenRepository.delete(tokenOpt.get()); //Remove used token
+            updated = true;
+        }
     
         // Update password
         if (updatedUserDto.getPassword() != null && !updatedUserDto.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword())); 
-            userRepository.save(user); 
-            return new ResponseWrapper<>("success", "Password updated successfully", null);
+            updated = true;
         }
 
         if (!updated) {

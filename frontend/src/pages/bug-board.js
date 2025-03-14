@@ -165,7 +165,7 @@ const fetchBugsList = async () => {
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg p-2">
-                <p className="p-2 hover:bg-gray-100 cursor-pointer">My Account</p>
+                <p className="p-2 hover:bg-gray-100 cursor-pointer" onClick={() => navigate("/profile")}>My Account</p>
                 <p className="p-2 hover:bg-gray-100 cursor-pointer">Settings</p>
                 <p onClick={handleLogout} className="p-2 hover:bg-gray-100 cursor-pointer">Log Out</p>
               </div>

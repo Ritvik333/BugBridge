@@ -6,7 +6,9 @@ import ResetPasswordPage from "../pages/reset-password";
 import ProtectedRoute from "../pages/ProtectedRoute";
 import BugBoardPage from "../pages/bug-board";
 import NewBugPage from "../pages/new-bug";
-import BugDetails from "../pages/bug-details"; // Add BugDetails import
+import BugDetails from "../pages/bug-details"; 
+import Profile from "../pages/profiles";
+import ProfileSettings from "../pages/profileSettings";
 
 const AppRoutes = () => {
   return (
@@ -21,6 +23,8 @@ const AppRoutes = () => {
       {/* Add route for BugDetails page */}
       <Route path="/bug/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/profile-settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
 
 
     </Routes>
