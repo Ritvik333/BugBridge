@@ -13,7 +13,6 @@ const Profile = () => {
         setLoading(true);
         try {
             const userId = sessionStorage.getItem("userId"); 
-            // console.log("Retrieved User ID:", userId); //Log userId to check if it's null
     
             if (!userId) {
               throw new Error("User ID not found. Please log in again.");

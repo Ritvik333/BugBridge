@@ -52,7 +52,6 @@ const ProfileSettings = () => {
         return;
       }
 
-      console.log("Sending OTP for userId:", userId, "and email:", email);
       await sendOtp(userId, email);
       setOtpSent(true);
       setSuccessMessage("OTP sent successfully! Check your email.");
@@ -74,11 +73,10 @@ const ProfileSettings = () => {
         return;
       }
 
-      console.log("Verifying OTP for userId:", userId, "and otp:", otp);
       const response = await verifyOtp(userId, otp);
 
       if (response.status === "success") {
-        setVerifiedEmail(email); // ✅ Store verified email temporarily
+        setVerifiedEmail(email); //Store verified email temporarily
         setEmailVerified(true);
         setSuccessMessage("OTP verified! Click 'Save Changes' to update your email.");
       } else {
@@ -115,7 +113,6 @@ const ProfileSettings = () => {
       if (emailVerified) userData.email = verifiedEmail;
       if (password) userData.password = password;
 
-      console.log("Submitting updated user data:", userData);
       await updateUser(userData);
       setSuccessMessage("Profile updated successfully!");
       setTimeout(() => navigate("/profile"), 2000);

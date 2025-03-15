@@ -112,53 +112,51 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
         
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), null); // ✅ No password returned
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), null); //No password returned
     }
 
     public ResponseWrapper<String> updateUserAccount(Long userId, UserDto updatedUserDto) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
-            
-        System.out.println("Updating User: "+user.getId());
+    
         boolean updated = false;
-
-        // Update username
+    
+        //1. Move `pendingEmail` to `email` if verified
+        if (user.getPendingEmail() != null) {
+            user.setEmail(user.getPendingEmail()); //Apply verified email
+            user.setPendingEmail(null); // Clear `pendingEmail`
+            updated = true;
+        }
+    
+        //2. Update username if provided
         if (updatedUserDto.getUsername() != null && !updatedUserDto.getUsername().isEmpty()) {
             user.setUsername(updatedUserDto.getUsername());
             updated = true;
         }
-
-        // Update email with verification
-        if (updatedUserDto.getEmail() != null && !updatedUserDto.getEmail().isEmpty() &&
-        !updatedUserDto.getEmail().equals(user.getEmail())) {
-        
-            user.setPendingEmail(updatedUserDto.getEmail());
-            userRepository.save(user);
-            createEmailVerificationToken(userId, updatedUserDto.getEmail());
-            return new ResponseWrapper<String>("success", "Email verification OTP Sent", null); // Return early since verification is pending
-        }
-
-        Optional<PasswordResetToken> tokenOpt = tokenRepository.findByUser(user);
-    if (tokenOpt.isPresent() && tokenOpt.get().getNewEmail() != null) {
-        user.setEmail(tokenOpt.get().getNewEmail()); //Apply verified email
-        user.setPendingEmail(null); //Clear `pendingEmail` after update
-        tokenRepository.delete(tokenOpt.get()); //Remove used OTP token
-        updated = true;
-    }
-
     
-        // Update password
+        //3. If email is changed & no OTP is pending, store in `pendingEmail` & send OTP
+        if (updatedUserDto.getEmail() != null && !updatedUserDto.getEmail().isEmpty() &&
+            !updatedUserDto.getEmail().equals(user.getEmail()) && user.getPendingEmail() == null) {
+    
+            user.setPendingEmail(updatedUserDto.getEmail()); //Store new email in `pendingEmail`
+            userRepository.save(user); //Save before sending OTP
+            createEmailVerificationToken(userId, updatedUserDto.getEmail());
+    
+            return new ResponseWrapper<>("success", "Email verification OTP Sent. Click 'Save Changes' after verification.", null);
+        }
+    
+        //4. Update password if provided
         if (updatedUserDto.getPassword() != null && !updatedUserDto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword())); 
+            user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword()));
             updated = true;
         }
-
+    
         if (!updated) {
             throw new AppException("No valid fields to update", HttpStatus.BAD_REQUEST);
         }
     
         userRepository.save(user);
-        return new ResponseWrapper<String>("success", "User updated successfully", null);
+        return new ResponseWrapper<>("success", "User updated successfully", null);
     }
     
     // Send OTP for email verification
@@ -237,7 +235,6 @@ public class UserService {
             return false; 
         }
         userRepository.save(user);
-    
         tokenRepository.delete(token);
         return true;
     }
