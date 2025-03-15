@@ -30,6 +30,7 @@ const AppRoutes = () => {
         <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
         <Route path="/SubmissionsPage" element={<SubmissionsPage/>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
+      <Route path="/SubmissionsPage" element={<SubmissionsPage />} />
 
 
     </Routes>
