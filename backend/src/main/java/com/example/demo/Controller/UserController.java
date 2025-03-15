@@ -55,15 +55,11 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseWrapper<String>> updateUser(
-        @RequestParam Long userId, @RequestBody UserDto userDto, @AuthenticationPrincipal User authenticatedUser) {
-
-        // ✅ Ensure the user is authenticated
-        if (authenticatedUser == null || !authenticatedUser.getId().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ResponseWrapper<>("error", "Unauthorized access", null));
+    public ResponseEntity<ResponseWrapper<String>> updateUser(@RequestParam Long userId, @RequestBody UserDto userDto) {
+        if (userDto == null || (userDto.getUsername() == null && userDto.getEmail() == null && userDto.getPassword() == null)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseWrapper<>("error", "No valid fields to update", null));
         }
-
         ResponseWrapper<String> response = userService.updateUserAccount(userId, userDto);
         return ResponseEntity.ok(response);
     }

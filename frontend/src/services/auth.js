@@ -217,7 +217,6 @@ export const deleteComment = async (commendId) => {
     }
   };
   
-  
   export const updateUser = async (userData) => {
     try {
       const token = sessionStorage.getItem("authToken");
@@ -239,7 +238,6 @@ export const deleteComment = async (commendId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
-  
 
   export const sendOtp = async (userId, email) => {
     try {
