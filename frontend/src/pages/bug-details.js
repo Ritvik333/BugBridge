@@ -266,7 +266,8 @@ const fetchSuggestions = async () => {
     try {
       const bugId = bug.id;
         const data = await fetchSuggestionbyBug(bugId);
-        setSuggestions(data.suggestions.slice(0, 5));
+        // setSuggestions(data.suggestions.slice(0, 5));
+        setSuggestions(data.suggestions);
     } catch (error) {
         console.error("Error fetching suggestions:", error);
         // Optionally set an error state or show a notification to the user
@@ -478,38 +479,41 @@ const fetchSuggestions = async () => {
                     </div>
                 )}
                 {activeTab === "suggestions" && (
-  <div className="space-y-2">
-    {suggestions.length === 0 ? (
-      <p className="text-gray-500">No suggestions found.</p>
-    ) : (
-      <>
-        {suggestions.map((suggestion, index) => (
-          <div
-            key={index}
-            className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out"
-            onClick={() => window.open(suggestion.link, "_blank")}
-          >
-            <h3 className="font-medium text-blue-500">{suggestion.title}</h3>
-          </div>
-        ))}
-        <div className="flex items-center justify-end mt-2">
-          <span className="text-gray-600 text-sm mr-2">Powered by</span>
-          <a
-            href="https://stackoverflow.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Stack_Overflow_icon.svg/768px-Stack_Overflow_icon.svg.png"
-              alt="Stack Overflow"
-              className="h-6 w-auto"
-            />
-          </a>
-        </div>
-      </>
-    )}
-  </div>
-)}
+                <div className="space-y-2">
+                    {suggestions.length === 0 ? (
+                    <p className="text-gray-500">No suggestions found.</p>
+                    ) : (
+                    <>
+                        <div className="max-h-[600px] overflow-y-auto">
+                        {suggestions.map((suggestion, index) => (
+                            <div
+                            key={index}
+                            className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out"
+                            onClick={() => window.open(suggestion.link, "_blank")}
+                            >
+                            <h3 className="font-medium text-blue-500">{suggestion.title}</h3>
+                            </div>
+                        ))}
+                        </div>
+                        <div className="flex items-center justify-end mt-2">
+                        <span className="text-gray-600 text-sm mr-2">Powered by</span>
+                        <a
+                            href="https://stackoverflow.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Stack_Overflow_icon.svg/768px-Stack_Overflow_icon.svg.png"
+                            alt="Stack Overflow"
+                            className="h-6 w-auto"
+                            />
+                        </a>
+                        </div>
+                    </>
+                    )}
+                </div>
+                )}
+
 
 
             </div>
