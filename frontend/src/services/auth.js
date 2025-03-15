@@ -249,4 +249,13 @@ export const fetchUserDrafts = async (userId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
+  export const fetchSuggestionbyBug = async (bugId) => {
+    try {
+      const response = await apiClient.get(`/api/suggestions/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
 

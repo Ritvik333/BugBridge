@@ -10,7 +10,7 @@ import MonacoEditor from "@monaco-editor/react";
 
 
 
-import { runCode, submitCode, fetchSolution, fetchCodeFile, updateBug, fetchUserSubmissionsByBug, fetchComments, addComment, saveDraft, deleteComment, fetchSubCodeFile } from "../services/auth";
+import { runCode, fetchSuggestionbyBug , submitCode, fetchSolution, fetchCodeFile, updateBug, fetchUserSubmissionsByBug, fetchComments, addComment, saveDraft, deleteComment, fetchSubCodeFile } from "../services/auth";
 
 import jsBeautify from "js-beautify";
 import { Trash } from "lucide-react";
@@ -260,6 +260,20 @@ const handleFileChange = (event) => {
         }
     };
 
+    const [suggestions, setSuggestions] = useState([]);
+
+const fetchSuggestions = async () => {
+    try {
+      const bugId = bug.id;
+        const data = await fetchSuggestionbyBug(bugId);
+        setSuggestions(data.suggestions.slice(0, 5));
+    } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        // Optionally set an error state or show a notification to the user
+    }
+};
+
+
     return (
         <div className="min-h-screen bg-gray-100 flex">
             {/* Left: Bug Description & Comments */}
@@ -273,30 +287,51 @@ const handleFileChange = (event) => {
 
                 {/* Tab Navigation */}
                 <div className="tabs mb-4">
-                    <button
-                        className={`tab-button ${activeTab === "description" ? "active" : ""}`}
-                        onClick={() => setActiveTab("description")}
-                    >
-                        Description
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === "submissions" ? "active" : ""}`}
-                        onClick={() => {
-                            setActiveTab("submissions");
-                            fetchSubmissions();
-                        }}
-                    >
-                        Submissions
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === "solutions" ? "active" : ""}`}
-                        onClick={() => {
-                            setActiveTab("solutions");
-                            fetchSolutions();
-                        }}
-                    >
-                        Solutions
-                    </button>
+                  <button
+                    className={`px-4 py-2 rounded-md text-sm font-medium 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                transition-colors duration-200 
+                                ${activeTab === "description" ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                    onClick={() => setActiveTab("description")}
+                  >
+                    Description
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded-md text-sm font-medium 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                transition-colors duration-200 
+                                ${activeTab === "submissions" ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                    onClick={() => {
+                      setActiveTab("submissions");
+                      fetchSubmissions();
+                    }}
+                  >
+                    Submissions
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded-md text-sm font-medium 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                transition-colors duration-200 
+                                ${activeTab === "solutions" ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                    onClick={() => {
+                      setActiveTab("solutions");
+                      fetchSolutions();
+                    }}
+                  >
+                    Solutions
+                  </button>
+                  <button
+                    className={`px-4 py-2 rounded-md text-sm font-medium 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                transition-colors duration-200 
+                                ${activeTab === "suggestions" ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+                    onClick={() => {
+                      setActiveTab("suggestions");
+                      fetchSuggestions();
+                    }}
+                  >
+                    Suggestions
+                  </button>
                 </div>
 
                 {/* Bug Title & Edit Button */}
@@ -389,7 +424,7 @@ const handleFileChange = (event) => {
                     </>
                 )}
 
-{activeTab === "submissions" && (
+                {activeTab === "submissions" && (
                     <div className="space-y-2">
                         {submissions.length === 0 || !Array.isArray(submissions) ? (
                             <p className="text-gray-500">No submissions found.</p>
@@ -442,6 +477,41 @@ const handleFileChange = (event) => {
                         )}
                     </div>
                 )}
+                {activeTab === "suggestions" && (
+  <div className="space-y-2">
+    {suggestions.length === 0 ? (
+      <p className="text-gray-500">No suggestions found.</p>
+    ) : (
+      <>
+        {suggestions.map((suggestion, index) => (
+          <div
+            key={index}
+            className="p-3 border rounded cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out"
+            onClick={() => window.open(suggestion.link, "_blank")}
+          >
+            <h3 className="font-medium text-blue-500">{suggestion.title}</h3>
+          </div>
+        ))}
+        <div className="flex items-center justify-end mt-2">
+          <span className="text-gray-600 text-sm mr-2">Powered by</span>
+          <a
+            href="https://stackoverflow.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Stack_Overflow_icon.svg/768px-Stack_Overflow_icon.svg.png"
+              alt="Stack Overflow"
+              className="h-6 w-auto"
+            />
+          </a>
+        </div>
+      </>
+    )}
+  </div>
+)}
+
+
             </div>
 
             {/* Right: Code Editor */}
