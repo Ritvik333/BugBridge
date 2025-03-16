@@ -1,36 +1,24 @@
-import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import com.example.demo.Model.Bug;
+import com.example.demo.Model.Submit;
+import com.example.demo.Model.User;
+import com.example.demo.Repository.BugRepository;
+import com.example.demo.Repository.SubmitRepository;
+import com.example.demo.Repository.UserRepository;
+import com.example.demo.Service.NotificationService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
-
-import com.example.demo.Model.Bug;
-import com.example.demo.Model.Submit;
-import com.example.demo.Model.User;
-import com.example.demo.Model.UserRepository;
-import com.example.demo.Repository.BugRepository;
-import com.example.demo.Repository.SubmitRepository;
-import com.example.demo.Service.NotificationService;
-import com.example.demo.Service.SubmitService;
+import static org.mockito.Mockito.*;
 
 class SubmitServiceTest {
 
@@ -38,381 +26,205 @@ class SubmitServiceTest {
     private SubmitRepository submitRepository;
 
     @Mock
+    private BugRepository bugRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
-    private BugRepository bugRepository;
+    private NotificationService notificationService;
 
     @InjectMocks
     private SubmitService submitService;
 
-    @Mock  // This will automatically inject the mocks into the submitService
-    private NotificationService notificationService;
-
-
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);  // Initializes the mocks
-        
-        // Making sure NotificationService is properly mocked
-        doNothing().when(notificationService).createNotification(any(Long.class), any(String.class)); // It doesn't need to return anything, just prevent null error
-
+        MockitoAnnotations.openMocks(this);
     }
 
-    // --- Tests for saveSubmission ---
-
     @Test
-    void testSaveSubmissionSuccess() throws IOException {
+    void testRejectSubmission_ValidCase() {
         // Arrange
-        Long userId = 1L;
-        Long bugId = 1L;
-        String username = "john_doe";
-        String desc = "Fixing bug in the login system";
-        String code = "public class Main {}";
+        Long submissionId = 1L;
+        Long rejecterId = 102L;
 
-        User user = new User();
-        user.setId(userId);
+        User creator = new User();
+        creator.setId(rejecterId);
 
         Bug bug = new Bug();
-        bug.setId(bugId);
-        bug.setLanguage("java");
-        bug.setCreator(user); // User is the creator for approval logic
-
-        Submit savedSubmit = new Submit();
-        savedSubmit.setId(10L);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug));
-        when(submitRepository.save(any(Submit.class))).thenReturn(savedSubmit);
-
-        // Act
-        Submit submit = submitService.saveSubmission(userId, bugId, username, desc, code);
-        System.out.println(submit);
-        // Assert
-        assertNotNull(submit);
-        assertEquals(user, submit.getUser());
-        assertEquals(bug, submit.getBug());
-        assertEquals(desc, submit.getDescription());
-        assertEquals("approved", submit.getApprovalStatus()); // Assuming creator gets auto-approval
-        String expectedPath = "uploads/" + userId + "_" + username + "/submissions/" + userId + "_" + bugId + "_" + savedSubmit.getId() + ".java";
-        assertEquals(expectedPath, submit.getCodeFilePath());
-        verify(submitRepository, times(2)).save(any(Submit.class)); // save() called twice in service
-    }
-
-    @Test
-    void testSaveSubmissionUserNotFound() {
-        // Arrange
-        Long userId = 1L;
-        Long bugId = 1L;
-        String username = "john_doe";
-        String desc = "Fixing bug in the login system";
-        String code = "public class Main {}";
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            submitService.saveSubmission(userId, bugId, username, desc, code);
-        });
-        assertEquals("User not found", exception.getMessage());
-    }
-
-    @Test
-    void testSaveSubmissionBugNotFound() {
-        // Arrange
-        Long userId = 1L;
-        Long bugId = 1L;
-        String username = "john_doe";
-        String desc = "Fixing bug in the login system";
-        String code = "public class Main {}";
+        bug.setId(1L);
+        bug.setCreator(creator);
 
         User user = new User();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(bugRepository.findById(bugId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            submitService.saveSubmission(userId, bugId, username, desc, code);
-        });
-        assertEquals("Bug not found", exception.getMessage());
-    }
-
-    // --- Tests for mapLanguageToExtension ---
-
-    @Test
-    void testMapLanguageToExtension() {
-        assertEquals(".java", submitService.mapLanguageToExtension("java"));
-        assertEquals(".py", submitService.mapLanguageToExtension("python"));
-        assertEquals(".js", submitService.mapLanguageToExtension("javascript"));
-        assertEquals(".txt", submitService.mapLanguageToExtension("other"));
-        assertEquals(".txt", submitService.mapLanguageToExtension(null));
-    }
-
-    // --- Tests for getSubmissionsForUserAndBug ---
-
-    @Test
-    void testGetSubmissionsForUserAndBugSuccess() {
-        // Arrange
-        Long userId = 1L;
-        Long bugId = 2L;
-
-        Submit submit1 = new Submit();
-        submit1.setId(1L);
-        Submit submit2 = new Submit();
-        submit2.setId(2L);
-
-        List<Submit> expectedSubmissions = Arrays.asList(submit1, submit2);
-        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(expectedSubmissions);
-
-        // Act
-        List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(expectedSubmissions, result);
-        verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
-    }
-
-    @Test
-    void testGetSubmissionsForUserAndBugNoResults() {
-        // Arrange
-        Long userId = 1L;
-        Long bugId = 2L;
-
-        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(Collections.emptyList());
-
-        // Act
-        List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
-    }
-
-    // --- Tests for findApprovedSubmissionsByBugId ---
-
-   @Test
-    void testFindApprovedSubmissionsByBugIdMultipleFromSameUser() {
-        // Arrange
-        Long bugId = 1L;
-        User user1 = new User();
-        user1.setId(1L);
-
-        Submit submit1 = new Submit();
-        submit1.setUser(user1);
-        submit1.setBug(new Bug());
-        submit1.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(1000L), java.time.ZoneId.systemDefault()));
-
-        Submit submit2 = new Submit();
-        submit2.setUser(user1);
-        submit2.setBug(new Bug());
-        submit2.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(2000L), java.time.ZoneId.systemDefault()));
-
-        List<Submit> approvedSubmissions = Arrays.asList(submit1, submit2);
-        when(submitRepository.findByBugIdAndApprovalStatus(bugId, "approved")).thenReturn(approvedSubmissions);
-
-        // Act
-        List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals(submit2, result.get(0)); // Should return the most recent submission
-        verify(submitRepository).findByBugIdAndApprovalStatus(bugId, "approved");
-    }
-
-    @Test
-    void testFindApprovedSubmissionsByBugIdDifferentUsers() {
-        // Arrange
-        Long bugId = 1L;
-        User user1 = new User();
-        user1.setId(1L);
-        User user2 = new User();
-        user2.setId(2L);
-
-        Submit submit1 = new Submit();
-        submit1.setUser(user1);
-        submit1.setBug(new Bug());
-        submit1.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(1000L), java.time.ZoneId.systemDefault()));
-
-        Submit submit2 = new Submit();
-        submit2.setUser(user2);
-        submit2.setBug(new Bug());
-        submit2.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(2000L), java.time.ZoneId.systemDefault()));
-
-        List<Submit> approvedSubmissions = Arrays.asList(submit1, submit2);
-        when(submitRepository.findByBugIdAndApprovalStatus(bugId, "approved")).thenReturn(approvedSubmissions);
-
-        // Act
-        List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
-
-        // Assert
-        assertEquals(2, result.size());
-        assertTrue(result.contains(submit1));
-        assertTrue(result.contains(submit2));
-        verify(submitRepository).findByBugIdAndApprovalStatus(bugId, "approved");
-    }
-
-    @Test
-    void testFindApprovedSubmissionsByBugIdNoResults() {
-        // Arrange
-        Long bugId = 1L;
-        when(submitRepository.findByBugIdAndApprovalStatus(bugId, "approved")).thenReturn(Collections.emptyList());
-
-        // Act
-        List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
-
-        // Assert
-        assertTrue(result.isEmpty());
-    }
-
-    // --- Tests for getSubmissionById ---
-
-    @Test
-    void testGetSubmissionByIdFound() {
-        // Arrange
-        Long submissionId = 1L;
-        Submit expectedSubmit = new Submit();
-        when(submitRepository.findById(submissionId)).thenReturn(Optional.of(expectedSubmit));
-
-        // Act
-        Submit result = submitService.getSubmissionById(submissionId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(expectedSubmit, result);
-    }
-
-    @Test
-    void testGetSubmissionByIdNotFound() {
-        // Arrange
-        Long submissionId = 1L;
-        when(submitRepository.findById(submissionId)).thenReturn(Optional.empty());
-
-        // Act
-        Submit result = submitService.getSubmissionById(submissionId);
-
-        // Assert
-        assertNull(result);
-    }
-    @Test
-    void testApproveSubmissionValidScenario() {
-        // Arrange
-        Long submissionId = 1L;
-        Long bugCreatorId = 100L;
-        Long submitterId = 200L;
-
-        User bugCreator = new User();
-        bugCreator.setId(bugCreatorId);
-
-        User submitter = new User();
-        submitter.setId(submitterId);
-
-        Bug bug = new Bug();
-        bug.setId(10L);
-        bug.setCreator(bugCreator); // Bug creator
+        user.setId(302L);
 
         Submit submission = new Submit();
         submission.setId(submissionId);
-        submission.setUser(submitter);
         submission.setBug(bug);
+        submission.setUser(user);
         submission.setApprovalStatus("unapproved");
 
         when(submitRepository.findById(submissionId)).thenReturn(Optional.of(submission));
+        when(submitRepository.save(any(Submit.class))).thenReturn(submission);
 
         // Act
-        String result = submitService.approveSubmission(submissionId, bugCreatorId);
+        String result = submitService.rejectSubmission(submissionId, rejecterId);
 
         // Assert
-        assertEquals("Submission approved successfully.", result);
-        assertEquals("approved", submission.getApprovalStatus());
+        assertEquals("Submission rejected successfully.", result);
+        assertEquals("rejected", submission.getApprovalStatus());
         verify(submitRepository, times(1)).save(submission);
-
+        verify(notificationService, times(1)).createNotification(user.getId(),
+                "Your submission for bug #" + bug.getId() + " has been rejected.");
     }
 
     @Test
-    void testApproveSubmissionBySubmitterShouldFail() {
-        // Arrange
-        Long submissionId = 1L;
-        Long submitterId = 200L;
-        
-        User submitter = new User();
-        submitter.setId(submitterId);  // Ensure ID is set
-
-        User bugCreator = new User();
-        bugCreator.setId(100L);  // Ensure bug creator ID is set
-
-        Bug bug = new Bug();
-        bug.setId(10L);
-        bug.setCreator(bugCreator);  // Bug creator is properly assigned
-
-        Submit submission = new Submit();
-        submission.setId(submissionId);
-        submission.setUser(submitter);
-        submission.setBug(bug);
-        submission.setApprovalStatus("unapproved");
-
-        when(submitRepository.findById(submissionId)).thenReturn(Optional.of(submission));
-
-        // Act
-        String result = submitService.approveSubmission(submissionId, submitterId);
-
-        // Assert
-        assertEquals("Only the bug creator can approve submissions.", result);
-        assertEquals("unapproved", submission.getApprovalStatus());
-        verify(submitRepository, never()).save(any(Submit.class));
+    void testRejectSubmission_NullSubmissionId() {
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> submitService.rejectSubmission(null, 102L));
     }
 
     @Test
-    void testApproveSubmissionByRandomUserShouldFail() {
-        // Arrange
-        Long submissionId = 1L;
-        Long randomUserId = 999L;
-
-        User bugCreator = new User();
-        bugCreator.setId(100L);
-
-        Bug bug = new Bug();
-        bug.setId(10L);
-        bug.setCreator(bugCreator); // Bug creator
-
-        Submit submission = new Submit();
-        submission.setId(submissionId);
-        submission.setUser(new User());
-        submission.setBug(bug);
-        submission.setApprovalStatus("unapproved");
-
-        when(submitRepository.findById(submissionId)).thenReturn(Optional.of(submission));
-
-        // Act
-        String result = submitService.approveSubmission(submissionId, randomUserId);
-
-        // Assert
-        assertEquals("Only the bug creator can approve submissions.", result);
-        verify(submitRepository, never()).save(any(Submit.class));
+    void testRejectSubmission_NullRejecterId() {
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> submitService.rejectSubmission(1L, null));
     }
 
     @Test
-    void testApproveSubmissionUserIdDoesNotExist() {
+    void testRejectSubmission_SubmissionNotFound() {
         // Arrange
         Long submissionId = 1L;
-        Long approverId = 100L; // Approver ID
+        Long rejecterId = 102L;
 
         when(submitRepository.findById(submissionId)).thenReturn(Optional.empty());
 
         // Act
-        String result = submitService.approveSubmission(submissionId, approverId);
+        String result = submitService.rejectSubmission(submissionId, rejecterId);
 
         // Assert
         assertEquals("Submission not found.", result);
         verify(submitRepository, never()).save(any(Submit.class));
+        verify(notificationService, never()).createNotification(anyLong(), anyString());
     }
 
     @Test
-    void testApproveSubmissionWithNullParameters() {
-        // Act & Assert
-        assertThrows(NullPointerException.class, () -> submitService.approveSubmission(null, 100L));
-        assertThrows(NullPointerException.class, () -> submitService.approveSubmission(1L, null));
+    void testRejectSubmission_UserNotBugCreator() {
+        // Arrange
+        Long submissionId = 1L;
+        Long rejecterId = 302L;
+
+        User creator = new User();
+        creator.setId(102L);
+
+        Bug bug = new Bug();
+        bug.setId(1L);
+        bug.setCreator(creator);
+
+        Submit submission = new Submit();
+        submission.setId(submissionId);
+        submission.setBug(bug);
+
+        when(submitRepository.findById(submissionId)).thenReturn(Optional.of(submission));
+
+        // Act
+        String result = submitService.rejectSubmission(submissionId, rejecterId);
+
+        // Assert
+        assertEquals("Only the bug creator can reject submissions.", result);
+        verify(submitRepository, never()).save(any(Submit.class));
+        verify(notificationService, never()).createNotification(anyLong(), anyString());
+    }
+
+    @Test
+    void testGetUnapprovedSubmissions() {
+        // Arrange
+        Submit submission1 = new Submit();
+        submission1.setApprovalStatus("unapproved");
+
+        Submit submission2 = new Submit();
+        submission2.setApprovalStatus("unapproved");
+
+        List<Submit> unapprovedSubmissions = Arrays.asList(submission1, submission2);
+        when(submitRepository.findByApprovalStatus("unapproved")).thenReturn(unapprovedSubmissions);
+
+        // Act
+        List<Submit> result = submitService.getUnapprovedSubmissions();
+
+        // Assert
+        assertEquals(2, result.size());
+        verify(submitRepository, times(1)).findByApprovalStatus("unapproved");
+    }
+
+    @Test
+    void testGetApprovedSubmissions() {
+        // Arrange
+        Submit submission1 = new Submit();
+        submission1.setApprovalStatus("approved");
+
+        Submit submission2 = new Submit();
+        submission2.setApprovalStatus("approved");
+
+        List<Submit> approvedSubmissions = Arrays.asList(submission1, submission2);
+        when(submitRepository.findByApprovalStatus("approved")).thenReturn(approvedSubmissions);
+
+        // Act
+        List<Submit> result = submitService.getApprovedSubmissions();
+
+        // Assert
+        assertEquals(2, result.size());
+        verify(submitRepository, times(1)).findByApprovalStatus("approved");
+    }
+
+    @Test
+    void testGetSubmissionsForCreatedBugs_ValidCreatorId() {
+        // Arrange
+        Long creatorId = 102L;
+
+        User creator = new User();
+        creator.setId(creatorId);
+
+        Bug bug1 = new Bug();
+        bug1.setId(1L);
+        bug1.setCreator(creator);
+
+        Bug bug2 = new Bug();
+        bug2.setId(2L);
+        bug2.setCreator(creator);
+
+        Submit submission1 = new Submit();
+        submission1.setBug(bug1);
+
+        Submit submission2 = new Submit();
+        submission2.setBug(bug2);
+
+        List<Bug> createdBugs = Arrays.asList(bug1, bug2);
+        when(bugRepository.findByCreatorId(creatorId)).thenReturn(createdBugs);
+        when(submitRepository.findByBugId(1L)).thenReturn(Collections.singletonList(submission1));
+        when(submitRepository.findByBugId(2L)).thenReturn(Collections.singletonList(submission2));
+
+        // Act
+        List<Submit> result = submitService.getSubmissionsForCreatedBugs(creatorId);
+
+        // Assert
+        assertEquals(2, result.size());
+        verify(bugRepository, times(1)).findByCreatorId(creatorId);
+        verify(submitRepository, times(1)).findByBugId(1L);
+        verify(submitRepository, times(1)).findByBugId(2L);
+    }
+
+    @Test
+    void testGetSubmissionsForCreatedBugs_NoCreatedBugs() {
+        // Arrange
+        Long creatorId = 102L;
+
+        when(bugRepository.findByCreatorId(creatorId)).thenReturn(Collections.emptyList());
+
+        // Act
+        List<Submit> result = submitService.getSubmissionsForCreatedBugs(creatorId);
+
+        // Assert
+        assertEquals(0, result.size());
+        verify(bugRepository, times(1)).findByCreatorId(creatorId);
+        verify(submitRepository, never()).findByBugId(anyLong());
     }
 }

@@ -155,6 +155,11 @@ public class SubmitService {
         return "Submission approved successfully.";
     }
 
+    public String rejectSubmission(Long submissionId, Long rejecterId) {
+        return null;
+    }
+
+
     public List<Submit> getUnapprovedSubmissions() {
         return submitRepository.findByApprovalStatus("unapproved");
     }
@@ -162,5 +167,10 @@ public class SubmitService {
     public List<Submit> getApprovedSubmissions() {
         return submitRepository.findByApprovalStatus("approved");
     }
+
+    public List<Submit> getSubmissionsForCreatedBugs(Long creatorId) {
+        return List.of();
+    }
+    
 }
 
