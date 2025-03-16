@@ -13,6 +13,7 @@ public interface SubmitRepository extends JpaRepository<Submit, Long> {
     List<Submit> findByApprovalStatus(String status);
     List<Submit> findByBugIdAndApprovalStatus(Long bugId, String status);
     List<Submit> findByUserIdAndBugId(Long userId, Long bugId);
+    List<Submit> findByBugId(Long bugId);
     List<Submit> findByUserId(Long userId);
 
 }

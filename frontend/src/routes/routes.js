@@ -9,6 +9,7 @@ import NewBugPage from "../pages/new-bug";
 import BugDetails from "../pages/bug-details"; // Add BugDetails import
 import SavedDraftsPage from "../pages/my-draft";
 import MyDraftPagePage from "../pages/my-draft";
+import SubmissionsPage from "../pages/SubmissionsPage";
 
 const AppRoutes = () => {
   return (
@@ -27,7 +28,9 @@ const AppRoutes = () => {
       <Route path="/bug-details/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
         <Route path="/bug-details/:id/solution" element={<BugDetails />} />
         <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
+        <Route path="/SubmissionsPage" element={<SubmissionsPage/>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
+      <Route path="/SubmissionsPage" element={<SubmissionsPage />} />
 
 
     </Routes>

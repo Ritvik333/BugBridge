@@ -249,6 +249,33 @@ export const fetchUserDrafts = async (userId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
+  export const fetchSubmissionByCreator = async (userId) => {
+    try {
+      const response = await apiClient.get(`/submissions/creator/${userId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+
+  export const approveSubmission = async (submissionId, approverId) => {
+    try {
+        const response = await apiClient.put(`/submissions/approve/${submissionId}?approverId=${approverId}`);
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : error.message;
+    }
+};
+export const rejectSubmission = async (submissionId, rejecterId) => {
+  try {
+      const response = await apiClient.put(`/submissions/reject/${submissionId}?rejecterId=${rejecterId}`);
+      return response.data;
+  } catch (error) {
+      throw error.response ? error.response.data : error.message;
+  }
+};
+
   export const fetchSuggestionbyBug = async (bugId) => {
     try {
       const response = await apiClient.get(`/api/suggestions/bug/${bugId}`);
