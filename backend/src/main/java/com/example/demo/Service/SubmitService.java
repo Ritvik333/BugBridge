@@ -155,6 +155,34 @@ public class SubmitService {
         return "Submission approved successfully.";
     }
 
+    public String rejectSubmission(Long submissionId, Long rejecterId) {
+        if (submissionId == null || rejecterId == null) {
+            throw new NullPointerException("Submission ID and Rejecter ID cannot be null");
+        }
+
+        Optional<Submit> submissionOptional = submitRepository.findById(submissionId);
+
+        if (submissionOptional.isEmpty()) {
+            return "Submission not found.";
+        }
+
+        Submit submission = submissionOptional.get();
+        Bug bug = submission.getBug();
+
+        if (!bug.getCreator().getId().equals(rejecterId)) {
+            return "Only the bug creator can reject submissions.";
+        }
+
+        submission.setApprovalStatus("rejected");
+        submitRepository.save(submission);
+
+        notificationService.createNotification(submission.getUser().getId(),
+                "Your submission for bug #" + bug.getId() + " has been rejected.");
+
+        return "Submission rejected successfully.";
+    }
+
+
     public List<Submit> getUnapprovedSubmissions() {
         return submitRepository.findByApprovalStatus("unapproved");
     }
@@ -162,5 +190,20 @@ public class SubmitService {
     public List<Submit> getApprovedSubmissions() {
         return submitRepository.findByApprovalStatus("approved");
     }
+
+    public List<Submit> getSubmissionsForCreatedBugs(Long creatorId) {
+        List<Bug> createdBugs = bugRepository.findByCreatorId(creatorId);
+        List<Submit> allSubmissions = new ArrayList<>();
+        for (Bug bug : createdBugs) {
+            allSubmissions.addAll(submitRepository.findByBugId(bug.getId()));
+        }
+        return allSubmissions;
+    }
+    
+    
+    public List<Submit> getAllSubmissionsForUser(Long userId) {
+        return submitRepository.findByUserId(userId);
+    }
+
 }
 
