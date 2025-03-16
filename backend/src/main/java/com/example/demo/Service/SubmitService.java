@@ -162,5 +162,10 @@ public class SubmitService {
     public List<Submit> getApprovedSubmissions() {
         return submitRepository.findByApprovalStatus("approved");
     }
+    
+    public List<Submit> getAllSubmissionsForUser(Long userId) {
+        return submitRepository.findByUserId(userId);
+    }
+
 }
 

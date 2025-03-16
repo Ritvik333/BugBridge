@@ -137,5 +137,14 @@ public ResponseEntity<String> getFileContent(
         List<Submit> submissions = submitService.getApprovedSubmissions();
         return ResponseEntity.ok(submissions);
     }
+    @GetMapping("/user/{userId}")
+    public ResponseWrapper<List<Submit>> getAllSubmissionsByUser(@PathVariable Long userId) {
+        try {
+            List<Submit> submissions = submitService.getAllSubmissionsForUser(userId);
+            return new ResponseWrapper<>("success", "Fetched all submissions for user successfully", submissions);
+        } catch (Exception e) {
+            return new ResponseWrapper<>("error", "Failed to fetch submissions for user", null);
+        }
+    }
 
 }
