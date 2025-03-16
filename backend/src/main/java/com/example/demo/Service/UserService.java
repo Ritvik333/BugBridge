@@ -119,33 +119,38 @@ public class UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
     
+        System.out.println("Updating User: " + user.getId());
         boolean updated = false;
+        boolean emailUpdated = false; // Track if email was updated
     
-        //1. Move `pendingEmail` to `email` if verified
+        // ✅ 1. Move `pendingEmail` to `email` if it exists
         if (user.getPendingEmail() != null) {
-            user.setEmail(user.getPendingEmail()); //Apply verified email
-            user.setPendingEmail(null); // Clear `pendingEmail`
+            System.out.println("Applying pending email: " + user.getPendingEmail());
+            user.setEmail(user.getPendingEmail()); // ✅ Move verified email to `email`
+            user.setPendingEmail(null); // ✅ Clear `pendingEmail`
             updated = true;
+            emailUpdated = true; // ✅ Email was updated
         }
     
-        //2. Update username if provided
+        // ✅ 2. Update username if provided
         if (updatedUserDto.getUsername() != null && !updatedUserDto.getUsername().isEmpty()) {
             user.setUsername(updatedUserDto.getUsername());
             updated = true;
         }
     
-        //3. If email is changed & no OTP is pending, store in `pendingEmail` & send OTP
+        // ✅ 3. If email is changed & no OTP is pending, store in `pendingEmail` & send OTP
         if (updatedUserDto.getEmail() != null && !updatedUserDto.getEmail().isEmpty() &&
             !updatedUserDto.getEmail().equals(user.getEmail()) && user.getPendingEmail() == null) {
     
-            user.setPendingEmail(updatedUserDto.getEmail()); //Store new email in `pendingEmail`
-            userRepository.save(user); //Save before sending OTP
+            System.out.println("Storing pending email: " + updatedUserDto.getEmail());
+            user.setPendingEmail(updatedUserDto.getEmail()); // ✅ Store new email in `pendingEmail`
+            userRepository.save(user); // ✅ Save before sending OTP
             createEmailVerificationToken(userId, updatedUserDto.getEmail());
     
             return new ResponseWrapper<>("success", "Email verification OTP Sent. Click 'Save Changes' after verification.", null);
         }
     
-        //4. Update password if provided
+        // ✅ 4. Update password if provided
         if (updatedUserDto.getPassword() != null && !updatedUserDto.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword()));
             updated = true;
@@ -155,9 +160,17 @@ public class UserService {
             throw new AppException("No valid fields to update", HttpStatus.BAD_REQUEST);
         }
     
+        // ✅ 5. Save user before returning response
         userRepository.save(user);
+    
+        // ✅ 6. Force logout if email was updated
+        if (emailUpdated) {
+            return new ResponseWrapper<>("logout", "Email updated successfully. Please log in again.", null);
+        }
+    
         return new ResponseWrapper<>("success", "User updated successfully", null);
     }
+    
     
     // Send OTP for email verification
     public String createEmailVerificationToken(Long userId, String newEmail) {
