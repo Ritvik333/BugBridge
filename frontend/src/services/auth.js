@@ -77,19 +77,48 @@ export const fetchCodeFile = async (userId, username, language, filename) => {
   }
 };
 
-export const fetchBugs = async (filters) => {
+export const fetchSubCodeFile = async (userId, username, language, bugId, subId) => {
   try {
-    const queryParams = new URLSearchParams();
+    const response = await apiClient.get(`/submissions/file/${userId}/${username}/${bugId}/${subId}/${language}`);
+    console.log("sub code", response.data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
 
-    // Add filters to query parameters
-    if (filters.filterSeverity) queryParams.append("severity", filters.filterSeverity);
-    if (filters.filterStatus) queryParams.append("status", filters.filterStatus);
-    if (filters.filterCreator) queryParams.append("creator", filters.filterCreator);
-    queryParams.append("sortBy", filters.sortOption);
-    queryParams.append("order", "asc");
+export const fetchDraftCodeFile = async (userId, username, language, filename) => {
+  try {
+    const response = await apiClient.get(`/drafts/file/${userId}/${username}/${language}/${filename}`);
+    console.log(response)
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
 
-    const response = await apiClient.get(`/api/bugs?${queryParams}`);
-    return response.data; // Return the fetched bugs
+export const fetchBugs = async () => {
+  try {
+    // First try to fetch from API
+    const response = await apiClient.get("/api/bugs");
+    // console.log(response.data)
+    if (response.status == 200 || response.status == 201) {
+      const data = response.data;
+      console.log("Fetched bugs from API:");
+      console.log(response);
+      // Store the fetched data in localStorage
+      localStorage.setItem("bugs", JSON.stringify(data));
+      return data;
+    }
+
+    // If API fails, try to get from localStorage
+    const storedBugs = localStorage.getItem("bugs");
+    if (storedBugs) {
+      const bugs = JSON.parse(storedBugs);
+      return Array.isArray(bugs) ? bugs : [];
+    }
+
+    return []; // Return empty array if both API and localStorage fail
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
@@ -114,8 +143,8 @@ export const updateBug = async (bug) => {
     formData.append("language", bug.language);
     formData.append("description", bug.description);
     // Append file if provided
-    if (bug.codeFile) {
-      formData.append("codeFilePath", bug.codeFile);
+    if (bug.codeFilePath) {
+      formData.append("codeFilePath", bug.codeFilePath);
     }
 
     const response = await apiClient.put(`/api/bugs/${bug.id}`, formData, {
@@ -151,18 +180,30 @@ export const addComment = async (commentData) => {
 export const saveDraft = async (userData) => {
   try {
     const response = await apiClient.post('/drafts/save', userData);
+    console.log(response.data);
     return response.data; // Return the response data from the backend (e.g., success message or saved draft details)
   } catch (error) {
     throw error.response ? error.response.data : error.message;
   }
 };
 
-export const deleteComment = async (commendId) => {
+export const deleteComment = async (commentId) => {
   try {
-    const response = await apiClient.delete(`/api/comments/${commendId}`);
+    const response = await apiClient.delete(`/api/comments/${commentId}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const fetchUserDrafts = async (userId) => {
+  try {
+    const response = await apiClient.get(`/drafts/user/${userId}`);
+    console.log(response.data);
+    return response.data || []; // Ensure it always returns an array
+  } catch (error) {
+    console.error("Error fetching drafts:", error);
+    return []; // Return empty array instead of null
   }
 };
 
@@ -194,6 +235,26 @@ export const fetchUserSubmissionsByBug = async (userId, bugId) => {
   try {
     console.log(userId);
     const response = await apiClient.get(`/submissions/user/${userId}/bug/${bugId}`);
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const fetchSubmission = async (id) => {
+  try {
+    const response = await apiClient.get(`/submissions/${id}`);
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const fetchSolution = async (bugId) => {
+  try {
+    const response = await apiClient.get(`/submissions/approved/bug/${bugId}`);
     console.log(response);
     return response.data;
   } catch (error) {

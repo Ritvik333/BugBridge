@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // Create an Axios instance
 const apiClient = axios.create({
@@ -15,10 +16,10 @@ apiClient.interceptors.request.use(
   (config) => {
     // Optionally attach token or modify headers
     // Example:
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers['Authorization'] = `Bearer ${token}`;
-    // }
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -31,6 +32,8 @@ apiClient.interceptors.response.use(
     // Handle errors globally (e.g., show toast notifications, redirect on 401)
     if (error.response && error.response.status === 401) {
       // Handle unauthorized access
+      localStorage.removeItem("authToken");
+      useNavigate("/")
     }
     return Promise.reject(error);
   }

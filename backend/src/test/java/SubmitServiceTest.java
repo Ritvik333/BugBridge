@@ -1,20 +1,25 @@
-
-
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -42,7 +47,7 @@ class SubmitServiceTest {
     @Mock
     private BugRepository bugRepository;
 
-    @InjectMocks  // This will automatically inject the mocks into the submitService
+    @InjectMocks
     private SubmitService submitService;
 
     @Mock  // This will automatically inject the mocks into the submitService
@@ -58,6 +63,8 @@ class SubmitServiceTest {
 
     }
 
+    // --- Tests for saveSubmission ---
+
     @Test
     void testSaveSubmissionSuccess() throws IOException {
         // Arrange
@@ -67,31 +74,41 @@ class SubmitServiceTest {
         String desc = "Fixing bug in the login system";
         String code = "public class Main {}";
 
-        User user = new User();  // Assume user object exists
-        Bug bug = new Bug();  // Assume bug object exists
+        User user = new User();
+        user.setId(userId);
+        user.setUsername("john_doe"); // Set username for notification
 
-        // Mock repository calls
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(user));
-        when(bugRepository.findById(bugId)).thenReturn(java.util.Optional.of(bug));
+        Bug bug = new Bug();
+        bug.setId(bugId);
+        bug.setLanguage("java");
+        bug.setCreator(user); // User is the creator for approval logic
 
-        // Mock submitRepository.save() to return the Submit object when called
-        Submit mockSubmit = new Submit();
-        when(submitRepository.save(any(Submit.class))).thenReturn(mockSubmit);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug));
+        // Mock submitRepository.save to return the same Submit with an updated ID
+        when(submitRepository.save(any(Submit.class))).thenAnswer(invocation -> {
+            Submit submitArg = invocation.getArgument(0);
+            submitArg.setId(10L); // Simulate setting the ID
+            return submitArg;
+        });
+        // Mock notificationService to avoid real calls
+        doNothing().when(notificationService).createNotification(anyLong(), anyString());
 
         // Act
         Submit submit = submitService.saveSubmission(userId, bugId, username, desc, code);
+        System.out.println(submit);
 
         // Assert
-        assertNotNull(submit);  // Ensure the returned object is not null
-        assertEquals(user, submit.getUser());  // Ensure the user is set correctly
-        assertEquals(bug, submit.getBug());  // Ensure the bug is set correctly
-        assertEquals(desc, submit.getDescription());  // Ensure the description is set correctly
-        assertTrue(submit.getCodeFilePath().endsWith(".java"));  // Ensure file extension is correct (assuming Java)
-
-        // Verify that save was called on the repository
-        verify(submitRepository, times(1)).save(any(Submit.class));  // Ensure save is called once
+        assertNotNull(submit);
+        assertEquals(user, submit.getUser());
+        assertEquals(bug, submit.getBug());
+        assertEquals(desc, submit.getDescription());
+        assertEquals("approved", submit.getApprovalStatus()); // Creator gets auto-approval
+        String expectedPath = "uploads/" + userId + "_" + username + "/submissions/" + userId + "_" + bugId + "_10.java";
+        assertEquals(expectedPath, submit.getCodeFilePath());
+        verify(submitRepository, times(2)).save(any(Submit.class));
+        verify(notificationService, times(2)).createNotification(anyLong(), anyString());
     }
-
 
     @Test
     void testSaveSubmissionUserNotFound() {
@@ -102,7 +119,7 @@ class SubmitServiceTest {
         String desc = "Fixing bug in the login system";
         String code = "public class Main {}";
 
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.empty()); // Simulate user not found
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -120,9 +137,9 @@ class SubmitServiceTest {
         String desc = "Fixing bug in the login system";
         String code = "public class Main {}";
 
-        User user = new User();  // Assume user object exists
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(user));
-        when(bugRepository.findById(bugId)).thenReturn(java.util.Optional.empty()); // Simulate bug not found
+        User user = new User();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(bugRepository.findById(bugId)).thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -131,15 +148,18 @@ class SubmitServiceTest {
         assertEquals("Bug not found", exception.getMessage());
     }
 
+    // --- Tests for mapLanguageToExtension ---
+
     @Test
     void testMapLanguageToExtension() {
-        // Act & Assert
         assertEquals(".java", submitService.mapLanguageToExtension("java"));
         assertEquals(".py", submitService.mapLanguageToExtension("python"));
         assertEquals(".js", submitService.mapLanguageToExtension("javascript"));
         assertEquals(".txt", submitService.mapLanguageToExtension("other"));
         assertEquals(".txt", submitService.mapLanguageToExtension(null));
     }
+
+    // --- Tests for getSubmissionsForUserAndBug ---
 
     @Test
     void testGetSubmissionsForUserAndBugSuccess() {
@@ -171,7 +191,7 @@ class SubmitServiceTest {
         Long userId = 1L;
         Long bugId = 2L;
 
-        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(Arrays.asList());
+        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(Collections.emptyList());
 
         // Act
         List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
@@ -182,7 +202,133 @@ class SubmitServiceTest {
         verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
     }
 
+    // --- Tests for findApprovedSubmissionsByBugId ---
 
+   @Test
+    void testFindApprovedSubmissionsByBugIdMultipleFromSameUser() {
+        // Arrange
+        Long bugId = 1L;
+        User user1 = new User();
+        user1.setId(1L);
+
+        Bug bug = new Bug();
+        bug.setId(bugId);
+        bug.setStatus("open"); // Initial status
+
+        Submit submit1 = new Submit();
+        submit1.setUser(user1);
+        submit1.setBug(bug); // Associate with the same bugId
+        submit1.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(1000L), ZoneId.systemDefault()));
+        submit1.setApprovalStatus("approved"); // Ensure approval status is set
+
+        Submit submit2 = new Submit();
+        submit2.setUser(user1);
+        submit2.setBug(bug); // Associate with the same bugId
+        submit2.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(2000L), ZoneId.systemDefault()));
+        submit2.setApprovalStatus("approved"); // Ensure approval status is set
+
+        List<Submit> approvedSubmissions = Arrays.asList(submit1, submit2); // Include both submissions
+        when(submitRepository.findByBugIdAndApprovalStatus(bugId, "approved")).thenReturn(approvedSubmissions);
+        when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug)); // Mock Bug lookup
+        when(bugRepository.save(any(Bug.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Mock save
+
+        // Act
+        List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(submit2, result.get(0)); // Should return the most recent submission
+        assertEquals("Resolved", bug.getStatus()); // Verify bug status is updated
+        verify(submitRepository).findByBugIdAndApprovalStatus(bugId, "approved");
+        verify(bugRepository).findById(bugId);
+        verify(bugRepository).save(bug);
+    }
+
+    @Test
+    void testFindApprovedSubmissionsByBugIdDifferentUsers() {
+        // Arrange
+        Long bugId = 1L;
+        User user1 = new User();
+        user1.setId(1L);
+        User user2 = new User();
+        user2.setId(2L);
+
+        Bug bug = new Bug();
+        bug.setId(bugId);
+        bug.setStatus("open"); // Initial status
+
+        Submit submit1 = new Submit();
+        submit1.setUser(user1);
+        submit1.setBug(bug);
+        submit1.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(1000L), ZoneId.systemDefault()));
+        submit1.setApprovalStatus("approved"); // Ensure approval status is set
+
+        Submit submit2 = new Submit();
+        submit2.setUser(user2);
+        submit2.setBug(bug);
+        submit2.setSubmittedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(2000L), ZoneId.systemDefault()));
+        submit2.setApprovalStatus("approved"); // Ensure approval status is set
+
+        List<Submit> approvedSubmissions = Arrays.asList(submit1, submit2);
+        when(submitRepository.findByBugIdAndApprovalStatus(bugId, "approved")).thenReturn(approvedSubmissions);
+        when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug));
+        when(bugRepository.save(any(Bug.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Mock save to return the modified Bug
+
+        // Act
+        List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
+
+        // Assert
+        assertEquals(2, result.size());
+        assertTrue(result.contains(submit1));
+        assertTrue(result.contains(submit2));
+        assertEquals("Resolved", bug.getStatus()); // Verify bug status is updated
+        verify(submitRepository).findByBugIdAndApprovalStatus(bugId, "approved");
+        verify(bugRepository).findById(bugId);
+        verify(bugRepository).save(bug);
+    }
+
+    @Test
+    void testFindApprovedSubmissionsByBugIdNoResults() {
+        // Arrange
+        Long bugId = 1L;
+        when(submitRepository.findByBugIdAndApprovalStatus(bugId, "approved")).thenReturn(Collections.emptyList());
+
+        // Act
+        List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    // --- Tests for getSubmissionById ---
+
+    @Test
+    void testGetSubmissionByIdFound() {
+        // Arrange
+        Long submissionId = 1L;
+        Submit expectedSubmit = new Submit();
+        when(submitRepository.findById(submissionId)).thenReturn(Optional.of(expectedSubmit));
+
+        // Act
+        Submit result = submitService.getSubmissionById(submissionId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(expectedSubmit, result);
+    }
+
+    @Test
+    void testGetSubmissionByIdNotFound() {
+        // Arrange
+        Long submissionId = 1L;
+        when(submitRepository.findById(submissionId)).thenReturn(Optional.empty());
+
+        // Act
+        Submit result = submitService.getSubmissionById(submissionId);
+
+        // Assert
+        assertNull(result);
+    }
     @Test
     void testApproveSubmissionValidScenario() {
         // Arrange

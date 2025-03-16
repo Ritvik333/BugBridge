@@ -68,6 +68,9 @@ public class Submit {
     public void setBug(Bug bug) {
         this.bug = bug;
     }
+    public void setStatus(String status) {
+        this.approvalStatus = status;
+    }
 
     public String getCodeFilePath() {
         return codeFilePath;
