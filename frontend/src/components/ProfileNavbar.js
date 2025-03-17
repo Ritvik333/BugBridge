@@ -3,7 +3,7 @@ import { Bell, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/auth";
 
-const Navbar = () => {
+const ProfileNavbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const menuRef = useRef(null);
@@ -25,7 +25,7 @@ const Navbar = () => {
             </button>
             {menuOpen && (
                 <div style={{ zIndex: "10" }} className="absolute right-0 mt-2 w-56 bg-white border rounded-md shadow-lg p-3">
-                  <p className="p-3 hover:bg-gray-100 cursor-pointer" onClick={() => navigate("/profile")}>My Account</p>
+                  <p className="p-3 hover:bg-gray-100 cursor-pointer" onClick={() => navigate("/dashboard")}>Dashboard</p>
                   <p className="p-3 hover:bg-gray-100 cursor-pointer">Settings</p>
                   <p
                       onClick={() => {
@@ -44,4 +44,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default ProfileNavbar;
