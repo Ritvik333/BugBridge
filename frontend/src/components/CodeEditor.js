@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import MonacoEditor from "@monaco-editor/react";
+import './cursorStyle.css';
 import {
     runCode,
     submitCode,
@@ -32,7 +33,37 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
     const saveTimeoutRef = useRef(null);
     const debounceTimerRef = useRef(null);
     const periodicSyncIntervalRef = useRef(null);
+    const [cursors, setCursors] = useState({});
+    const editorRef = useRef(null);
+    const decorationsRef = useRef([]);
+    // Create a ref to hold the current sessionId
+    const sessionIdRef = useRef(sessionId);
 
+// Update the ref whenever sessionId changes
+    useEffect(() => {
+        sessionIdRef.current = sessionId;
+    }, [sessionId]);
+
+    const handleEditorDidMount = useCallback((editor, monaco) => {
+        editorRef.current = editor;
+        console.log("Editor mounted");
+
+        // Track local cursor changes
+        editor.onDidChangeCursorPosition((e) => {
+            console.log("Editor mounted",rememberMeId);
+
+            if (sessionIdRef.current) {  // use the ref here
+                CollabService.sendCursorUpdate(sessionIdRef.current, {
+                    userId: localStorage.getItem("userName"),
+                    position: {
+                        lineNumber: e.position.lineNumber,
+                        column: e.position.column,
+                    },
+                });
+            }
+        });
+    }, [rememberMeId]);
+    // Handle editor initialization
     // ------------------ Session Handling ------------------
 
     // For owner: manually create/re-create a session.
@@ -68,7 +99,7 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
           CollabService.disconnect();
           setSessionId(null);
           setJoinRequests({});
-          
+          setCursors({});
     };
 
     // ------------------ Join Requests (Joiner Side) ------------------
@@ -139,11 +170,86 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 setCode(update.code);
                 
             });
+
+
         }
+        CollabService.listenForCursorUpdates(sessionId, (cursorData) => {
+            setCursors(cursorData);
+        });
         return () => {
             CollabService.disconnect();
+            if(editorRef.current)
+            decorationsRef.current = editorRef.current.deltaDecorations(decorationsRef.current, []);
         };
     }, [sessionId, rememberMeId, bug.id]);
+
+    // Helper to generate a deterministic color based on userId
+    const getUserColor = (userId) => {
+        let r, g, b;
+        do {
+            // Generate each channel in the range 100 to 230.
+            // This range keeps colors reasonably bright without being too light.
+            r = Math.floor(Math.random() * 131) + 100;
+            g = Math.floor(Math.random() * 131) + 100;
+            b = Math.floor(Math.random() * 131) + 100;
+            // If all channels are above 220, the color is too close to white. Regenerate.
+        } while (r > 220 && g > 220 && b > 220);
+
+        // Convert channels to hex and return the color code.
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+
+    };
+
+    useEffect(() => {
+        if (!editorRef.current || !sessionId) return;
+
+        const editor = editorRef.current;
+        const monaco = window.monaco;
+
+        // Clear previous decorations
+        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
+
+        // Create new decorations for each remote cursor
+        const newDecorations = Object.entries(cursors)
+            .filter(([userId]) => userId !== localStorage.getItem("userName"))
+            .map(([userId, data]) => {
+                const color = getUserColor(userId);
+                const className = `remote-cursor-${userId}`;
+                const afterClassName = `${className}-after`;
+
+                // Inject CSS for the pseudo-element if not already done
+                if (!document.getElementById(`style-${className}`)) {
+                    const style = document.createElement("style");
+                    style.id = `style-${className}`;
+                    style.innerHTML = `
+          .${afterClassName}::after {
+            content: '▏';
+            margin-left: 2px;
+            font-size: 16px;
+            line-height: 1;
+            color: ${color};
+          }
+        `;
+                    document.head.appendChild(style);
+                }
+                return {
+                    range: new monaco.Range(
+                        data.position.lineNumber,
+                        data.position.column,
+                        data.position.lineNumber,
+                        data.position.column
+                    ),
+                    options: {
+                        // Even if the range is collapsed, the after pseudo-element is rendered
+                        afterContentClassName: afterClassName,
+                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                        hoverMessage: { value: `User: ${userId}` }
+                    }
+                };
+            });
+
+        decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+    }, [cursors, sessionId, rememberMeId]);
 
     // For owner: listen for join requests.
     useEffect(() => {
@@ -470,6 +576,7 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 theme="vs-dark"
                 value={code}
                 onChange={handleCodeChange}
+                onMount={handleEditorDidMount}
             />
 
             <div className="mt-2 flex justify-between items-center">

@@ -120,6 +120,27 @@ listenForJoinRequestForJoiner(sessionId, joinerId, callback) {
     // Remove the session node from the database.
     remove(sessionRef);
   },
+    sendCursorUpdate(sessionId, cursorData) {
+        if (!this.firebaseRef) {
+            this.init(sessionId);
+        }
+        const cursorRef = ref(database, `collabSessions/${sessionId}/cursors/${cursorData.userId}`);
+        update(cursorRef, {
+            position: cursorData.position,
+            timestamp: new Date().toISOString()
+        });
+    },
+
+    // Listen for all users' cursor updates
+    listenForCursorUpdates(sessionId, callback) {
+        const cursorsRef = ref(database, `collabSessions/${sessionId}/cursors`);
+        const listener = (snapshot) => {
+            const data = snapshot.val();
+            callback(data || {});
+        };
+        onValue(cursorsRef, listener);
+        return () => off(cursorsRef, 'value', listener);
+    },
 };
 
 export default CollabService;
