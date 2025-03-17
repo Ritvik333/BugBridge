@@ -11,6 +11,7 @@ import Profile from "../pages/profiles";
 import ProfileSettings from "../pages/profileSettings";
 import SavedDraftsPage from "../pages/my-draft";
 import MyDraftPagePage from "../pages/my-draft";
+import SubmissionsPage from "../pages/SubmissionsPage";
 
 const AppRoutes = () => {
   return (
@@ -29,9 +30,11 @@ const AppRoutes = () => {
       <Route path="/bug-details/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
         <Route path="/bug-details/:id/solution" element={<BugDetails />} />
         <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
+        <Route path="/SubmissionsPage" element={<SubmissionsPage/>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/profile-settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+      <Route path="/SubmissionsPage" element={<SubmissionsPage />} />
 
 
     </Routes>

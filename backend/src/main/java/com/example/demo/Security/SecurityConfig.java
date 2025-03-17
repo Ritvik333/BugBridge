@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/submissions/**").permitAll()
                         .requestMatchers("/notifications/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/protected-endpoint").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

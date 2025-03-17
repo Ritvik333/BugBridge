@@ -206,61 +206,96 @@ export const fetchUserDrafts = async (userId) => {
     return []; // Return empty array instead of null
   }
 };
+  export const submitBug = async (formData) => {
+    try {
+      console.log("Tetsing subit bug")
+      console.log(formData);
+      const response = await apiClient.post("/api/bugs", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Tetsing subit bug")
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const submitCode = async (userData) => {
+    try {
+      console.log(userData);
+      const response = await apiClient.post('/submissions/save', userData);
+      console.log(response);
+      return response.data; // Return the response data from the backend
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchUserSubmissionsByBug = async (userId, bugId) => {
+    try {
+      console.log(userId);
+      const response = await apiClient.get(`/submissions/user/${userId}/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchSubmission = async (id) => {
+    try {
+      const response = await apiClient.get(`/submissions/${id}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchSolution = async (bugId) => {
+    try {
+      const response = await apiClient.get(`/submissions/approved/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
+  export const fetchSubmissionByCreator = async (userId) => {
+    try {
+      const response = await apiClient.get(`/submissions/creator/${userId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
 
-export const submitBug = async (formData) => {
+  export const approveSubmission = async (submissionId, approverId) => {
+    try {
+        const response = await apiClient.put(`/submissions/approve/${submissionId}?approverId=${approverId}`);
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : error.message;
+    }
+};
+export const rejectSubmission = async (submissionId, rejecterId) => {
   try {
-    const response = await apiClient.post("/api/bugs", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+      const response = await apiClient.put(`/submissions/reject/${submissionId}?rejecterId=${rejecterId}`);
+      return response.data;
   } catch (error) {
-    throw error.response ? error.response.data : error.message;
+      throw error.response ? error.response.data : error.message;
   }
 };
 
-export const submitCode = async (userData) => {
-  try {
-    console.log(userData);
-    const response = await apiClient.post('/submissions/save', userData);
-    console.log(response);
-    return response.data; // Return the response data from the backend
-  } catch (error) {
-    throw error.response ? error.response.data : error.message;
-  }
-};
-
-export const fetchUserSubmissionsByBug = async (userId, bugId) => {
-  try {
-    console.log(userId);
-    const response = await apiClient.get(`/submissions/user/${userId}/bug/${bugId}`);
-    console.log(response);
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : error.message;
-  }
-};
-
-export const fetchSubmission = async (id) => {
-  try {
-    const response = await apiClient.get(`/submissions/${id}`);
-    console.log(response);
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : error.message;
-  }
-};
-
-export const fetchSolution = async (bugId) => {
-  try {
-    const response = await apiClient.get(`/submissions/approved/bug/${bugId}`);
-    console.log(response);
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : error.message;
-  }
-};
+  export const fetchSuggestionbyBug = async (bugId) => {
+    try {
+      const response = await apiClient.get(`/api/suggestions/bug/${bugId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
 
 export const getAuthenticatedUser = async (userId) => {
   try {

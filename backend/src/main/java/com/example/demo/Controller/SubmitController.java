@@ -118,11 +118,15 @@ public ResponseEntity<String> getFileContent(
     return ResponseEntity.ok(content);
 }
 
-
-
-        @PutMapping("/approve/{submissionId}")
+    @PutMapping("/approve/{submissionId}")
     public ResponseEntity<ResponseWrapper<String>> approveSubmission(@PathVariable Long submissionId, @RequestParam Long approverId) {
         String result = submitService.approveSubmission(submissionId, approverId);
+        return ResponseEntity.ok(new ResponseWrapper<>("success", result, null));
+    }
+
+    @PutMapping("/reject/{submissionId}")
+    public ResponseEntity<ResponseWrapper<String>> rejectSubmission(@PathVariable Long submissionId, @RequestParam Long rejecterId) {
+        String result = submitService.rejectSubmission(submissionId, rejecterId);
         return ResponseEntity.ok(new ResponseWrapper<>("success", result, null));
     }
 
@@ -136,6 +140,25 @@ public ResponseEntity<String> getFileContent(
     public ResponseEntity<List<Submit>> getApprovedSubmissions() {
         List<Submit> submissions = submitService.getApprovedSubmissions();
         return ResponseEntity.ok(submissions);
+    }
+    @GetMapping("/creator/{creatorId}")
+    public ResponseWrapper<List<Submit>> getSubmissionsForCreatedBugs(@PathVariable Long creatorId) {
+        try {
+            List<Submit> submissions = submitService.getSubmissionsForCreatedBugs(creatorId);
+            return new ResponseWrapper<>("success", "Fetched submissions for created bugs successfully", submissions);
+        } catch (Exception e) {
+            return new ResponseWrapper<>("error", "Failed to fetch submissions", null);
+        }
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseWrapper<List<Submit>> getAllSubmissionsByUser(@PathVariable Long userId) {
+        try {
+            List<Submit> submissions = submitService.getAllSubmissionsForUser(userId);
+            return new ResponseWrapper<>("success", "Fetched all submissions for user successfully", submissions);
+        } catch (Exception e) {
+            return new ResponseWrapper<>("error", "Failed to fetch submissions for user", null);
+        }
     }
 
 }
