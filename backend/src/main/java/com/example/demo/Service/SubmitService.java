@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -202,7 +205,21 @@ public class SubmitService {
     
     
     public List<Submit> getAllSubmissionsForUser(Long userId) {
-        return submitRepository.findByUserId(userId);
+    // Step 1: Get all submissions by the user
+        List<Submit> userSubmissions = submitRepository.findByUserId(userId);
+
+        // Step 2: Get all bugs created by the user
+        List<Bug> createdBugs = bugRepository.findByCreatorId(userId);
+        Set<Long> createdBugIds = createdBugs.stream()
+                .map(Bug::getId)
+                .collect(Collectors.toSet());
+
+        // Step 3: Filter out submissions for bugs the user created
+        List<Submit> filteredSubmissions = userSubmissions.stream()
+                .filter(submit -> !createdBugIds.contains(submit.getBug().getId()))
+                .collect(Collectors.toList());
+
+        return filteredSubmissions;
     }
 
 }

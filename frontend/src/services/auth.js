@@ -258,6 +258,15 @@ export const fetchUserDrafts = async (userId) => {
       throw error.response ? error.response.data : error.message;
     }
   };
+  export const fetchSubmissionByUser = async (userId) => {
+    try {
+      const response = await apiClient.get(`/submissions/user/${userId}`);
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  };
 
   export const approveSubmission = async (submissionId, approverId) => {
     try {
