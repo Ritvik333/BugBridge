@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +19,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,23 +33,6 @@ import com.example.demo.Repository.SubmitRepository;
 import com.example.demo.Model.UserRepository;
 import com.example.demo.Service.NotificationService;
 import com.example.demo.Service.SubmitService;
-
-
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 class SubmitServiceTest {
 
@@ -74,7 +55,121 @@ class SubmitServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+    @Test
+    void testSaveSubmissionSuccess() throws IOException {
+        // Arrange
+        Long userId = 1L;
+        Long bugId = 1L;
+        String username = "john_doe";
+        String desc = "Fixing bug in the login system";
+        String code = "public class Main {}";
 
+        User user = new User();
+        user.setId(userId);
+        user.setUsername(username);
+
+        User creator = new User();
+        creator.setId(2L);
+        Bug bug = new Bug();
+        bug.setId(bugId);
+        bug.setCreator(creator);
+        bug.setLanguage("java");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug));
+
+        Submit mockSubmit = new Submit();
+        mockSubmit.setUser(user);
+        mockSubmit.setBug(bug);
+        mockSubmit.setDescription(desc);
+        mockSubmit.setCodeFilePath("/path/to/1_john_doe/submissions/1_1_1.java");
+        when(submitRepository.save(any(Submit.class))).thenReturn(mockSubmit);
+
+        // Act
+        Submit submit = submitService.saveSubmission(userId, bugId, username, desc, code);
+
+        // Assert
+        assertNotNull(submit);
+        assertEquals(user, submit.getUser());
+        assertEquals(bug, submit.getBug());
+        assertEquals(desc, submit.getDescription());
+        assertTrue(submit.getCodeFilePath().endsWith(".java"));
+
+        // Verify that save was called TWICE
+        verify(submitRepository, times(2)).save(any(Submit.class));
+    }
+
+    @Test
+    void testSaveSubmissionUserNotFound() {
+        // Arrange
+        Long userId = 1L;
+        Long bugId = 1L;
+        String username = "john_doe";
+        String desc = "Fixing bug in the login system";
+        String code = "public class Main {}";
+
+        when(userRepository.findById(userId)).thenReturn(java.util.Optional.empty()); // Simulate user not found
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            submitService.saveSubmission(userId, bugId, username, desc, code);
+        });
+        assertEquals("User not found", exception.getMessage());
+    }
+
+    @Test
+    void testSaveSubmissionBugNotFound() {
+        // Arrange
+        Long userId = 1L;
+        Long bugId = 1L;
+        String username = "john_doe";
+        String desc = "Fixing bug in the login system";
+        String code = "public class Main {}";
+
+        User user = new User();  // Assume user object exists
+        when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(user));
+        when(bugRepository.findById(bugId)).thenReturn(java.util.Optional.empty()); // Simulate bug not found
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            submitService.saveSubmission(userId, bugId, username, desc, code);
+        });
+        assertEquals("Bug not found", exception.getMessage());
+    }
+
+    @Test
+    void testMapLanguageToExtension() {
+        // Act & Assert
+        assertEquals(".java", submitService.mapLanguageToExtension("java"));
+        assertEquals(".py", submitService.mapLanguageToExtension("python"));
+        assertEquals(".js", submitService.mapLanguageToExtension("javascript"));
+        assertEquals(".txt", submitService.mapLanguageToExtension("other"));
+        assertEquals(".txt", submitService.mapLanguageToExtension(null));
+    }
+
+    @Test
+    void testGetSubmissionsForUserAndBugSuccess() {
+        // Arrange
+        Long userId = 1L;
+        Long bugId = 2L;
+
+        Submit submit1 = new Submit();
+        submit1.setId(1L);
+        Submit submit2 = new Submit();
+        submit2.setId(2L);
+
+        List<Submit> expectedSubmissions = Arrays.asList(submit1, submit2);
+        when(submitRepository.findByUserIdAndBugId(userId, bugId)).thenReturn(expectedSubmissions);
+
+        // Act
+        List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(expectedSubmissions, result);
+        verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
+    }
 
     @Test
     void testRejectSubmission_NullSubmissionId() {
