@@ -1,5 +1,6 @@
 package com.example.demo.Model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +15,9 @@ public class User {
     private String username;
     private String email;
     private String password;
+    @Column(nullable = true) 
+    private String pendingEmail;
+
     public Long getId() {
         return id;
     }
@@ -38,7 +42,13 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-    
+    public String getPendingEmail() {
+        return pendingEmail;
+    }
+
+    public void setPendingEmail(String pendingEmail) {
+        this.pendingEmail = pendingEmail;
+    }
     
     
 }

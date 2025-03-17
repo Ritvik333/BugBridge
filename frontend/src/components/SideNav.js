@@ -13,7 +13,7 @@ const SideNav = () => {
               className="flex items-center space-x-2 p-3 rounded-md hover:bg-gray-700 transition"
           >
             <Home className="h-5 w-5" />
-            <span>Home</span>
+            <span className="text-sm">Home</span>
           </button>
 
           <button
@@ -21,7 +21,7 @@ const SideNav = () => {
               className="flex items-center space-x-2 p-3 rounded-md hover:bg-gray-700 transition"
           >
             <FileText className="h-5 w-5" />
-            <span>My Drafts</span>
+            <span className="text-sm">My Drafts</span>
           </button>
 
           <button
@@ -29,7 +29,14 @@ const SideNav = () => {
               className="flex items-center space-x-2 p-3 rounded-md hover:bg-gray-700 transition"
           >
             <ClipboardCheck className="h-5 w-5" />
-            <span>Submissions</span>
+            <span className="text-sm">My Bug Activity</span>
+          </button>
+          <button
+              onClick={() => navigate("/MySubmissions")}
+              className="flex items-center space-x-2 p-3 rounded-md hover:bg-gray-700 transition"
+          >
+            <ClipboardCheck className="h-5 w-5" />
+            <span className="text-sm">My Submissions</span>
           </button>
         </nav>
       </div>

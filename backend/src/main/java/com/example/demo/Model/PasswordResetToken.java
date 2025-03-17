@@ -19,12 +19,22 @@ public class PasswordResetToken {
 
     private LocalDateTime expiryDate;
 
+    @Column(nullable = true) // Store new email if email update is requested
+    private String newEmail;
+    
     public PasswordResetToken() {}
 
     public PasswordResetToken(String token, User user, LocalDateTime expiryDate) {
         this.token = token;
         this.user = user;
         this.expiryDate = expiryDate;
+    }
+
+    public PasswordResetToken(String token, User user, LocalDateTime expiryDate, String newEmail) {
+        this.token = token;
+        this.user = user;
+        this.expiryDate = expiryDate;
+        this.newEmail = newEmail;
     }
 
     public Long getId() {
@@ -53,5 +63,13 @@ public class PasswordResetToken {
 
     public void setExpiryDate(LocalDateTime expiryDate) {
         this.expiryDate = expiryDate;
+    }
+
+    public String getNewEmail() {
+        return newEmail;
+    }
+
+    public void setNewEmail(String newEmail) {
+        this.newEmail = newEmail;
     }
 }

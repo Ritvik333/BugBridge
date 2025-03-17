@@ -76,12 +76,17 @@ const Navbar = () => {
 
   const unreadCount = notifications.filter(notification => !notification.read).length;
 
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   return (
     <nav className="h-16 w-full bg-white shadow-md fixed top-0 left-0 z-20 flex justify-between items-center px-8">
-      <h1 className="text-xl font-semibold">Bug Board</h1>
-      <div className="flex space-x-6">
-        {/* Notifications */}
-        <div className="relative" ref={notificationRef}>
+    <h1 className="text-xl font-semibold" onClick={() => navigate("/dashboard")}>Bug Board</h1>
+    <div className="flex space-x-6">
+      {/* Notifications */}
+      <div className="relative" ref={notificationRef}>
+
           <button
             className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition relative"
             onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -153,7 +158,7 @@ const Navbar = () => {
           
           {menuOpen && (
             <div style={{ zIndex: "30" }} className="absolute right-0 mt-2 w-56 bg-white border rounded-md shadow-lg p-3">
-              <p className="p-3 hover:bg-gray-100 cursor-pointer">My Account</p>
+              <p className="p-3 hover:bg-gray-100 cursor-pointer" onClick={handleProfileClick}>My Account</p>
               <p className="p-3 hover:bg-gray-100 cursor-pointer">Settings</p>
               <p
                 onClick={() => {
@@ -166,8 +171,7 @@ const Navbar = () => {
               </p>
             </div>
           )}
-        </div>
-      </div>
+        </div></div>
     </nav>
   );
 };

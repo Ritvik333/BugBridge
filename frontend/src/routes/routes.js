@@ -6,10 +6,13 @@ import ResetPasswordPage from "../pages/reset-password";
 import ProtectedRoute from "../pages/ProtectedRoute";
 import BugBoardPage from "../pages/bug-board";
 import NewBugPage from "../pages/new-bug";
-import BugDetails from "../pages/bug-details"; // Add BugDetails import
+import BugDetails from "../pages/bug-details"; 
+import Profile from "../pages/profiles";
+import ProfileSettings from "../pages/profileSettings";
 import SavedDraftsPage from "../pages/my-draft";
 import MyDraftPagePage from "../pages/my-draft";
 import SubmissionsPage from "../pages/SubmissionsPage";
+import MySubs from "../pages/MySubmissions";
 
 const AppRoutes = () => {
   return (
@@ -26,11 +29,14 @@ const AppRoutes = () => {
       <Route path="/draft" element={<SavedDraftsPage />} />
       <Route path="/saved-drafts" element={<MyDraftPagePage />} />
       <Route path="/bug-details/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
-        <Route path="/bug-details/:id/solution" element={<BugDetails />} />
-        <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
-        <Route path="/SubmissionsPage" element={<SubmissionsPage/>} />
+        {/* <Route path="/bug-details/:id/solution" element={<BugDetails />} />
+        <Route path="/bug-details/:id/submissions" element={<BugDetails />} /> */}
+        <Route path="/SubmissionsPage" element={<ProtectedRoute><SubmissionsPage/></ProtectedRoute>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
-      <Route path="/SubmissionsPage" element={<SubmissionsPage />} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/profile-settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+      {/* <Route path="/SubmissionsPage" element={<SubmissionsPage />} /> */}
+      <Route path="/MySubmissions" element={<ProtectedRoute><MySubs /></ProtectedRoute>} />
 
 
     </Routes>

@@ -438,9 +438,14 @@ const fetchSuggestions = async () => {
                                 >
                                     <div>
                                         <h3 className="font-medium">
-                                            <span className={submission.approvalStatus === "approved" ? "text-green-500" : "text-orange-500"}>
-                                                {submission.approvalStatus}
-                                            </span>
+                                        <span className={
+                                            submission.approvalStatus === "approved" ? "text-green-500" :
+                                            submission.approvalStatus === "rejected" ? "text-red-500" :
+                                            "text-orange-500"
+                                        }>
+                                            {submission.approvalStatus}
+                                        </span>
+
                                         </h3>
                                         <p className="text-sm text-gray-500">
                                             <span>{formatDate(submission.submittedAt)}</span>
