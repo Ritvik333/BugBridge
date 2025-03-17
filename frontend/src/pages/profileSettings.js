@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { IoArrowForwardCircle } from "react-icons/io5";
 import { Menu } from "lucide-react"
 import Navbar from "../components/Navbar";
+import ProfileNavbar from "../components/ProfileNavbar";
 
 const ProfileSettings = () => {
   const [username, setUsername] = useState("");

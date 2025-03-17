@@ -29,14 +29,14 @@ const AppRoutes = () => {
       <Route path="/draft" element={<SavedDraftsPage />} />
       <Route path="/saved-drafts" element={<MyDraftPagePage />} />
       <Route path="/bug-details/:id" element={<ProtectedRoute><BugDetails /></ProtectedRoute>} />
-        <Route path="/bug-details/:id/solution" element={<BugDetails />} />
-        <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
-        <Route path="/SubmissionsPage" element={<SubmissionsPage/>} />
+        {/* <Route path="/bug-details/:id/solution" element={<BugDetails />} />
+        <Route path="/bug-details/:id/submissions" element={<BugDetails />} /> */}
+        <Route path="/SubmissionsPage" element={<ProtectedRoute><SubmissionsPage/></ProtectedRoute>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/profile-settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-      <Route path="/SubmissionsPage" element={<SubmissionsPage />} />
-      <Route path="/MySubmissions" element={<MySubs />} />
+      {/* <Route path="/SubmissionsPage" element={<SubmissionsPage />} /> */}
+      <Route path="/MySubmissions" element={<ProtectedRoute><MySubs /></ProtectedRoute>} />
 
 
     </Routes>

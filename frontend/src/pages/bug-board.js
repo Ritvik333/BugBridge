@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import SideNav from "../components/SideNav"; 
 import BugListWithFilters from "../components/BugListWithFilters";
+import ProfileNavbar from "../components/ProfileNavbar";
 
 export default function BugBoardPage() {
   return (
