@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Bell, Menu } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { logout } from "../services/auth"
-import apiClient from "../utils/apiClient" // Import the same apiClient used in auth.js
+import apiClient from "../utils/apiClient"
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -42,26 +42,58 @@ const Navbar = () => {
             // Check if the response is wrapped in a body property or is a direct array
             const notificationsArray = Array.isArray(response.data) ? response.data : response.data.body || []
 
-            // Extract bug IDs from notification messages if not already present
-            const notificationsWithBugIds = notificationsArray.map((notification) => {
+            // Process notifications to ensure they have bugId and improve message wording
+            const processedNotifications = notificationsArray.map((notification) => {
+              // Improve notification message wording
+              let message = notification.message || ""
+
+              // Replace "submission" with "solution" in the message
+              message = message.replace(/submission has been submitted/gi, "solution has been submitted")
+              message = message.replace(/submission has been approved/gi, "solution has been approved")
+              message = message.replace(/submission/gi, "solution")
+
               // If notification already has a bugId property, use it
-              if (notification.bugId) {
-                return notification
+              let bugId = notification.bugId
+              if (!bugId) {
+                // Try to extract bugId from message using multiple patterns
+                // Pattern 1: "Bug #123"
+                const bugHashPattern = message.match(/bug #(\d+)/i)
+                if (bugHashPattern) {
+                  bugId = Number.parseInt(bugHashPattern[1])
+                }
+
+                // Pattern 2: "BugID: 123" or "Bug ID: 123"
+                const bugIdPattern = message.match(/bug\s*id:?\s*(\d+)/i)
+                if (!bugId && bugIdPattern) {
+                  bugId = Number.parseInt(bugIdPattern[1])
+                }
+
+                // Pattern 3: Just look for any number in the message as a last resort
+                const anyNumberPattern = message.match(/\b(\d+)\b/)
+                if (!bugId && anyNumberPattern) {
+                  bugId = Number.parseInt(anyNumberPattern[1])
+                }
               }
 
-              // Otherwise, try to extract it from the message
-              const bugIdMatch = notification.message && notification.message.match(/bug #(\d+)/i)
               return {
                 ...notification,
-                bugId: bugIdMatch ? Number.parseInt(bugIdMatch[1]) : null,
+                message: message,
+                bugId: bugId,
               }
+            })
+
+            // Sort notifications by createdAt date (most recent first)
+            const sortedNotifications = processedNotifications.sort((a, b) => {
+              const dateA = new Date(a.createdAt || 0)
+              const dateB = new Date(b.createdAt || 0)
+              return dateB - dateA // Descending order (newest first)
             })
 
             // Try to get read status from localStorage
             const savedReadStatus = JSON.parse(localStorage.getItem("notificationReadStatus") || "{}")
 
             // Apply saved read status to notifications
-            const notificationsWithSavedStatus = notificationsWithBugIds.map((notification) => ({
+            const notificationsWithSavedStatus = sortedNotifications.map((notification) => ({
               ...notification,
               read: savedReadStatus[notification.id] || notification.read,
             }))
@@ -196,21 +228,41 @@ const Navbar = () => {
       console.log("Navigating to bug details:", bugId)
 
       try {
-        // Navigate to bug details page with the bug ID
-        navigate(`/bug-details/${bugId}`, {
-          state: {
-            bug: {
-              id: bugId,
-              title: "Bug Details",
-              description: "",
-              severity: "",
-              status: "",
-              language: "",
-              creator: { id: 0, username: "" },
+        // First try to fetch the bug details to get complete data
+        try {
+          const response = await apiClient.get(`/api/bugs/${bugId}`)
+          console.log("Bug details response:", response)
+
+          if (response && response.data) {
+            // Navigate with complete bug data
+            navigate(`/bug-details/${bugId}`, {
+              state: {
+                bug: response.data,
+                codeFilePath: "",
+              },
+            })
+          } else {
+            throw new Error("No bug data returned")
+          }
+        } catch (fetchError) {
+          console.error("Error fetching bug details:", fetchError)
+
+          // Fallback: Navigate with minimal bug data
+          navigate(`/bug-details/${bugId}`, {
+            state: {
+              bug: {
+                id: bugId,
+                title: "Bug Details",
+                description: "",
+                severity: "",
+                status: "",
+                language: "",
+                creator: { id: 0, username: "" },
+              },
+              codeFilePath: "",
             },
-            codeFilePath: "",
-          },
-        })
+          })
+        }
 
         setNotificationsOpen(false)
       } catch (error) {
