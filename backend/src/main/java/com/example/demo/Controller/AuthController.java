@@ -70,4 +70,19 @@ public class AuthController {
         ResponseWrapper<String> response = new ResponseWrapper<>("success", "Password reset successful", result);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<ResponseWrapper<String>> verifyEmail(@RequestBody Map<String, String> request) {
+        String otp = request.get("otp");
+        Long userId = Long.valueOf(request.get("userId"));
+
+        boolean isVerified = userService.verifyEmail(otp, userId);
+
+        if (isVerified) {
+            return ResponseEntity.ok(new ResponseWrapper<>("success", "Email verified successfully", null));
+        } else {
+            return ResponseEntity.badRequest().body(new ResponseWrapper<>("error", "Invalid or expired OTP", null));
+        }
+    }
+
 }

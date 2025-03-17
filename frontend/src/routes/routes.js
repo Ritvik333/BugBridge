@@ -6,7 +6,9 @@ import ResetPasswordPage from "../pages/reset-password";
 import ProtectedRoute from "../pages/ProtectedRoute";
 import BugBoardPage from "../pages/bug-board";
 import NewBugPage from "../pages/new-bug";
-import BugDetails from "../pages/bug-details"; // Add BugDetails import
+import BugDetails from "../pages/bug-details"; 
+import Profile from "../pages/profiles";
+import ProfileSettings from "../pages/profileSettings";
 import SavedDraftsPage from "../pages/my-draft";
 import MyDraftPagePage from "../pages/my-draft";
 import SubmissionsPage from "../pages/SubmissionsPage";
@@ -31,6 +33,8 @@ const AppRoutes = () => {
         <Route path="/bug-details/:id/submissions" element={<BugDetails />} />
         <Route path="/SubmissionsPage" element={<SubmissionsPage/>} />
       {/* <Route path="/bug-details/:id" element={<BugDetails />} /> */}
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/profile-settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
       <Route path="/SubmissionsPage" element={<SubmissionsPage />} />
       <Route path="/MySubmissions" element={<MySubs />} />
 

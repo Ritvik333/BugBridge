@@ -15,5 +15,12 @@ public class UserDto {
     private String username;
     private String email;
     private String token;
-
+    private String password;
+    
+    public UserDto(Long id, String username, String email, String password) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
 }

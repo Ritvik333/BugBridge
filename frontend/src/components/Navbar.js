@@ -77,11 +77,9 @@ const Navbar = () => {
   const unreadCount = notifications.filter(notification => !notification.read).length;
 
   return (
-    <nav className="h-16 w-full bg-white shadow-md fixed top-0 left-0 z-20 flex justify-between items-center px-8">
-      <h1 className="text-xl font-semibold">Bug Board</h1>
-      <div className="flex space-x-6">
-        {/* Notifications */}
-        <div className="relative" ref={notificationRef}>
+      <nav className="h-16 w-full bg-white shadow-md fixed top-0 left-0 z-20 flex justify-between items-center px-8">
+        <h1 className="text-xl font-semibold hover:text-blue-600 transition duration-200" onClick={() => navigate("/dashboard")}>Bug Board</h1>
+        <div className="flex space-x-6">
           <button
             className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition relative"
             onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -167,7 +165,6 @@ const Navbar = () => {
             </div>
           )}
         </div>
-      </div>
     </nav>
   );
 };
