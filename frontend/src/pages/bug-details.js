@@ -5,6 +5,8 @@ import "../styles/SubmitModal.css";
 import CodeEditor from "../components/CodeEditor";
 import { useNavigate, useLocation } from "react-router-dom";
 // import HorizontalNav from "../components/HorizontalNav";
+import SolutionPage from "./SolutionPage";
+import SubmissionsPage from "./SubmissionsPage";
 import MonacoEditor from "@monaco-editor/react";
 
 

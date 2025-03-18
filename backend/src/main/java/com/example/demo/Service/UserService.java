@@ -1,35 +1,34 @@
 package com.example.demo.Service;
 
-import com.example.demo.dto.CredentialsDto;
-import com.example.demo.dto.ResponseWrapper;
-import com.example.demo.dto.SignUpDto;
-import com.example.demo.dto.UserDto;
-import com.example.demo.Model.PasswordResetToken;
-import com.example.demo.Model.PasswordResetTokenRepository;
-import com.example.demo.Model.User;
-import com.example.demo.exceptions.AppException;
-import com.example.demo.mappers.UserMapper;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.persistence.EntityNotFoundException;
-
-import com.example.demo.Model.UserRepository;
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-
 import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.Model.PasswordResetToken;
+import com.example.demo.Model.PasswordResetTokenRepository;
+import com.example.demo.Model.User;
+import com.example.demo.Model.UserRepository;
+import com.example.demo.dto.CredentialsDto;
+import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.dto.SignUpDto;
+import com.example.demo.dto.UserDto;
+import com.example.demo.exceptions.AppException;
+import com.example.demo.mappers.UserMapper;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
