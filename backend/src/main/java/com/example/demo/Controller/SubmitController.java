@@ -24,6 +24,7 @@ import com.example.demo.Service.SubmitService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.SubmitRequestDto;
+import com.example.demo.dto.ApproveDto;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -119,14 +120,14 @@ public ResponseEntity<String> getFileContent(
 }
 
     @PutMapping("/approve/{submissionId}")
-    public ResponseEntity<ResponseWrapper<String>> approveSubmission(@PathVariable Long submissionId, @RequestParam Long approverId) {
-        String result = submitService.approveSubmission(submissionId, approverId);
+    public ResponseEntity<ResponseWrapper<String>> approveSubmission(@PathVariable Long submissionId, @RequestBody ApproveDto request) {
+        String result = submitService.approveSubmission(submissionId, request.getApproverId());
         return ResponseEntity.ok(new ResponseWrapper<>("success", result, null));
     }
 
     @PutMapping("/reject/{submissionId}")
-    public ResponseEntity<ResponseWrapper<String>> rejectSubmission(@PathVariable Long submissionId, @RequestParam Long rejecterId) {
-        String result = submitService.rejectSubmission(submissionId, rejecterId);
+    public ResponseEntity<ResponseWrapper<String>> rejectSubmission(@PathVariable Long submissionId, @RequestBody ApproveDto request) {
+        String result = submitService.rejectSubmission(submissionId, request.getApproverId());
         return ResponseEntity.ok(new ResponseWrapper<>("success", result, null));
     }
 
