@@ -25,6 +25,15 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
     const [description, setDescription] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [joinRequests, setJoinRequests] = useState({}); // Owner's join requests
+    const [showSubmitModal, setShowSubmitModal] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+    const [submissions, setSubmissions] = useState([]);
+    const [solutions, setSolutions] = useState([]);
+
+    // Handle opening and closing of the modal
+    const handleOpenSubmitModal = () => {setShowSubmitModal(true);setoldCode(code);}
+    const handleCloseSubmitModal = () => setShowSubmitModal(false);
 
     // For non-owners: notifications for available sessions
     const [showNotifications, setShowNotifications] = useState(false);
@@ -46,11 +55,11 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
 
     const handleEditorDidMount = useCallback((editor, monaco) => {
         editorRef.current = editor;
-        console.log("Editor mounted");
+        // console.log("Editor mounted");
 
         // Track local cursor changes
         editor.onDidChangeCursorPosition((e) => {
-            console.log("Editor mounted",rememberMeId);
+            // console.log("Editor mounted",rememberMeId);
 
             if (sessionIdRef.current) {  // use the ref here
                 CollabService.sendCursorUpdate(sessionIdRef.current, {
@@ -288,6 +297,7 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 return codeFile;
             }
         }
+        
         const loadCode = async () => {
             try {
                 const userId = localStorage.getItem("rememberMe");
@@ -297,6 +307,7 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 const language = bug.language;
                 const filepath = bug.codeFilePath;
                 const filename = filepath.split(/[/\\]/).pop();
+                console.log(userId, username, language, filename);
                 let fetchedCode = await fetchFile(userId, username, language, filename);
                 if (fetchedCode) {
                     setCode(fetchedCode || "");
@@ -356,27 +367,63 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
 
     // ------------------ Action Handlers ------------------
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
+    const [oldcode, setoldCode] = useState("");
+
+    const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            setSuccessMessage("File size exceeds 10 MB limit. Please upload a smaller file.");
+            setSelectedFile(null);
+            setCode(oldcode); // Reset code if file is too large
+            event.target.value = null; // Reset the file input
+            return;
+        }
+
+        setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const fileContent = e.target.result; // File content as a string
+            setCode(fileContent); // Set the file content as the code
+        };
+        reader.onerror = (e) => {
+            console.error("Error reading file:", e);
+            setSuccessMessage("Failed to read file");
+            setSelectedFile(null);
+            setCode("");
+            event.target.value = null;
+        };
+        reader.readAsText(file); // Read the file as text
+    } else {
+        setSelectedFile(null);
+        setCode(""); // Reset code if no file is selected
+    }
+};
+
+    
     const handleSubmitCode = async () => {
         try {
             const userId = localStorage.getItem("rememberMe");
             const bugId = bug.id;
             const desc = description;
+
             const formData = new FormData();
             formData.append("userId", userId);
             formData.append("bugId", bugId);
-            formData.append("desc", description);
-            if (selectedFile) {
-                formData.append("file", selectedFile);
-            } else {
-                formData.append("code", code);
-            }
+            formData.append("desc", desc);
+            formData.append("code", code);
+            
             await submitCode({ userId, bugId, desc, code });
-            alert("Code submitted successfully!");
+            setSuccessMessage("✅ Code submitted successfully!");
+            // fetchSubmissions();
         } catch (error) {
             console.error("Error submitting code:", error);
-            alert("Failed to submit code.");
+            setSuccessMessage("Failed to submit code");
         }
     };
+
 
     const handleSaveDraft = async () => {
         try {
@@ -563,9 +610,45 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                                 </div>}
                         </>
                     )}
-                    <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleSubmitCode}>
+                    <button className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" onClick={handleOpenSubmitModal}>
                         <Upload />
                     </button>
+                    {showSubmitModal && (
+                            <div className="modal-overlay">
+                                <div className="modal">
+                                    <h2>Submit Code</h2>
+                                    <label>Description:</label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Enter a brief description..."
+                                    />
+                                    <label>Upload File (Optional):</label>
+                                    <input type="file" onChange={handleFileChange} />
+                                    <h4>OR</h4>
+                                    <label>Code Preview:</label>
+                                    <MonacoEditor
+                                        theme="vs-dark"
+                                        height="250px"
+                                        defaultLanguage="javascript"
+                                        value={code}
+                                        options={{
+                                            readOnly: true,
+                                            minimap: { enabled: false },
+                                            scrollbar: { vertical: "hidden" },
+                                            lineNumbers: "on",
+                                            automaticLayout: true,
+                                        }}
+                                    />
+                                    {successMessage && (
+                                        <p className="text-green-500 mt-2">{successMessage}</p>
+                                    )}
+                                    <button onClick={handleSubmitCode}>Submit</button>
+                                    <button onClick={handleCloseSubmitModal}>Close</button>
+                                </div>
+                            </div>
+                        )}
+
                     <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={handleCopyCode}>
                         <Copy />
                     </button>
