@@ -78,7 +78,7 @@ class UpdateUserTest {
         ResponseWrapper<String> response = userService.updateUserAccount(1L, updateDto);
 
         assertEquals("success", response.getStatus());
-        assertEquals("Email verification OTP Sent", response.getMessage());
+        assertEquals("Email verification OTP Sent. Click 'Save Changes' after verification.", response.getMessage());
         verify(userService).createEmailVerificationToken(1L, "new@example.com"); //Ensure it was called
     }
 
@@ -94,7 +94,7 @@ class UpdateUserTest {
         ResponseWrapper<String> response = userService.updateUserAccount(1L, updateDto);
 
         assertEquals("success", response.getStatus());
-        assertEquals("Password updated successfully", response.getMessage());
+        assertEquals("User updated successfully", response.getMessage());
         assertEquals("hashed_new_password", testUser.getPassword()); // Ensure password is updated
         verify(userRepository).save(testUser);
     }
