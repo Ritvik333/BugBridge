@@ -2,6 +2,7 @@
 stages:
   - build
   - test
+  - smells
   - publish
   - deploy
 
@@ -37,6 +38,16 @@ build-frontend:
   artifacts:
     paths:
       - frontend/build
+
+smells:
+  stage: smells
+  image: openjdk:17
+  script:
+    - echo "Compiling the project"
+    - java -jar $CI_PROJECT_DIR/code_quality/DesigniteJava.jar -i $CI_PROJECT_DIR -o $CI_PROJECT_DIR/smells/ -d
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR
 
 publish-backend:
   image: docker:latest
