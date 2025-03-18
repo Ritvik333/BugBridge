@@ -382,3 +382,16 @@ export const verifyOtp = async (userId, otp) => {
   }
 };
 
+  export const createSession = async (rememberMeId,bugId) => {
+    try {
+      // Make a call to your backend to create a session
+      const response = await apiClient.post(`/session/create?ownerId=${rememberMeId}&bugId=${bugId}`, null, {
+        params: { ownerId: rememberMeId,bugId:bugId },
+      });
+      // The backend should respond with a JSON object that contains sessionId
+      return response.data;
+    } catch (error) {
+      console.error("Error creating session:", error);
+    }
+  };
+  

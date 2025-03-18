@@ -198,7 +198,7 @@ export default function MySubs() {
         <div className="flex flex-col h-screen">
             <Navbar />
             <div className="flex flex-1">
-                <div className="w-64 flex-shrink-0">
+                <div className="w-48 flex-shrink-0">
                     <SideNav />
                 </div>
                 <main className="flex-1 bg-gray-100 p-4 overflow-auto">
@@ -231,7 +231,7 @@ export default function MySubs() {
                                                 onClick={() => toggleBugExpanded(bug.id)}
                                             >
                                                 <div className="flex justify-between items-center">
-                                                    <div className="text-lg font-medium">{bug.title}</div>
+                                                    <div className="text-lg font-medium text-blue-500">{bug.title}</div>
                                                     <div className="flex items-center">
                                                         {expandedBugs[bug.id] ? (
                                                             <ChevronUp className="h-5 w-5 text-gray-400" />
