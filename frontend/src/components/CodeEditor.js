@@ -280,6 +280,8 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 console.log("Draft file fetched successfully:", fetchedCode);
                 return fetchedCode;
             } catch (error) {
+                const userId = bug.creator.id;
+                const username = bug.creator.username;
                 console.error("Failed to fetch draft file, trying fallback:", error);
                 let codeFile = await fetchCodeFile(userId, username, language, filename);
                 console.log("Fallback file fetched successfully:", codeFile);
