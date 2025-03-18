@@ -231,7 +231,7 @@ export default function MySubs() {
                                                 onClick={() => toggleBugExpanded(bug.id)}
                                             >
                                                 <div className="flex justify-between items-center">
-                                                    <div className="text-lg font-medium">{bug.title}</div>
+                                                    <div className="text-lg font-medium text-blue-500">{bug.title}</div>
                                                     <div className="flex items-center">
                                                         {expandedBugs[bug.id] ? (
                                                             <ChevronUp className="h-5 w-5 text-gray-400" />
