@@ -38,6 +38,12 @@ build-frontend:
   artifacts:
     paths:
       - frontend/build
+test:
+  stage: test
+  image: maven:latest
+  script:
+    - cd backend
+    - mvn test
 
 smells:
   stage: smells
