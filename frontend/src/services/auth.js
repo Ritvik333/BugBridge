@@ -281,7 +281,8 @@ export const fetchUserDrafts = async (userId) => {
 
   export const approveSubmission = async (submissionId, approverId) => {
     try {
-        const response = await apiClient.put(`/submissions/approve/${submissionId}?approverId=${approverId}`);
+        const response = await apiClient.put(`/submissions/approve/${submissionId}`, {approverId});
+        console.log(response);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -289,7 +290,8 @@ export const fetchUserDrafts = async (userId) => {
 };
 export const rejectSubmission = async (submissionId, rejecterId) => {
   try {
-      const response = await apiClient.put(`/submissions/reject/${submissionId}?rejecterId=${rejecterId}`);
+      const approverId = rejecterId;
+      const response = await apiClient.put(`/submissions/reject/${submissionId}`, {approverId});
       return response.data;
   } catch (error) {
       throw error.response ? error.response.data : error.message;
