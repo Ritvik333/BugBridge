@@ -1,11 +1,13 @@
 package com.example.demo.Service;
 
-import com.example.demo.Model.User;
-import com.example.demo.Model.UserRepository;
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.regex.Pattern;
+
+import com.example.demo.Model.User;
+import com.example.demo.Model.UserRepository;
 
 @Service
 public class RegistrationService {
@@ -22,7 +24,7 @@ public class RegistrationService {
             throw new IllegalArgumentException("Username already taken");
         }
 
-        if (userRepository.findByEmail(user.getUsername()).isPresent()) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already taken");
         }
 
@@ -43,7 +45,7 @@ public class RegistrationService {
     }
 
     // Utility method to validate email format
-    private boolean isValidEmail(String email) {
+    public boolean isValidEmail(String email) {
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         Pattern pattern = Pattern.compile(emailRegex);
         return pattern.matcher(email).matches();

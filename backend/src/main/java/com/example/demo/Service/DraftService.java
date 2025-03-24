@@ -67,7 +67,7 @@ public class DraftService {
     
     
     // Utility method for mapping languages to file extensions
-    private String mapLanguageToExtension(String language) {
+    public String mapLanguageToExtension(String language) {
         if (language == null) return ".txt"; // Default extension
     
         switch (language.toLowerCase()) {
