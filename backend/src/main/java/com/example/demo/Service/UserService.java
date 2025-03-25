@@ -41,10 +41,10 @@ public class UserService {
     private final UserMapper userMapper;
 
     @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
     @Autowired
-    private PasswordResetTokenRepository tokenRepository;
+    private final PasswordResetTokenRepository tokenRepository;
 
     // @Autowired
     // private PasswordResetService passwordResetService;

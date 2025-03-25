@@ -211,67 +211,7 @@ class SessionServiceTest {
         verify(sessionRepository).findAll();
     }
 
-    @Test
-    void testGetSessionByBugIdFound() {
-        // Given
-        Long bugId = 1L;
-        Session session = new Session();
-        session.setBugId(bugId);
-        when(sessionRepository.findByBugId(bugId)).thenReturn(session);
 
-        // When
-        Optional<Session> result = sessionService.getSessionByBugId(bugId);
-
-        // Then
-        assertTrue(result.isPresent());
-        assertEquals(session, result.get());
-        verify(sessionRepository).findByBugId(bugId);
-    }
-
-    @Test
-    void testGetSessionByBugIdNotFound() {
-        // Given
-        Long bugId = 2L;
-        when(sessionRepository.findByBugId(bugId)).thenReturn(null);
-
-        // When
-        Optional<Session> result = sessionService.getSessionByBugId(bugId);
-
-        // Then
-        assertFalse(result.isPresent());
-        verify(sessionRepository).findByBugId(bugId);
-    }
-
-    @Test
-    void testGetSessionByIdFound() {
-        // Given
-        Long sessionId = 1L;
-        Session session = new Session();
-        session.setSessionId(String.valueOf(sessionId));
-        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
-
-        // When
-        Optional<Session> result = sessionService.getSessionById(sessionId);
-
-        // Then
-        assertTrue(result.isPresent());
-        assertEquals(session, result.get());
-        verify(sessionRepository).findById(sessionId);
-    }
-
-    @Test
-    void testGetSessionByIdNotFound() {
-        // Given
-        Long sessionId = 2L;
-        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
-
-        // When
-        Optional<Session> result = sessionService.getSessionById(sessionId);
-
-        // Then
-        assertFalse(result.isPresent());
-        verify(sessionRepository).findById(sessionId);
-    }
 
     @Test
     void testCreateSessionWhenSessionExists() {

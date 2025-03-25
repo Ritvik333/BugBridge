@@ -1,108 +1,105 @@
-import java.util.Arrays;
-import java.util.Collections;
+import static org.junit.jupiter.api.Assertions.*;
+import java.io.IOException;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
-
 import com.example.demo.Model.Bug;
 import com.example.demo.Service.BugSuggestionService;
 import com.example.demo.dto.SuggestedSolution;
 
-class BugSuggestionServiceTest {
+// Test subclass to override the external API call.
+public class BugSuggestionServiceTest {
 
-    @Mock
-    private BugSuggestionService bugSuggestionService;
+    // Extend the service to override executeCurlCommand.
+    private static class TestBugSuggestionService extends BugSuggestionService {
+        private String responseToReturn;
+        private boolean throwException;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+        public void setResponseToReturn(String responseToReturn) {
+            this.responseToReturn = responseToReturn;
+        }
+
+        public void setThrowException(boolean throwException) {
+            this.throwException = throwException;
+        }
+
+        @Override
+        protected String executeCurlCommand(String url) throws IOException, InterruptedException {
+            if (throwException) {
+                throw new IOException("Simulated exception");
+            }
+            return responseToReturn;
+        }
     }
 
+    // Test a successful API call returning one suggested solution.
     @Test
-    void testGetSuggestedSolutions_EmptyList() {
-        // Arrange
+    public void testGetSuggestedSolutions_success() {
+        TestBugSuggestionService service = new TestBugSuggestionService();
+        // Create a JSON response with one item.
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 100," +
+                "\"body\": \"Test body content\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        service.setResponseToReturn(jsonResponse);
+
         Bug bug = new Bug();
         bug.setTitle("Test Bug");
-        when(bugSuggestionService.getSuggestedSolutions(bug)).thenReturn(Collections.emptyList());
+        bug.setDescription("Test description");
 
-        // Act
-        List<SuggestedSolution> suggestions = bugSuggestionService.getSuggestedSolutions(bug);
-
-        // Assert
-        assertEquals(0, suggestions.size());
+        List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
+        assertEquals(1, solutions.size(), "Expected one suggested solution");
+        SuggestedSolution sol = solutions.get(0);
+        assertAll("Solution properties",
+                () -> assertEquals("Test Title", sol.getTitle(), "Title should match"),
+                () -> assertEquals("https://stackoverflow.com/questions/100", sol.getLink(), "Link should match"),
+                () -> assertEquals("Test body content...", sol.getSummary(), "Summary should be the truncated body with ellipsis")
+        );
     }
 
+    // Test that when executeCurlCommand throws an exception, the service returns an empty list.
     @Test
-    void testGetSuggestedSolutions_SingleResult() {
-        // Arrange
+    public void testGetSuggestedSolutions_exception() {
+        TestBugSuggestionService service = new TestBugSuggestionService();
+        service.setThrowException(true);
+
         Bug bug = new Bug();
-        bug.setTitle("NullPointerException");
+        bug.setTitle("Test Bug");
 
-        SuggestedSolution solution = new SuggestedSolution("Title", "Link", "Body");
-        when(bugSuggestionService.getSuggestedSolutions(bug)).thenReturn(Collections.singletonList(solution));
-
-        // Act
-        List<SuggestedSolution> suggestions = bugSuggestionService.getSuggestedSolutions(bug);
-
-        // Assert
-        assertEquals(1, suggestions.size());
-        assertEquals("Title", suggestions.get(0).getTitle());
-        assertEquals("Link", suggestions.get(0).getLink());
-        assertEquals("Body", suggestions.get(0).getSummary());
+        List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
+        assertTrue(solutions.isEmpty(), "Expected an empty list when an exception occurs");
     }
 
+    // Test that null bug title and description are handled properly.
     @Test
-    void testGetSuggestedSolutions_MultipleResults() {
-        // Arrange
-        Bug bug = new Bug();
-        bug.setTitle("ArrayOutOfBoundsException");
+    public void testGetSuggestedSolutions_nullValues() {
+        TestBugSuggestionService service = new TestBugSuggestionService();
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 200," +
+                "\"body\": \"Body text for null bug\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        service.setResponseToReturn(jsonResponse);
 
-        SuggestedSolution solution1 = new SuggestedSolution("Title 1", "Link 1", "Body 1");
-        SuggestedSolution solution2 = new SuggestedSolution("Title 2", "Link 2", "Body 2");
-        List<SuggestedSolution> mockSolutions = Arrays.asList(solution1, solution2);
-
-        when(bugSuggestionService.getSuggestedSolutions(bug)).thenReturn(mockSolutions);
-
-        // Act
-        List<SuggestedSolution> suggestions = bugSuggestionService.getSuggestedSolutions(bug);
-
-        // Assert
-        assertEquals(2, suggestions.size());
-        assertEquals("Title 1", suggestions.get(0).getTitle());
-        assertEquals("Title 2", suggestions.get(1).getTitle());
-    }
-
-    @Test
-    void testGetSuggestedSolutions_NullBugTitle() {
-        // Arrange
         Bug bug = new Bug();
         bug.setTitle(null);
+        bug.setDescription(null);
 
-        when(bugSuggestionService.getSuggestedSolutions(bug)).thenReturn(Collections.emptyList());
-
-        // Act
-        List<SuggestedSolution> suggestions = bugSuggestionService.getSuggestedSolutions(bug);
-
-        // Assert
-        assertEquals(0, suggestions.size());
-    }
-
-    @Test
-    void testGetSuggestedSolutions_ApiServiceThrowsException() {
-        // Arrange
-        Bug bug = new Bug();
-        bug.setTitle("Some Title");
-
-        when(bugSuggestionService.getSuggestedSolutions(bug)).thenThrow(new RuntimeException("API Service Failed"));
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> bugSuggestionService.getSuggestedSolutions(bug));
+        List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
+        assertEquals(1, solutions.size(), "Expected one suggested solution even if title/description are null");
+        SuggestedSolution sol = solutions.get(0);
+        assertAll("Solution properties with null bug fields",
+                () -> assertEquals("Test Title", sol.getTitle(), "Title should match"),
+                () -> assertEquals("https://stackoverflow.com/questions/200", sol.getLink(), "Link should match"),
+                () -> assertEquals("Body text for null bug...", sol.getSummary(), "Summary should match")
+        );
     }
 }
-

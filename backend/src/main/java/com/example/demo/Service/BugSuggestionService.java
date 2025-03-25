@@ -49,7 +49,7 @@ public class BugSuggestionService {
         }
     }
 
-    private String executeCurlCommand(String url) throws IOException, InterruptedException {
+    protected String executeCurlCommand(String url) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "curl",
                 "-H", "User-Agent: Mozilla/5.0",
