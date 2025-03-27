@@ -4,13 +4,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
@@ -55,10 +52,13 @@ class BugServiceTest {
         // Act
         List<Bug> result = bugService.getBugs(null, null, null, null, null);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(expectedBugs, result);
+        // Assert: Group all checks into one compound assertion.
+        assertAll("Get bugs success validations",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(2, result.size(), "Expected 2 bugs in the result"),
+                () -> assertEquals(expectedBugs, result, "Returned bugs should match the expected list")
+        );
+
         verify(bugRepository, times(1)).findAll();
     }
 
@@ -70,9 +70,12 @@ class BugServiceTest {
         // Act
         List<Bug> result = bugService.getBugs(null, null, null, null, null);
 
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        // Assert: Group assertions in one compound assertion.
+        assertAll("Get bugs no results validations",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertTrue(result.isEmpty(), "Expected result list to be empty")
+        );
+
         verify(bugRepository, times(1)).findAll();
     }
 
@@ -90,11 +93,15 @@ class BugServiceTest {
         // Act
         Bug result = bugService.getBugById(bugId);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(expectedBug, result);
+        // Assert: Group both assertions into one compound assertion.
+        assertAll("Get bug by ID validations",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(expectedBug, result, "Returned bug should match the expected bug")
+        );
+
         verify(bugRepository, times(1)).findById(bugId);
     }
+
 
     @Test
     void testGetBugByIdNotFound() {
@@ -124,11 +131,15 @@ class BugServiceTest {
         // Act
         Bug result = bugService.createBug(bug);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(bug, result);
+        // Assert: Group assertions in a single assertAll.
+        assertAll("Create bug success validations",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(bug, result, "Returned bug should match the created bug")
+        );
+
         verify(bugRepository, times(1)).save(bug);
     }
+
 
     // --- Tests for updateBug ---
 
@@ -150,9 +161,12 @@ class BugServiceTest {
         // Act
         Bug result = bugService.updateBug(updatedBug);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(updatedBug, result);
+        // Assert: Group both assertions into one compound assertion.
+        assertAll("Update bug success validations",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(updatedBug, result, "Returned bug should match the updated bug")
+        );
+
         verify(bugRepository, times(1)).findById(bugId);
         verify(bugRepository, times(1)).save(updatedBug);
     }

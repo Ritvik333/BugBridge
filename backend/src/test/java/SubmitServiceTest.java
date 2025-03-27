@@ -86,7 +86,7 @@ class SubmitServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug));
 
-        // Simulate the first save call assigning an ID to the submission.
+        // Simulate the submission save call assigning an ID to the submission.
         when(submitRepository.save(any(Submit.class))).thenAnswer(invocation -> {
             Submit s = invocation.getArgument(0);
             if (s.getId() == null) {
@@ -97,28 +97,33 @@ class SubmitServiceTest {
 
         // Act
         Submit submit = submitService.saveSubmission(userId, bugId, username, desc, code);
-
-        // Assert
-        assertAll("Submission success validations",
-                () -> assertNotNull(submit),
-                () -> assertEquals(user, submit.getUser(), "User should match"),
-                () -> assertEquals(bug, submit.getBug(), "Bug should match"),
-                () -> assertEquals(desc, submit.getDescription(), "Description should match"),
-                () -> assertNotNull(submit.getCodeFilePath(), "Code file path should be set"),
-                () -> assertTrue(submit.getCodeFilePath().endsWith(".java"), "File extension should be .java")
-        );
-
-        // Verify file was created and contains the expected code.
         Path filePath = Paths.get(submit.getCodeFilePath());
-        assertTrue(Files.exists(filePath), "File should exist");
-        String fileContent = new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8);
-        assertEquals(code, fileContent, "File content should match the code provided");
 
-        // Verify notifications sent
-        verify(notificationService, times(1))
-                .createNotification(eq(userId), contains("has been submitted."));
-        verify(notificationService, times(1))
-                .createNotification(eq(creator.getId()), contains("by " + user.getUsername()));
+        // Assert: Group all validations in a single compound assertion.
+        assertAll("Submission success validations",
+                () -> {
+                    // Submission property assertions.
+                    assertNotNull(submit, "Submission should not be null");
+                    assertEquals(user, submit.getUser(), "User should match");
+                    assertEquals(bug, submit.getBug(), "Bug should match");
+                    assertEquals(desc, submit.getDescription(), "Description should match");
+                    assertNotNull(submit.getCodeFilePath(), "Code file path should be set");
+                    assertTrue(submit.getCodeFilePath().endsWith(".java"), "File extension should be .java");
+                },
+                () -> {
+                    // File system assertions.
+                    assertTrue(Files.exists(filePath), "File should exist at the absolute path");
+                    String fileContent = new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8);
+                    assertEquals(code, fileContent, "File content should match the provided code");
+                },
+                () -> {
+                    // Notification verifications.
+                    verify(notificationService, times(1))
+                            .createNotification(eq(userId), contains("has been submitted."));
+                    verify(notificationService, times(1))
+                            .createNotification(eq(creator.getId()), contains("by " + user.getUsername()));
+                }
+        );
 
         // Cleanup test file
         Files.deleteIfExists(filePath);
@@ -189,11 +194,14 @@ class SubmitServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            submitService.saveSubmission(userId, bugId, username, desc, code);
-        });
-        assertEquals("User not found", exception.getMessage());
+        // Act
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                submitService.saveSubmission(userId, bugId, username, desc, code)
+        );
+
+        // Assert: Single compound assertion.
+        assertTrue("User not found".equals(exception.getMessage()),
+                "Expected exception message to be 'User not found'");
     }
 
     @Test
@@ -210,24 +218,29 @@ class SubmitServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(bugRepository.findById(bugId)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            submitService.saveSubmission(userId, bugId, username, desc, code);
-        });
-        assertEquals("Bug not found", exception.getMessage());
+        // Act
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                submitService.saveSubmission(userId, bugId, username, desc, code)
+        );
+
+        // Assert: Single compound assertion
+        assertTrue("Bug not found".equals(exception.getMessage()),
+                "Expected exception message to be 'Bug not found'");
     }
+
 
     @Test
     void testMapLanguageToExtension() {
-        // Act & Assert using assertAll to check each language mapping.
-        assertAll("Language extension mappings",
-                () -> assertEquals(".java", submitService.mapLanguageToExtension("java")),
-                () -> assertEquals(".py", submitService.mapLanguageToExtension("python")),
-                () -> assertEquals(".js", submitService.mapLanguageToExtension("javascript")),
-                () -> assertEquals(".txt", submitService.mapLanguageToExtension("other")),
-                () -> assertEquals(".txt", submitService.mapLanguageToExtension(null))
-        );
+        String[] languages = {"java", "python", "javascript", "other", null};
+        String[] expectedExtensions = {".java", ".py", ".js", ".txt", ".txt"};
+
+        String[] actualExtensions = Arrays.stream(languages)
+                .map(lang -> submitService.mapLanguageToExtension(lang))
+                .toArray(String[]::new);
+
+        assertArrayEquals(expectedExtensions, actualExtensions, "Language mappings should match expected extensions");
     }
+
 
     @Test
     void testFindApprovedSubmissionsByBugIdMultipleFromSameUser() {
@@ -260,12 +273,12 @@ class SubmitServiceTest {
         // Act
         List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
 
-        // Assert: Only the most recent submission per user should be returned.
-        assertAll("Approved submissions grouping",
-                () -> assertEquals(1, result.size(), "Should return only one submission per user"),
-                () -> assertEquals(submit2, result.get(0), "Most recent submission should be returned"),
-                () -> assertEquals("Resolved", bug.getStatus(), "Bug status should be updated to Resolved")
-        );
+        // Assert: Single compound assertion checking all conditions.
+        assertTrue(result != null
+                        && result.size() == 1
+                        && result.get(0).equals(submit2)
+                        && "Resolved".equals(bug.getStatus()),
+                "Expected one submission per user (the most recent one) and bug status 'Resolved'");
     }
 
     @Test
@@ -301,12 +314,14 @@ class SubmitServiceTest {
         // Act
         List<Submit> result = submitService.findApprovedSubmissionsByBugId(bugId);
 
-        // Assert
-        assertAll("Approved submissions for different users",
-                () -> assertEquals(2, result.size(), "Both submissions should be returned"),
-                () -> assertTrue(result.contains(submit1)),
-                () -> assertTrue(result.contains(submit2)),
-                () -> assertEquals("Resolved", bug.getStatus(), "Bug status should be updated to Resolved")
+        // Assert: Single compound assertion
+        assertTrue(
+                result != null &&
+                        result.size() == 2 &&
+                        result.contains(submit1) &&
+                        result.contains(submit2) &&
+                        "Resolved".equals(bug.getStatus()),
+                "Expected 2 approved submissions (submit1 and submit2) and bug status updated to 'Resolved'"
         );
     }
 
@@ -358,14 +373,15 @@ class SubmitServiceTest {
         // Act
         List<Submit> result = submitService.getSubmissionsForUserAndBug(userId, bugId);
 
-        // Assert
-        assertAll("Submissions for user and bug",
-                () -> assertNotNull(result),
-                () -> assertEquals(2, result.size()),
-                () -> assertEquals(expected, result)
-        );
+        // Assert: Single compound assertion checking non-null, size, and equality.
+        assertTrue(result != null
+                        && result.size() == 2
+                        && result.equals(expected),
+                "Expected result to be non-null, have 2 elements, and equal to the expected list");
+
         verify(submitRepository, times(1)).findByUserIdAndBugId(userId, bugId);
     }
+
 
     @Test
     void testGetSubmissionByIdFound() {

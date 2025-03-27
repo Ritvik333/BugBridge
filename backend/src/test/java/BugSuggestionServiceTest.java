@@ -6,7 +6,6 @@ import com.example.demo.Model.Bug;
 import com.example.demo.Service.BugSuggestionService;
 import com.example.demo.dto.SuggestedSolution;
 
-// Test subclass to override the external API call.
 public class BugSuggestionServiceTest {
 
     // Extend the service to override executeCurlCommand.
@@ -31,11 +30,19 @@ public class BugSuggestionServiceTest {
         }
     }
 
-    // Test a successful API call returning one suggested solution.
-    @Test
-    public void testGetSuggestedSolutions_success() {
+    // Helper to create a service pre-configured with a JSON response.
+    private TestBugSuggestionService createServiceWithResponse(String jsonResponse) {
         TestBugSuggestionService service = new TestBugSuggestionService();
-        // Create a JSON response with one item.
+        service.setResponseToReturn(jsonResponse);
+        return service;
+    }
+
+    // --------------------------
+    // Tests for successful API call (with valid bug values)
+    // --------------------------
+
+    @Test
+    public void testGetSuggestedSolutions_success_listSize() {
         String jsonResponse = "{" +
                 "\"items\": [{" +
                 "\"title\": \"Test Title\"," +
@@ -45,7 +52,7 @@ public class BugSuggestionServiceTest {
                 "\"has_more\": false," +
                 "\"backoff\": 0" +
                 "}";
-        service.setResponseToReturn(jsonResponse);
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
 
         Bug bug = new Bug();
         bug.setTitle("Test Bug");
@@ -53,15 +60,163 @@ public class BugSuggestionServiceTest {
 
         List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
         assertEquals(1, solutions.size(), "Expected one suggested solution");
-        SuggestedSolution sol = solutions.get(0);
-        assertAll("Solution properties",
-                () -> assertEquals("Test Title", sol.getTitle(), "Title should match"),
-                () -> assertEquals("https://stackoverflow.com/questions/100", sol.getLink(), "Link should match"),
-                () -> assertEquals("Test body content...", sol.getSummary(), "Summary should be the truncated body with ellipsis")
-        );
     }
 
-    // Test that when executeCurlCommand throws an exception, the service returns an empty list.
+    @Test
+    public void testGetSuggestedSolutions_success_title() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 100," +
+                "\"body\": \"Test body content\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle("Test Bug");
+        bug.setDescription("Test description");
+
+        SuggestedSolution sol = service.getSuggestedSolutions(bug).get(0);
+        assertEquals("Test Title", sol.getTitle(), "Title should match");
+    }
+
+    @Test
+    public void testGetSuggestedSolutions_success_link() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 100," +
+                "\"body\": \"Test body content\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle("Test Bug");
+        bug.setDescription("Test description");
+
+        SuggestedSolution sol = service.getSuggestedSolutions(bug).get(0);
+        assertEquals("https://stackoverflow.com/questions/100", sol.getLink(), "Link should match");
+    }
+
+    @Test
+    public void testGetSuggestedSolutions_success_summary() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 100," +
+                "\"body\": \"Test body content\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle("Test Bug");
+        bug.setDescription("Test description");
+
+        SuggestedSolution sol = service.getSuggestedSolutions(bug).get(0);
+        assertEquals("Test body content...", sol.getSummary(), "Summary should be the truncated body with ellipsis");
+    }
+
+    // --------------------------
+    // Tests for successful API call with null bug title and description
+    // --------------------------
+
+    @Test
+    public void testGetSuggestedSolutions_nullValues_listSize() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 200," +
+                "\"body\": \"Body text for null bug\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle(null);
+        bug.setDescription(null);
+
+        List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
+        assertEquals(1, solutions.size(), "Expected one suggested solution even if bug fields are null");
+    }
+
+    @Test
+    public void testGetSuggestedSolutions_nullValues_title() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 200," +
+                "\"body\": \"Body text for null bug\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle(null);
+        bug.setDescription(null);
+
+        SuggestedSolution sol = service.getSuggestedSolutions(bug).get(0);
+        assertEquals("Test Title", sol.getTitle(), "Title should match");
+    }
+
+    @Test
+    public void testGetSuggestedSolutions_nullValues_link() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 200," +
+                "\"body\": \"Body text for null bug\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle(null);
+        bug.setDescription(null);
+
+        SuggestedSolution sol = service.getSuggestedSolutions(bug).get(0);
+        assertEquals("https://stackoverflow.com/questions/200", sol.getLink(), "Link should match");
+    }
+
+    @Test
+    public void testGetSuggestedSolutions_nullValues_summary() {
+        String jsonResponse = "{" +
+                "\"items\": [{" +
+                "\"title\": \"Test Title\"," +
+                "\"question_id\": 200," +
+                "\"body\": \"Body text for null bug\"" +
+                "}]," +
+                "\"has_more\": false," +
+                "\"backoff\": 0" +
+                "}";
+        TestBugSuggestionService service = createServiceWithResponse(jsonResponse);
+
+        Bug bug = new Bug();
+        bug.setTitle(null);
+        bug.setDescription(null);
+
+        SuggestedSolution sol = service.getSuggestedSolutions(bug).get(0);
+        assertEquals("Body text for null bug...", sol.getSummary(), "Summary should match");
+    }
+
+    // --------------------------
+    // Test for handling exception scenario
+    // --------------------------
+
     @Test
     public void testGetSuggestedSolutions_exception() {
         TestBugSuggestionService service = new TestBugSuggestionService();
@@ -72,34 +227,5 @@ public class BugSuggestionServiceTest {
 
         List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
         assertTrue(solutions.isEmpty(), "Expected an empty list when an exception occurs");
-    }
-
-    // Test that null bug title and description are handled properly.
-    @Test
-    public void testGetSuggestedSolutions_nullValues() {
-        TestBugSuggestionService service = new TestBugSuggestionService();
-        String jsonResponse = "{" +
-                "\"items\": [{" +
-                "\"title\": \"Test Title\"," +
-                "\"question_id\": 200," +
-                "\"body\": \"Body text for null bug\"" +
-                "}]," +
-                "\"has_more\": false," +
-                "\"backoff\": 0" +
-                "}";
-        service.setResponseToReturn(jsonResponse);
-
-        Bug bug = new Bug();
-        bug.setTitle(null);
-        bug.setDescription(null);
-
-        List<SuggestedSolution> solutions = service.getSuggestedSolutions(bug);
-        assertEquals(1, solutions.size(), "Expected one suggested solution even if title/description are null");
-        SuggestedSolution sol = solutions.get(0);
-        assertAll("Solution properties with null bug fields",
-                () -> assertEquals("Test Title", sol.getTitle(), "Title should match"),
-                () -> assertEquals("https://stackoverflow.com/questions/200", sol.getLink(), "Link should match"),
-                () -> assertEquals("Body text for null bug...", sol.getSummary(), "Summary should match")
-        );
     }
 }

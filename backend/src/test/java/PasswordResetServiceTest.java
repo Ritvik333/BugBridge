@@ -167,9 +167,11 @@ class PasswordResetServiceTest {
         // Act
         String result = passwordResetService.resetPassword(token, newPassword);
 
-        // Assert
-        assertEquals("Password reset successful", result);
-        assertEquals(encodedPassword, user.getPassword());
+        // Assert combined into one assertion:
+        assertTrue("Password reset successful".equals(result) && encodedPassword.equals(user.getPassword()),
+                "Expected reset result to be 'Password reset successful' and user's password to be updated to the encoded password");
+
+        // Side-effect verifications
         verify(tokenRepository, times(1)).findByToken(token);
         verify(passwordEncoder, times(1)).encode(newPassword);
         verify(userRepository, times(1)).save(user);

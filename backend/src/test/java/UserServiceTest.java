@@ -84,10 +84,10 @@ class UserServiceTest {
 
         UserDto result = userService.login(credentials);
 
-        assertAll("Login success",
-                () -> assertNotNull(result),
-                () -> assertEquals(expectedDto, result)
-        );
+        // Single compound assertion verifying that result is not null and equals expectedDto.
+        assertTrue(result != null && result.equals(expectedDto),
+                "Expected a non-null result that matches the expected DTO");
+
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder).matches(any(CharBuffer.class), eq("hashed_password"));
     }
@@ -98,13 +98,15 @@ class UserServiceTest {
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
         AppException exception = assertThrows(AppException.class, () -> userService.login(credentials));
-        assertAll("Login unknown user",
-                () -> assertEquals("Unknown user", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
-        );
+
+        assertTrue("Unknown user".equals(exception.getMessage())
+                        && HttpStatus.NOT_FOUND.equals(exception.getStatus()),
+                "Expected exception with message 'Unknown user' and status NOT_FOUND");
+
         verify(userRepository).findByEmail("unknown@example.com");
         verify(passwordEncoder, never()).matches(any(), any());
     }
+
 
     @Test
     void testLoginInvalidPassword() {
@@ -113,13 +115,15 @@ class UserServiceTest {
         when(passwordEncoder.matches(CharBuffer.wrap("wrong".toCharArray()), "hashed_password")).thenReturn(false);
 
         AppException exception = assertThrows(AppException.class, () -> userService.login(credentials));
-        assertAll("Login invalid password",
-                () -> assertEquals("Invalid password", exception.getMessage()),
-                () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus())
-        );
+
+        assertTrue("Invalid password".equals(exception.getMessage()) &&
+                        HttpStatus.BAD_REQUEST.equals(exception.getStatus()),
+                "Expected exception with message 'Invalid password' and status BAD_REQUEST");
+
         verify(userRepository).findByEmail("test@example.com");
         verify(passwordEncoder).matches(any(CharBuffer.class), eq("hashed_password"));
     }
+
 
     // --- Tests for register ---
     @Test
@@ -138,11 +142,13 @@ class UserServiceTest {
 
         UserDto result = userService.register(signUpDto);
 
-        assertAll("Register success",
-                () -> assertNotNull(result),
-                () -> assertEquals(expectedDto, result),
-                () -> assertEquals("hashed_password", newUser.getPassword())
-        );
+        // Single compound assertion verifying that result is not null, equals expectedDto,
+        // and that newUser's password is updated as expected.
+        assertTrue(result != null
+                        && expectedDto.equals(result)
+                        && "hashed_password".equals(newUser.getPassword()),
+                "Register success: result must be non-null, equal to expectedDto, and newUser password must be 'hashed_password'");
+
         verify(userRepository).save(newUser);
     }
 
@@ -152,12 +158,24 @@ class UserServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
 
         AppException exception = assertThrows(AppException.class, () -> userService.register(signUpDto));
-        assertAll("Register email taken",
-                () -> assertEquals("Login already exists", exception.getMessage()),
-                () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus())
-        );
-        verify(userRepository, never()).save(any(User.class));
+
+        // Combine all conditions into one compound boolean.
+        boolean condition = "Login already exists".equals(exception.getMessage())
+                && HttpStatus.BAD_REQUEST.equals(exception.getStatus())
+                && noUserWasSaved();
+
+        assertTrue(condition, "Expected exception with message 'Login already exists', status BAD_REQUEST, and that no user is saved");
     }
+
+    private boolean noUserWasSaved() {
+        try {
+            verify(userRepository, never()).save(any(User.class));
+            return true;
+        } catch (AssertionError e) {
+            return false;
+        }
+    }
+
 
     @Test
     void testRegisterNullDto() {
@@ -178,41 +196,56 @@ class UserServiceTest {
 
         UserDto result = userService.findByLogin("test@example.com");
 
-        assertAll("findByLogin success",
-                () -> assertNotNull(result),
-                () -> assertEquals(expectedDto, result)
-        );
+        // Single compound assertion
+        assertTrue(result != null && result.equals(expectedDto),
+                "Expected result to be non-null and equal to the expected DTO");
+
         verify(userRepository).findByEmail("test@example.com");
     }
+
 
     @Test
     void testFindByLoginNotFound() {
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
         AppException exception = assertThrows(AppException.class, () -> userService.findByLogin("unknown@example.com"));
+
         assertAll("findByLogin not found",
-                () -> assertEquals("Unknown user", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
+                () -> {
+                    assertEquals("Unknown user", exception.getMessage());
+                    assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+                    verify(userRepository).findByEmail("unknown@example.com");
+                }
         );
-        verify(userRepository).findByEmail("unknown@example.com");
     }
+
+
 
     // --- Tests for getUserById ---
     @Test
     void testGetUserByIdSuccess() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         User result = userService.getUserById(1L);
-        assertNotNull(result);
-        assertEquals(testUser, result);
+
+        assertAll("Verify getUserById success",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(testUser, result, "Returned user should match testUser")
+        );
+
         verify(userRepository).findById(1L);
     }
+
 
     @Test
     void testGetUserByIdNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> userService.getUserById(1L));
-        assertEquals("User with ID 1 not found", exception.getMessage());
-        verify(userRepository).findById(1L);
+
+        assertAll("Verify exception message and repository call",
+                () -> assertEquals("User with ID 1 not found", exception.getMessage()),
+                () -> verify(userRepository).findById(1L)
+        );
     }
+
 
     // --- Tests for getUsersWithBugs ---
     @Test
@@ -220,26 +253,26 @@ class UserServiceTest {
         List<User> users = Arrays.asList(testUser, new User());
         when(userRepository.findUsersWithBugs()).thenReturn(users);
         List<User> result = userService.getUsersWithBugs();
-        assertAll("getUsersWithBugs success",
-                () -> assertNotNull(result),
-                () -> assertEquals(2, result.size()),
-                () -> assertEquals(users, result)
-        );
+        assertTrue(result != null && result.size() == 2 && result.equals(users),
+                "getUsersWithBugs success: result should not be null, have size 2, and match expected users");
         verify(userRepository).findUsersWithBugs();
     }
+
 
     // --- Tests for getUserDetails ---
     @Test
     void testGetUserDetailsSuccess() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         UserDto result = userService.getUserDetails(1L);
+
         assertAll("getUserDetails success",
-                () -> assertNotNull(result),
-                () -> assertEquals(1L, result.getId()),
-                () -> assertEquals("test_user", result.getUsername()),
-                () -> assertEquals("test@example.com", result.getEmail()),
-                () -> assertNull(result.getPassword())
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(1L, result.getId(), "User ID should match"),
+                () -> assertEquals("test_user", result.getUsername(), "Username should match"),
+                () -> assertEquals("test@example.com", result.getEmail(), "Email should match"),
+                () -> assertNull(result.getPassword(), "Password should be null")
         );
+
         verify(userRepository).findById(1L);
     }
 
@@ -247,11 +280,12 @@ class UserServiceTest {
     void testGetUserDetailsNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         AppException exception = assertThrows(AppException.class, () -> userService.getUserDetails(1L));
+
         assertAll("getUserDetails not found",
                 () -> assertEquals("User not found", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
+                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
+                () -> verify(userRepository, times(1)).findById(1L)
         );
-        verify(userRepository).findById(1L);
     }
 
     // --- Tests for updateUserAccount ---
@@ -261,11 +295,13 @@ class UserServiceTest {
         UserDto updateDto = new UserDto();
         updateDto.setUsername("new_username");
         ResponseWrapper<String> response = userService.updateUserAccount(1L, updateDto);
-        assertAll("Update username",
-                () -> assertEquals("success", response.getStatus()),
-                () -> assertEquals("User updated successfully", response.getMessage()),
-                () -> assertEquals("new_username", testUser.getUsername())
-        );
+
+        // Single compound assertion checking all conditions.
+        assertTrue("success".equals(response.getStatus())
+                        && "User updated successfully".equals(response.getMessage())
+                        && "new_username".equals(testUser.getUsername()),
+                "Expected status 'success', message 'User updated successfully', and updated username 'new_username'");
+
         verify(userRepository).save(testUser);
     }
 
@@ -277,12 +313,14 @@ class UserServiceTest {
         UserDto updateDto = new UserDto();
         updateDto.setEmail("new@example.com");
         ResponseWrapper<String> response = userService.updateUserAccount(1L, updateDto);
-        assertAll("Update email",
-                () -> assertEquals("success", response.getStatus()),
-                () -> assertEquals("Email verification OTP Sent. Click 'Save Changes' after verification.", response.getMessage())
-        );
+
+        assertTrue("success".equals(response.getStatus())
+                        && "Email verification OTP Sent. Click 'Save Changes' after verification.".equals(response.getMessage()),
+                "Expected status 'success' and message 'Email verification OTP Sent. Click 'Save Changes' after verification.'");
+
         verify(userService).createEmailVerificationToken(1L, "new@example.com");
     }
+
 
     @Test
     void testUpdatePasswordWithoutOTP() {
@@ -291,25 +329,31 @@ class UserServiceTest {
         UserDto updateDto = new UserDto();
         updateDto.setPassword("new_secure_password");
         ResponseWrapper<String> response = userService.updateUserAccount(1L, updateDto);
-        assertAll("Update password",
-                () -> assertEquals("success", response.getStatus()),
-                () -> assertEquals("User updated successfully", response.getMessage()),
-                () -> assertEquals("hashed_new_password", testUser.getPassword())
-        );
+
+        // Single compound assertion checking all conditions together.
+        assertTrue("success".equals(response.getStatus())
+                        && "User updated successfully".equals(response.getMessage())
+                        && "hashed_new_password".equals(testUser.getPassword()),
+                "Expected status 'success', message 'User updated successfully', and password 'hashed_new_password'");
+
         verify(userRepository).save(testUser);
     }
+
 
     @Test
     void testUpdateWithoutFields() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         UserDto updateDto = new UserDto();
         AppException exception = assertThrows(AppException.class, () -> userService.updateUserAccount(1L, updateDto));
-        assertAll("Update without fields",
-                () -> assertEquals("No valid fields to update", exception.getMessage()),
-                () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus())
-        );
+
+        // Single compound assertion to check both exception message and status
+        assertTrue("No valid fields to update".equals(exception.getMessage())
+                        && HttpStatus.BAD_REQUEST.equals(exception.getStatus()),
+                "Expected exception with message 'No valid fields to update' and status BAD_REQUEST");
+
         verify(userRepository, never()).save(any());
     }
+
 
     // --- Tests for createEmailVerificationToken ---
     @Test

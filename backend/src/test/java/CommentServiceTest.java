@@ -3,12 +3,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -55,12 +53,15 @@ class CommentServiceTest {
         // Act
         List<Comment> result = commentService.getCommentsByBugId(bugId);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(expectedComments, result);
+        // Assert: Group all assertions into a single assertAll block.
+        assertAll("Verify comments by bugId",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(2, result.size(), "Result list size should be 2"),
+                () -> assertEquals(expectedComments, result, "Returned list should match expected comments")
+        );
         verify(commentRepository, times(1)).findByBugId(bugId);
     }
+
 
     @Test
     void testGetCommentsByBugIdNoResults() {
@@ -71,11 +72,14 @@ class CommentServiceTest {
         // Act
         List<Comment> result = commentService.getCommentsByBugId(bugId);
 
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        // Assert: Group assertions into one compound assertion.
+        assertAll("Verify no comments returned",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertTrue(result.isEmpty(), "Expected result list to be empty")
+        );
         verify(commentRepository, times(1)).findByBugId(bugId);
     }
+
 
     // --- Tests for createComment ---
 
@@ -92,9 +96,12 @@ class CommentServiceTest {
         // Act
         Comment result = commentService.createComment(comment);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(comment, result);
+        // Assert: Group assertions into a single compound assertion.
+        assertAll("Create Comment Success",
+                () -> assertNotNull(result, "Saved comment should not be null"),
+                () -> assertEquals(comment, result, "Saved comment should match the input comment")
+        );
+
         verify(commentRepository, times(1)).save(comment);
     }
 
