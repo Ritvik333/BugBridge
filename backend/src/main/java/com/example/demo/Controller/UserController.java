@@ -24,7 +24,7 @@ import com.example.demo.exceptions.AppException;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    
+
     private final UserService userService;
 
     @Autowired
@@ -52,12 +52,25 @@ public class UserController {
 
     @PutMapping("/update")
     public ResponseEntity<ResponseWrapper<String>> updateUser(@RequestParam Long userId, @RequestBody UserDto userDto) {
-        if (userDto == null || (userDto.getUsername() == null && userDto.getEmail() == null && userDto.getPassword() == null)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseWrapper<>("error", "No valid fields to update", null));
+        if (isInvalidUpdateRequest(userDto)) {
+            return createErrorResponse("No valid fields to update");
         }
         ResponseWrapper<String> response = userService.updateUserAccount(userId, userDto);
         return ResponseEntity.ok(response);
+    }
+
+    private boolean isInvalidUpdateRequest(UserDto userDto) {
+        if (userDto == null) {
+            return true;
+        }
+        return userDto.getUsername() == null
+                && userDto.getEmail() == null
+                && userDto.getPassword() == null;
+    }
+
+    private ResponseEntity<ResponseWrapper<String>> createErrorResponse(String message) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseWrapper<>("error", message, null));
     }
 
 
@@ -70,12 +83,11 @@ public class UserController {
     @PostMapping("/verify-email")
     public ResponseEntity<ResponseWrapper<String>> verifyEmail(@RequestParam Long userId, @RequestParam String otp) {
         boolean isVerified = userService.verifyEmail(otp, userId);
-        
+
         if (isVerified) {
             return ResponseEntity.ok(new ResponseWrapper<>("success", "OTP verified! Email updated.", null));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseWrapper<>("error", "Invalid or expired OTP.", null));
         }
+        return createErrorResponse("Invalid or expired OTP.");
     }
 
     @PostMapping("/update-email")

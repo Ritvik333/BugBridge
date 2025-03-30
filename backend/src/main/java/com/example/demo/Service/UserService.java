@@ -34,6 +34,21 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class UserService {
 
+    // Class variables for magic numbers and email template
+    private static final int OTP_END_RANGE = 900000; // OTP expiration time in hours
+    private static final int OTP_START_RANGE = 100000; // OTP start range for generation
+    private static final String EMAIL_TEMPLATE = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;'>"
+            + "<h2 style='color: #333;'>Email Verification</h2>"
+            + "<p style='font-size: 16px;'>Hello,</p>"
+            + "<p style='font-size: 16px;'>We received a request to update your email. Use the OTP below to verify your new email address:</p>"
+            + "<div style='text-align: center; margin: 20px 0; padding: 10px; background-color: #eee; border-radius: 5px; font-size: 18px; font-weight: bold; letter-spacing: 1px;'>"
+            + "{otp}</div>"
+            + "<p style='font-size: 14px; color: #777;'>Copy this OTP and enter it in the verification form.</p>"
+            + "<p style='font-size: 14px; color: #777;'>This OTP will expire in 1 hour.</p>"
+            + "<p style='font-size: 14px; color: #777;'>If you did not request this, please ignore this email.</p>"
+            + "<p style='font-size: 14px; color: #777;'>Thank you,<br>The Support Team</p>"
+            + "</div>";
+
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
@@ -50,7 +65,8 @@ public class UserService {
     // private PasswordResetService passwordResetService;
 
     public UserDto login(CredentialsDto credentialsDto) {
-        User user = userRepository.findByEmail(credentialsDto.getEmail())
+        String email = credentialsDto.getEmail();
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException("Unknown user", HttpStatus.NOT_FOUND));
 
         if (passwordEncoder.matches(CharBuffer.wrap(credentialsDto.getPassword()), user.getPassword())) {
@@ -122,34 +138,34 @@ public class UserService {
         boolean updated = false;
         boolean emailUpdated = false; // Track if email was updated
     
-        // ✅ 1. Move `pendingEmail` to `email` if it exists
+        // Move `pendingEmail` to `email` if it exists
         if (user.getPendingEmail() != null) {
             System.out.println("Applying pending email: " + user.getPendingEmail());
-            user.setEmail(user.getPendingEmail()); // ✅ Move verified email to `email`
-            user.setPendingEmail(null); // ✅ Clear `pendingEmail`
+            user.setEmail(user.getPendingEmail()); // Move verified email to `email`
+            user.setPendingEmail(null); // Clear `pendingEmail`
             updated = true;
-            emailUpdated = true; // ✅ Email was updated
+            emailUpdated = true; // Email was updated
         }
     
-        // ✅ 2. Update username if provided
+        // Update username if provided
         if (updatedUserDto.getUsername() != null && !updatedUserDto.getUsername().isEmpty()) {
             user.setUsername(updatedUserDto.getUsername());
             updated = true;
         }
-    
-        // ✅ 3. If email is changed & no OTP is pending, store in `pendingEmail` & send OTP
-        if (updatedUserDto.getEmail() != null && !updatedUserDto.getEmail().isEmpty() &&
-            !updatedUserDto.getEmail().equals(user.getEmail()) && user.getPendingEmail() == null) {
-    
-            System.out.println("Storing pending email: " + updatedUserDto.getEmail());
-            user.setPendingEmail(updatedUserDto.getEmail()); // ✅ Store new email in `pendingEmail`
-            userRepository.save(user); // ✅ Save before sending OTP
-            createEmailVerificationToken(userId, updatedUserDto.getEmail());
-    
+
+        // If email is changed & no OTP is pending, store in `pendingEmail` & send OTP
+        if (shouldStorePendingEmail(updatedUserDto.getEmail(), user)) {
+            String newEmail = updatedUserDto.getEmail();
+            System.out.println("Storing pending email: " + newEmail);
+
+            user.setPendingEmail(newEmail); // Store new email in `pendingEmail`
+            userRepository.save(user); // Save before sending OTP
+            createEmailVerificationToken(userId, newEmail);
+
             return new ResponseWrapper<>("success", "Email verification OTP Sent. Click 'Save Changes' after verification.", null);
         }
     
-        // ✅ 4. Update password if provided
+        // Update password if provided
         if (updatedUserDto.getPassword() != null && !updatedUserDto.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(updatedUserDto.getPassword()));
             updated = true;
@@ -159,15 +175,34 @@ public class UserService {
             throw new AppException("No valid fields to update", HttpStatus.BAD_REQUEST);
         }
     
-        // ✅ 5. Save user before returning response
+        // Save user before returning response
         userRepository.save(user);
     
-        // ✅ 6. Force logout if email was updated
+        // Force logout if email was updated
         if (emailUpdated) {
             return new ResponseWrapper<>("logout", "Email updated successfully. Please log in again.", null);
         }
     
         return new ResponseWrapper<>("success", "User updated successfully", null);
+    }
+
+    private boolean shouldStorePendingEmail(String updatedEmail, User user) {
+        return isEmailValid(updatedEmail) && isEmailDifferent(updatedEmail, user) && isNoPendingEmail(user);
+    }
+
+    // Method to check if email is valid
+    private boolean isEmailValid(String email) {
+        return email != null && !email.isEmpty();
+    }
+
+    // Method to check if email is different
+    private boolean isEmailDifferent(String updatedEmail, User user) {
+        return !updatedEmail.equals(user.getEmail());
+    }
+
+    // Method to check if there is no pending email
+    private boolean isNoPendingEmail(User user) {
+        return user.getPendingEmail() == null;
     }
     
     
@@ -187,7 +222,7 @@ public class UserService {
 
 
         Random random = new Random();
-        String otp = String.valueOf(100000 + random.nextInt(900000));
+        String otp = String.valueOf(OTP_START_RANGE + random.nextInt(OTP_END_RANGE));
     
         // Save the OTP as a token for verification
         PasswordResetToken verificationToken = new PasswordResetToken(otp, user, LocalDateTime.now().plusHours(1));
@@ -203,18 +238,8 @@ public class UserService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-    
-            String emailContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;'>"
-                    + "<h2 style='color: #333;'>Email Verification</h2>"
-                    + "<p style='font-size: 16px;'>Hello,</p>"
-                    + "<p style='font-size: 16px;'>We received a request to update your email. Use the OTP below to verify your new email address:</p>"
-                    + "<div style='text-align: center; margin: 20px 0; padding: 10px; background-color: #eee; border-radius: 5px; font-size: 18px; font-weight: bold; letter-spacing: 1px;'>"
-                    + otp + "</div>"
-                    + "<p style='font-size: 14px; color: #777;'>Copy this OTP and enter it in the verification form.</p>"
-                    + "<p style='font-size: 14px; color: #777;'>This OTP will expire in 1 hour.</p>"
-                    + "<p style='font-size: 14px; color: #777;'>If you did not request this, please ignore this email.</p>"
-                    + "<p style='font-size: 14px; color: #777;'>Thank you,<br>The Support Team</p>"
-                    + "</div>";
+
+            String emailContent = EMAIL_TEMPLATE.replace("{otp}", otp);
     
             helper.setTo(email);
             helper.setSubject("BugBoard Email Verification OTP");

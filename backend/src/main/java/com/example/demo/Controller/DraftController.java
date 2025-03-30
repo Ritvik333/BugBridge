@@ -7,19 +7,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import com.example.demo.dto.DraftFileRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.Model.Draft;
 import com.example.demo.Model.User;
 import com.example.demo.Service.DraftService;
 import com.example.demo.Service.UserService;
-
-import jakarta.persistence.EntityNotFoundException;
 import com.example.demo.dto.DraftRequestDto;
 import com.example.demo.dto.ResponseWrapper;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/drafts")
@@ -32,19 +36,27 @@ public class DraftController {
 
     @PostMapping("/save")
     public ResponseWrapper<Draft> saveDraft(@RequestBody DraftRequestDto request) throws IOException {
-    try {
-        User user = userService.getUserById(request.getUserId());
-        
-        // Pass username along with other parameters to saveDraftFile
-        Draft savedDraft = draftService.saveDraftFile(request.getUserId(), request.getBugId(), user.getUsername(), request.getCode());
-        
-        return new ResponseWrapper<>("success", "Draft saved successfully", savedDraft);
-    } catch (EntityNotFoundException e) {
-        return new ResponseWrapper<>("error", "User not found", null);
-    } catch (IOException e) {
-        return new ResponseWrapper<>("error", "Failed to save draft", null);
+        try {
+            // Retrieve the user by ID
+            User user = userService.getUserById(request.getUserId());
+
+            // Extract the parameters to pass to the service
+            Long userId = request.getUserId();
+            Long bugId = request.getBugId();
+            String username = user.getUsername();
+            String code = request.getCode();
+
+            // Pass parameters to the service method
+            Draft savedDraft = draftService.saveDraftFile(userId, bugId, username, code);
+
+            return new ResponseWrapper<>("success", "Draft saved successfully", savedDraft);
+        } catch (EntityNotFoundException e) {
+            return new ResponseWrapper<>("error", "User not found", null);
+        } catch (IOException e) {
+            return new ResponseWrapper<>("error", "Failed to save draft", null);
+        }
     }
-}
+
 
 
     @GetMapping("/user/{userId}")
@@ -64,8 +76,14 @@ public class DraftController {
             @PathVariable String language,
             @PathVariable String filename) throws IOException {
 
-        // Construct the full path: uploads/userId_username/language/filename
-        Path filePath = Paths.get("uploads", userId + "_" + username,"drafts",userId+"_"+language+"."+getExtension(filename));
+        // Construct individual path components
+        String userFolder = userId + "_" + username;
+        String draftsFolder = "drafts";
+        String fileExtension = getExtension(filename);
+        String fileName = userId + "_" + language + "." + fileExtension;
+
+        // Construct the full path
+        Path filePath = Paths.get("uploads", userFolder, draftsFolder, fileName);
         System.out.println(filePath);
 
         if (!Files.exists(filePath)) {
@@ -87,4 +105,5 @@ public class DraftController {
         }
         return filename.substring(dotIndex + 1);
     }
+
 }

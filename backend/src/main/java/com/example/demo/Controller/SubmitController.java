@@ -7,16 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import com.example.demo.dto.FileRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.Model.Submit;
 import com.example.demo.Model.User;
@@ -41,11 +35,8 @@ public class SubmitController {
     @PostMapping("/save")
     public ResponseWrapper<Submit> saveSubmission(@RequestBody SubmitRequestDto request) {
         try {
-            User user = userService.getUserById(request.getUserId());
-            
-            // Pass username along with other parameters to saveSubmission
-            Submit savedSubmit = submitService.saveSubmission(request.getUserId(), request.getBugId(), user.getUsername(), request.getDesc(), request.getCode());
-            
+            // Save the submission directly using the DTO
+            Submit savedSubmit = submitService.saveSubmission(request);
             return new ResponseWrapper<>("success", "Submission saved successfully", savedSubmit);
         } catch (EntityNotFoundException e) {
             return new ResponseWrapper<>("error", "User not found", null);
@@ -53,6 +44,8 @@ public class SubmitController {
             return new ResponseWrapper<>("error", "Failed to save submission", null);
         }
     }
+
+
 
     @GetMapping("/user/{userId}/bug/{bugId}")
     public ResponseWrapper<List<Submit>> getUserSubmissionsByBug(@PathVariable Long userId, @PathVariable Long bugId) {
@@ -90,34 +83,36 @@ public ResponseWrapper<List<Submit>> getApprovedSubmissionsForBug(@PathVariable 
 
 
     @GetMapping("/file/{userId}/{username}/{bugId}/{subId}/{language}")
-public ResponseEntity<String> getFileContent(
-        @PathVariable Long userId, 
-        @PathVariable String username,
-        @PathVariable String language,
-        @PathVariable Long subId,
-        @PathVariable Long bugId) throws IOException {
+    public ResponseEntity<String> getFileContent(@ModelAttribute FileRequestDto request) throws IOException {
+        // Determine the file extension based on the language
+        String extension = switch (request.getLanguage()) {
+            case "python" -> ".py";
+            case "javascript" -> ".js";
+            case "java" -> ".java";
+            default -> ""; // Handle unknown languages
+        };
 
+        // Construct individual parts of the path
+        String uploadsDir = "uploads";
+        String userDir = request.getUserId() + "_" + request.getUsername();
+        String submissionsDir = "submissions";
+        String fileName = request.getUserId() + "_" + request.getBugId() + "_" + request.getSubId() + extension;
 
-    // Determine the file extension based on bug.language
-    String extension = switch (language) {
-        case "python" -> ".py";
-        case "javascript" -> ".js";
-        case "java" -> ".java";
-        default -> ""; // Handle unknown languages
-    };
+        // Combine them into the full file path
+        Path filePath = Paths.get(uploadsDir, userDir, submissionsDir, fileName);
 
-    // Construct the file path: uploads/userId_username/submissions/userId_bugId.extension
-    Path filePath = Paths.get("uploads", userId + "_" + username, "submissions", userId + "_" + bugId + "_" + subId+ extension);
-    System.out.println("Attempting to read file: " + filePath);
+        System.out.println("Attempting to read file: " + filePath);
 
-    if (!Files.exists(filePath)) {
-        return ResponseEntity.notFound().build();
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Read and return file content
+        String content = Files.readString(filePath, StandardCharsets.UTF_8);
+        return ResponseEntity.ok(content);
     }
 
-    // Read and return file content
-    String content = Files.readString(filePath, StandardCharsets.UTF_8);
-    return ResponseEntity.ok(content);
-}
+
 
     @PutMapping("/approve/{submissionId}")
     public ResponseEntity<ResponseWrapper<String>> approveSubmission(@PathVariable Long submissionId, @RequestBody ApproveDto request) {

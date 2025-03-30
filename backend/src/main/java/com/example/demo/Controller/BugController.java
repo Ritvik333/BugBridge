@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -30,6 +31,7 @@ import com.example.demo.Service.CommentService;
 import com.example.demo.Service.FileStorageService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.ResponseWrapper;
+import com.example.demo.dto.getBugsDto;
 
 import lombok.Data;
 
@@ -48,14 +50,8 @@ public class BugController {
     private FileStorageService fileStorageService;
 
     @GetMapping
-    public ResponseEntity<List<Bug>> getBugs(
-        @RequestParam(required = false) String severity,
-        @RequestParam(required = false) String status,
-        @RequestParam(required = false) Long creatorId, // Now Long instead of String
-        @RequestParam(defaultValue = "created_at") String sortBy,
-        @RequestParam(defaultValue = "asc") String order
-    ) {
-        List<Bug> bugs = bugService.getBugs(severity, status, creatorId, sortBy, order); // Fixed method call
+    public ResponseEntity<List<Bug>> getBugs(@ModelAttribute getBugsDto filter) {
+        List<Bug> bugs = bugService.getBugs(filter);
         return ResponseEntity.ok(bugs);
     }
 
@@ -66,53 +62,86 @@ public class BugController {
     }
 
     @PostMapping
-public ResponseWrapper<Bug> createBug(
-    @RequestParam String title,
-    @RequestParam String severity,
-    @RequestParam String status,
-    @RequestParam Long creatorId,
-    @RequestParam String description,
-    @RequestParam String language,
-    @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
-) throws IOException {
-    try {
-        User creator = userService.getUserById(creatorId);
-        if (creator == null) {
-            return new ResponseWrapper<>("error", "Invalid creator ID", null);
+    public ResponseWrapper<Bug> createBug(
+            @RequestParam String title,
+            @RequestParam String severity,
+            @RequestParam String status,
+            @RequestParam Long creatorId,
+            @RequestParam String description,
+            @RequestParam String language,
+            @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
+    ) throws IOException {
+        try {
+            User creator = userService.getUserById(creatorId);
+            if (creator == null) {
+                return new ResponseWrapper<>("error", "Invalid creator ID", null);
+            }
+
+            Bug bug = new Bug();
+            bug.setTitle(title);
+            bug.setSeverity(severity);
+            bug.setStatus(status);
+            bug.setCreator(creator);
+            bug.setLanguage(language);
+            bug.setDescription(description);
+
+            if (codeFile != null && !codeFile.isEmpty()) {
+                String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), language);
+                bug.setCodeFilePath(filePath);
+            }
+
+            Bug createdBug = bugService.createBug(bug);
+            return new ResponseWrapper<>("success", "Bug created successfully", createdBug);
+
+        } catch (Exception e) {
+            return new ResponseWrapper<>("error", "An unexpected error occurred", null);
         }
-
-        Bug bug = new Bug();
-        bug.setTitle(title);
-        bug.setSeverity(severity);
-        bug.setStatus(status);
-        bug.setCreator(creator);
-        bug.setLanguage(language);
-        bug.setDescription(description);
-
-        if (codeFile != null && !codeFile.isEmpty()) {
-            String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), language);
-            bug.setCodeFilePath(filePath);
-        }
-
-        Bug createdBug = bugService.createBug(bug);
-        return new ResponseWrapper<>("success", "Bug created successfully", createdBug);
-
-    } catch (Exception e) {
-        return new ResponseWrapper<>("error", "An unexpected error occurred", null);
     }
-}
+
+    // @PostMapping
+    // public ResponseWrapper<Bug> createBug(@ModelAttribute createBugDto bugDto) throws IOException {
+    //     try {
+    //         User creator = userService.getUserById(bugDto.getCreatorId());
+    //         if (creator == null) {
+    //             return new ResponseWrapper<>("error", "Invalid creator ID", null);
+    //         }
+
+    //         Bug bug = new Bug();
+    //         bug.setTitle(bugDto.getTitle());
+    //         bug.setSeverity(bugDto.getSeverity());
+    //         bug.setStatus(bugDto.getStatus());
+    //         bug.setCreator(creator);
+    //         bug.setLanguage(bugDto.getLanguage());
+    //         bug.setDescription(bugDto.getDescription());
+
+    //         MultipartFile codeFile = bugDto.getCodeFile();
+    //         System.out.println("file: "+codeFile);
+    //         if (codeFile != null && !codeFile.isEmpty()) {
+    //             System.out.println("in loop");
+    //             String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), bugDto.getLanguage());
+    //             System.out.println(filePath);
+    //             bug.setCodeFilePath(filePath);
+    //         }
+
+    //         Bug createdBug = bugService.createBug(bug);
+    //         return new ResponseWrapper<>("success", "Bug created successfully", createdBug);
+
+    //     } catch (Exception e) {
+    //         return new ResponseWrapper<>("error", "An unexpected error occurred", null);
+    //     }
+    // }
 
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBug(
-        @PathVariable Long id,
-        @RequestParam String title,
-        @RequestParam String severity,
-        @RequestParam String status,
-        @RequestParam Long creatorId, // Now Long instead of String
-        @RequestParam String language,
-        @RequestParam String description,
-        @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam String severity,
+            @RequestParam String status,
+            @RequestParam Long creatorId, // Now Long instead of String
+            @RequestParam String language,
+            @RequestParam String description,
+            @RequestParam(value = "codeFilePath", required = false) MultipartFile codeFile
     ) throws IOException {
         Bug existingBug = bugService.getBugById(id);
         if (existingBug == null) {
@@ -144,12 +173,12 @@ public ResponseWrapper<Bug> createBug(
         boolean deleted = bugService.deleteBug(id);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
-    
+
     @GetMapping("/file/{userId}/{username}/{language}/{filename}")
     public ResponseEntity<String> getFileContent(
-            @PathVariable Long userId, 
-            @PathVariable String username, 
-            @PathVariable String language, 
+            @PathVariable Long userId,
+            @PathVariable String username,
+            @PathVariable String language,
             @PathVariable String filename) throws IOException {
 
         // Construct the full path: uploads/userId_username/language/filename

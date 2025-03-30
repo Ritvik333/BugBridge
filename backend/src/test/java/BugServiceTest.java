@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.example.demo.dto.getBugsDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,10 +52,14 @@ class BugServiceTest {
         bug2.setId(2L);
         List<Bug> expectedBugs = Arrays.asList(bug1, bug2);
 
+        // Create a filter object (getBugsDto)
+        getBugsDto filter = new getBugsDto();
+
+        // Assuming the filter object does not affect the current logic, mock the repository
         when(bugRepository.findAll()).thenReturn(expectedBugs);
 
         // Act
-        List<Bug> result = bugService.getBugs(null, null, null, null, null);
+        List<Bug> result = bugService.getBugs(filter); // Pass the filter instead of multiple parameters
 
         // Assert
         assertNotNull(result);
@@ -65,16 +71,21 @@ class BugServiceTest {
     @Test
     void testGetBugsNoResults() {
         // Arrange
+        // Create a filter object (getBugsDto)
+        getBugsDto filter = new getBugsDto();
+
+        // Mock the repository to return an empty list when the filter is passed
         when(bugRepository.findAll()).thenReturn(Collections.emptyList());
 
         // Act
-        List<Bug> result = bugService.getBugs(null, null, null, null, null);
+        List<Bug> result = bugService.getBugs(filter); // Pass the filter instead of multiple parameters
 
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(bugRepository, times(1)).findAll();
     }
+
 
     // --- Tests for getBugById ---
 
