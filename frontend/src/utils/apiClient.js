@@ -25,18 +25,18 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Intercept responses (optional)
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle errors globally (e.g., show toast notifications, redirect on 401)
-    if (error.response && error.response.status === 401) {
-      // Handle unauthorized access
-      localStorage.removeItem("authToken");
-      useNavigate("/")
-    }
-    return Promise.reject(error);
-  }
-);
+// // Intercept responses (optional)
+// apiClient.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     // Handle errors globally (e.g., show toast notifications, redirect on 401)
+//     if (error.response && error.response.status === 401) {
+//       // Handle unauthorized access
+//       localStorage.removeItem("authToken");
+//       useNavigate("/")
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 export default apiClient;
