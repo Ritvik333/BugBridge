@@ -1,21 +1,21 @@
 package com.example.demo.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.example.demo.Repository.BugRepository;
-import com.example.demo.Model.Bug;
-
 import java.util.List;
 import java.util.Optional;
 
+import com.example.demo.dto.getBugsDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.Model.Bug;
+import com.example.demo.Repository.BugRepository;
+
 @Service
-public class BugService {
+public class    BugService {
     @Autowired
     private BugRepository bugRepository;
 
-    public List<Bug> getBugs(String severity, String status, Long creator, String sortBy, String order) {
-        return bugRepository.findAll(); 
-        
+    public List<Bug> getBugs(getBugsDto filter) {
+        return bugRepository.findAll(); // Modify this to apply filtering based on filter fields
     }
 
     public Bug getBugById(Long id) {

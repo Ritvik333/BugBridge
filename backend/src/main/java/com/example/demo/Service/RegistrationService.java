@@ -11,6 +11,7 @@ import com.example.demo.Model.UserRepository;
 
 @Service
 public class RegistrationService {
+    private static final int MIN_PASSWORD_LENGTH = 6;
 
     @Autowired
     private UserRepository userRepository;
@@ -34,7 +35,7 @@ public class RegistrationService {
         }
 
         // Additional password checks (e.g., length, complexity)
-        if (user.getPassword().length() < 6) {
+        if (user.getPassword().length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException("Password must be at least 6 characters long");
         }
 

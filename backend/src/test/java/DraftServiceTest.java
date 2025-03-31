@@ -8,6 +8,8 @@ import com.example.demo.Model.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -75,21 +77,26 @@ class DraftServiceTest {
         Draft savedDraft = new Draft();
         savedDraft.setUser(user);
         savedDraft.setBug(bug);
-        savedDraft.setCodeFilePath(mockStoragePath.resolve(userId + "_" + username).resolve("drafts").resolve(userId + "_" + bugId + ".java").toString());
+        savedDraft.setCodeFilePath(mockStoragePath.resolve(userId + "_" + username)
+                .resolve("drafts")
+                .resolve(userId + "_" + bugId + ".java").toString());
         when(draftRepository.save(any(Draft.class))).thenReturn(savedDraft);
 
         // Act
         Draft result = draftService.saveDraftFile(userId, bugId, username, code);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(user, result.getUser());
-        assertEquals(bug, result.getBug());
-        assertTrue(result.getCodeFilePath().endsWith(".java"));
+        // Assert in a single compound assertion:
+        assertTrue(result != null &&
+                        result.getUser().equals(user) &&
+                        result.getBug().equals(bug) &&
+                        result.getCodeFilePath().endsWith(".java"),
+                "Draft must be non-null, with the expected user, bug, and file path ending with '.java'");
+
         verify(draftRepository, times(1)).save(any(Draft.class));
         verify(userRepository, times(1)).findById(userId);
         verify(bugRepository, times(1)).findById(bugId);
     }
+
 
     @Test
     void testSaveDraftFileUpdateExistingDraftSuccess() throws IOException {
@@ -117,19 +124,23 @@ class DraftServiceTest {
         Draft updatedDraft = new Draft();
         updatedDraft.setUser(user);
         updatedDraft.setBug(bug);
-        updatedDraft.setCodeFilePath(mockStoragePath.resolve(userId + "_" + username).resolve("drafts").resolve(userId + "_" + bugId + ".java").toString());
+        updatedDraft.setCodeFilePath(mockStoragePath.resolve(userId + "_" + username)
+                .resolve("drafts")
+                .resolve(userId + "_" + bugId + ".java").toString());
         when(draftRepository.save(any(Draft.class))).thenReturn(updatedDraft);
 
         // Act
         Draft result = draftService.saveDraftFile(userId, bugId, username, code);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(user, result.getUser());
-        assertEquals(bug, result.getBug());
-        assertTrue(result.getCodeFilePath().endsWith(".java"));
+        // Assert: Single assertion checking all conditions
+        assertTrue(result != null &&
+                        result.getUser().equals(user) &&
+                        result.getBug().equals(bug) &&
+                        result.getCodeFilePath().endsWith(".java"),
+                "Updated draft does not match expected values.");
         verify(draftRepository, times(1)).save(existingDraft);
     }
+
 
     @Test
     void testSaveDraftFileUserNotFound() {
@@ -141,16 +152,15 @@ class DraftServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            draftService.saveDraftFile(userId, bugId, username, code);
-        });
-        assertEquals("User not found", exception.getMessage());
+        // Act & Assert combined into one assertion:
+        assertEquals("User not found",
+                assertThrows(RuntimeException.class, () -> draftService.saveDraftFile(userId, bugId, username, code)).getMessage());
+
+        // Side-effect verifications:
         verify(userRepository, times(1)).findById(userId);
         verify(bugRepository, never()).findById(anyLong());
         verify(draftRepository, never()).save(any(Draft.class));
     }
-
     @Test
     void testSaveDraftFileBugNotFound() {
         // Arrange
@@ -165,28 +175,31 @@ class DraftServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(bugRepository.findById(bugId)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            draftService.saveDraftFile(userId, bugId, username, code);
-        });
-        assertEquals("Bug not found", exception.getMessage());
+        // Act & Assert combined into a single assertion:
+        assertEquals("Bug not found",
+                assertThrows(RuntimeException.class, () -> draftService.saveDraftFile(userId, bugId, username, code)).getMessage());
+
+        // Repository verifications (considered side effects)
         verify(userRepository, times(1)).findById(userId);
         verify(bugRepository, times(1)).findById(bugId);
         verify(draftRepository, never()).save(any(Draft.class));
     }
-
     // --- Tests for mapLanguageToExtension ---
 
-    @Test
-    void testMapLanguageToExtension() {
-        // Act & Assert
-        assertEquals(".java", draftService.mapLanguageToExtension("java"));
-        assertEquals(".py", draftService.mapLanguageToExtension("python"));
-        assertEquals(".js", draftService.mapLanguageToExtension("javascript"));
-        assertEquals(".txt", draftService.mapLanguageToExtension("other"));
-        assertEquals(".txt", draftService.mapLanguageToExtension(null));
+    @ParameterizedTest
+    @CsvSource({
+            "java, .java",
+            "python, .py",
+            "javascript, .js",
+            "other, .txt",
+            "'', .txt" // Using empty string to represent null input
+    })
+    void testMapLanguageToExtensionParameterized(String language, String expectedExtension) {
+        // Treat empty string as null
+        String lang = language.isEmpty() ? null : language;
+        assertEquals(expectedExtension, draftService.mapLanguageToExtension(lang),
+                "Unexpected extension for language: " + language);
     }
-
     // --- Tests for getDraftsForUser ---
 
     @Test
@@ -204,12 +217,11 @@ class DraftServiceTest {
         // Act
         List<Draft> result = draftService.getDraftsForUser(userId);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(expectedDrafts, result);
+        // Assert (single assertion)
+        assertEquals(expectedDrafts, result, "The drafts list should match the expected list.");
         verify(draftRepository, times(1)).findByUserId(userId);
     }
+
 
     @Test
     void testGetDraftsForUserNoResults() {
@@ -221,8 +233,7 @@ class DraftServiceTest {
         List<Draft> result = draftService.getDraftsForUser(userId);
 
         // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertEquals(Collections.emptyList(), result, "Expected an empty list for the given user");
         verify(draftRepository, times(1)).findByUserId(userId);
     }
 }

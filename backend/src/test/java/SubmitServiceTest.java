@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.example.demo.dto.SubmitRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,6 +77,12 @@ class SubmitServiceTest {
         bug.setCreator(creator);
         bug.setLanguage("java");
 
+        SubmitRequestDto request = new SubmitRequestDto();
+        request.setUserId(userId);
+        request.setBugId(bugId);
+        request.setDesc(desc);
+        request.setCode(code);
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(bugRepository.findById(bugId)).thenReturn(Optional.of(bug));
 
@@ -86,7 +94,7 @@ class SubmitServiceTest {
         when(submitRepository.save(any(Submit.class))).thenReturn(mockSubmit);
 
         // Act
-        Submit submit = submitService.saveSubmission(userId, bugId, username, desc, code);
+        Submit submit = submitService.saveSubmission(request); // Pass the SubmitRequestDto object
 
         // Assert
         assertNotNull(submit);
@@ -95,9 +103,10 @@ class SubmitServiceTest {
         assertEquals(desc, submit.getDescription());
         assertTrue(submit.getCodeFilePath().endsWith(".java"));
 
-        // Verify that save was called TWICE
+        // Verify that save was called TWICE (as expected in the method)
         verify(submitRepository, times(2)).save(any(Submit.class));
     }
+
 
     @Test
     void testSaveSubmissionUserNotFound() {
@@ -108,14 +117,21 @@ class SubmitServiceTest {
         String desc = "Fixing bug in the login system";
         String code = "public class Main {}";
 
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.empty()); // Simulate user not found
+        SubmitRequestDto request = new SubmitRequestDto();
+        request.setUserId(userId);
+        request.setBugId(bugId);
+        request.setDesc(desc);
+        request.setCode(code);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty()); // Simulate user not found
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            submitService.saveSubmission(userId, bugId, username, desc, code);
+            submitService.saveSubmission(request); // Pass the SubmitRequestDto object
         });
         assertEquals("User not found", exception.getMessage());
     }
+
 
     @Test
     void testSaveSubmissionBugNotFound() {
@@ -126,16 +142,23 @@ class SubmitServiceTest {
         String desc = "Fixing bug in the login system";
         String code = "public class Main {}";
 
+        SubmitRequestDto request = new SubmitRequestDto();
+        request.setUserId(userId);
+        request.setBugId(bugId);
+        request.setDesc(desc);
+        request.setCode(code);
+
         User user = new User();  // Assume user object exists
-        when(userRepository.findById(userId)).thenReturn(java.util.Optional.of(user));
-        when(bugRepository.findById(bugId)).thenReturn(java.util.Optional.empty()); // Simulate bug not found
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(bugRepository.findById(bugId)).thenReturn(Optional.empty()); // Simulate bug not found
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            submitService.saveSubmission(userId, bugId, username, desc, code);
+            submitService.saveSubmission(request); // Pass the SubmitRequestDto object
         });
         assertEquals("Bug not found", exception.getMessage());
     }
+
 
     @Test
     void testMapLanguageToExtension() {
@@ -236,7 +259,7 @@ class SubmitServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertEquals(submit2, result.get(0)); // Should return the most recent submission
-        assertEquals("Resolved", bug.getStatus()); // Verify bug status is updated
+        assertEquals("resolved", bug.getStatus()); // Verify bug status is updated
         verify(submitRepository).findByBugIdAndApprovalStatus(bugId, "approved");
         verify(bugRepository).findById(bugId);
         verify(bugRepository).save(bug);
@@ -279,7 +302,7 @@ class SubmitServiceTest {
         assertEquals(2, result.size());
         assertTrue(result.contains(submit1));
         assertTrue(result.contains(submit2));
-        assertEquals("Resolved", bug.getStatus()); // Verify bug status is updated
+        assertEquals("resolved", bug.getStatus()); // Verify bug status is updated
         verify(submitRepository).findByBugIdAndApprovalStatus(bugId, "approved");
         verify(bugRepository).findById(bugId);
         verify(bugRepository).save(bug);

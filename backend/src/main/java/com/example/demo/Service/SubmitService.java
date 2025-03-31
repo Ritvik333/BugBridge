@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.example.demo.dto.SubmitRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,70 +43,64 @@ public class SubmitService {
     @Autowired
     private NotificationService notificationService;
 
-
-    public Submit saveSubmission(Long userId, Long bugId, String username, String desc, String code) throws IOException {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        Bug bug = bugRepository.findById(bugId)
-            .orElseThrow(() -> new RuntimeException("Bug not found"));
-        System.out.println(user);
+    public Submit saveSubmission(SubmitRequestDto request) throws IOException {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Bug bug = bugRepository.findById(request.getBugId())
+                .orElseThrow(() -> new RuntimeException("Bug not found"));
 
         Submit submit = new Submit();
         submit.setUser(user);
         submit.setBug(bug);
-        submit.setDescription(desc);
-        if (bug.getCreator().getId().equals(userId)) {
+        submit.setDescription(request.getDesc());
+
+        if (bug.getCreator().getId().equals(request.getUserId())) {
             submit.setStatus("approved");
-        } 
+        }
+
         Submit savedSubmit = submitRepository.save(submit);
-        
+
         String extension = mapLanguageToExtension(bug.getLanguage());
-        String filename = userId + "_" + bugId + "_" + savedSubmit.getId() + extension; // e.g., "302_4_10.java"
-        Path directoryPath = Paths.get(storagePath, userId + "_" + username, "submissions");
+        String filename = request.getUserId() + "_" + request.getBugId() + "_" + savedSubmit.getId() + extension;
+        Path directoryPath = Paths.get(storagePath, request.getUserId() + "_" + user.getUsername(), "submissions");
         Path filePath = directoryPath.resolve(filename);
-    
+
         Files.createDirectories(filePath.getParent());
-        Files.write(filePath, code.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(filePath, request.getCode().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         savedSubmit.setCodeFilePath(filePath.toString());
-        notificationService.createNotification( userId, "Your submission for bug #" + bug.getId() + " has been submitted.");
 
-            // Notify the bug creator
-            Long bugCreatorId = bug.getCreator().getId();
-            notificationService.createNotification(bugCreatorId, 
-                "A new submission has been made for your bug #" + bug.getId() + " by " + user.getUsername() + ".");
-        
-        // Submit existingSubmission = submitRepository.findByUserIdAndBugId(userId, bugId);
-        
-        // if (existingSubmission != null) {
-        //     if (!bug.getCreator().getId().equals(userId)) {
-        //         existingSubmission.setApprovalStatus("unapproved");
-        //     } 
-        //     existingSubmission.setCodeFilePath(filePath.toString());
-        //     return submitRepository.save(existingSubmission);
-        // } else {
-            return submitRepository.save(savedSubmit);
-        // }
-        
+        String userNotificationMessage = "Your submission for bug #" + bug.getId() + " has been submitted.";
+        notificationService.createNotification(request.getUserId(), userNotificationMessage);
 
+
+        Long bugCreatorId = bug.getCreator().getId();
+        String bugCreatorNotificationMessage = "A new submission has been made for your bug #"
+                + bug.getId() + " by " + user.getUsername() + ".";
+
+        notificationService.createNotification(bugCreatorId, bugCreatorNotificationMessage);
+
+        return submitRepository.save(savedSubmit);
     }
 
+
     public String mapLanguageToExtension(String language) {
-        if (language == null) return ".txt";
-        switch (language.toLowerCase()) {
+        switch (language == null ? "default" : language.toLowerCase()) {
             case "java": return ".java";
             case "python": return ".py";
             case "javascript": return ".js";
+            case "default":
             default: return ".txt";
         }
     }
+
 
     public List<Submit> findApprovedSubmissionsByBugId(Long bugId) {
         List<Submit> approvedSubmissions = submitRepository.findByBugIdAndApprovalStatus(bugId, "approved");
         if (!approvedSubmissions.isEmpty()) {
             Bug bug = bugRepository.findById(bugId)
                 .orElseThrow(() -> new RuntimeException("Bug not found"));
-            bug.setStatus("Resolved");
+            bug.setStatus("resolved");
             bugRepository.save(bug);
         }
         

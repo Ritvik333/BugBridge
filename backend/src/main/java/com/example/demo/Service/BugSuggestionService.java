@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class BugSuggestionService {
+    private static final int BODY_PREVIEW_LENGTH = 200;
     private static final String STACK_OVERFLOW_API_URL = "https://api.stackexchange.com/2.3/search";
     private final ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -25,13 +26,10 @@ public class BugSuggestionService {
     public List<SuggestedSolution> getSuggestedSolutions(Bug bug) {
         try {
             String title = bug.getTitle() != null ? bug.getTitle() : "";
-            String description = bug.getDescription() !=null? bug.getDescription():"";
-            String url = UriComponentsBuilder.fromHttpUrl(STACK_OVERFLOW_API_URL)
-                    .queryParam("intitle", title)
-                    .queryParam("q", description)
-                    .queryParam("site", "stackoverflow")
-                    .queryParam("filter", "withbody")
-                    .toUriString();
+            String description = bug.getDescription() != null ? bug.getDescription() : "";
+
+            // Build URL using helper method
+            String url = buildStackOverflowUrl(title, description);
 
             // Execute cURL command
             String jsonResponse = executeCurlCommand(url);
@@ -49,7 +47,16 @@ public class BugSuggestionService {
         }
     }
 
-    private String executeCurlCommand(String url) throws IOException, InterruptedException {
+    private String buildStackOverflowUrl(String title, String description) {
+        return UriComponentsBuilder.fromHttpUrl(STACK_OVERFLOW_API_URL)
+                .queryParam("intitle", title)
+                .queryParam("q", description)
+                .queryParam("site", "stackoverflow")
+                .queryParam("filter", "withbody")
+                .toUriString();
+    }
+
+    protected String executeCurlCommand(String url) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "curl",
                 "-H", "User-Agent: Mozilla/5.0",
@@ -75,7 +82,7 @@ public class BugSuggestionService {
                 .map(item -> new SuggestedSolution(
                         item.getTitle(),
                         "https://stackoverflow.com/questions/" + item.getQuestionId(),
-                        item.getBody().substring(0, Math.min(item.getBody().length(), 200)) + "..."))
+                        item.getBody().substring(0, Math.min(item.getBody().length(), BODY_PREVIEW_LENGTH)) + "..."))
                 .collect(Collectors.toList());
     }
 

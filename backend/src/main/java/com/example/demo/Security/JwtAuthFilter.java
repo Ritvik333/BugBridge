@@ -16,6 +16,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserAuthenticationProvider userAuthenticationProvider;
+    private static final int AUTH_TOKEN_PARTS = 2;
 
     @Override
     protected void doFilterInternal(
@@ -27,7 +28,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header != null) {
             String[] authElements = header.split(" ");
 
-            if (authElements.length == 2
+            if (authElements.length == AUTH_TOKEN_PARTS
                     && "Bearer".equals(authElements[0])) {
                 try {
                     SecurityContextHolder.getContext().setAuthentication(

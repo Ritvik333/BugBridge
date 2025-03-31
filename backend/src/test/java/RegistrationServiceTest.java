@@ -50,16 +50,19 @@ class RegistrationServiceTest {
         // Act
         User result = registrationService.registerUser(user);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals("john_doe", result.getUsername());
-        assertEquals("john.doe@example.com", result.getEmail());
-        assertEquals("encodedPassword123", result.getPassword());
+        // Assert: Single compound assertion that verifies all the expected user details.
+        assertTrue(result != null &&
+                        "john_doe".equals(result.getUsername()) &&
+                        "john.doe@example.com".equals(result.getEmail()) &&
+                        "encodedPassword123".equals(result.getPassword()),
+                "Expected user to be non-null with username 'john_doe', email 'john.doe@example.com', and password 'encodedPassword123'.");
+
         verify(userRepository, times(1)).findByUsername("john_doe");
         verify(userRepository, times(1)).findByEmail("john.doe@example.com");
         verify(passwordEncoder, times(1)).encode("password123");
         verify(userRepository, times(1)).save(user);
     }
+
 
     @Test
     void testRegisterUserUsernameTaken() {
@@ -71,15 +74,17 @@ class RegistrationServiceTest {
 
         when(userRepository.findByUsername("john_doe")).thenReturn(Optional.of(new User()));
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            registrationService.registerUser(user);
-        });
-        assertEquals("Username already taken", exception.getMessage());
-        verify(userRepository, times(1)).findByUsername("john_doe");
-        verify(userRepository, never()).findByEmail(anyString());
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
+        // Act
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> registrationService.registerUser(user));
+
+        // Assert: Combine all verifications into one compound assertion.
+        assertAll("registerUserUsernameTaken",
+                () -> assertEquals("Username already taken", exception.getMessage()),
+                () -> verify(userRepository, times(1)).findByUsername("john_doe"),
+                () -> verify(userRepository, never()).findByEmail(anyString()),
+                () -> verify(passwordEncoder, never()).encode(anyString()),
+                () -> verify(userRepository, never()).save(any(User.class))
+        );
     }
 
     @Test
@@ -93,16 +98,19 @@ class RegistrationServiceTest {
         when(userRepository.findByUsername("john_doe")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(new User()));
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            registrationService.registerUser(user);
-        });
-        assertEquals("Email already taken", exception.getMessage());
-        verify(userRepository, times(1)).findByUsername("john_doe");
-        verify(userRepository, times(1)).findByEmail("john.doe@example.com");
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
+        // Act
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> registrationService.registerUser(user));
+
+        // Assert: Wrap all checks in a single assertAll block.
+        assertAll("registerUserEmailTaken",
+                () -> assertEquals("Email already taken", exception.getMessage()),
+                () -> verify(userRepository, times(1)).findByUsername("john_doe"),
+                () -> verify(userRepository, times(1)).findByEmail("john.doe@example.com"),
+                () -> verify(passwordEncoder, never()).encode(anyString()),
+                () -> verify(userRepository, never()).save(any(User.class))
+        );
     }
+
 
     @Test
     void testRegisterUserInvalidEmail() {
@@ -115,16 +123,16 @@ class RegistrationServiceTest {
         when(userRepository.findByUsername("john_doe")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("invalid-email")).thenReturn(Optional.empty());
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            registrationService.registerUser(user);
-        });
-        assertEquals("Invalid email format", exception.getMessage());
+        // Act & Assert: Combine the exception and message verification into one assertion
+        assertEquals("Invalid email format",
+                assertThrows(IllegalArgumentException.class, () -> registrationService.registerUser(user)).getMessage());
+
         verify(userRepository, times(1)).findByUsername("john_doe");
         verify(userRepository, times(1)).findByEmail("invalid-email");
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository, never()).save(any(User.class));
     }
+
 
     @Test
     void testRegisterUserPasswordTooShort() {
@@ -137,16 +145,16 @@ class RegistrationServiceTest {
         when(userRepository.findByUsername("john_doe")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.empty());
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            registrationService.registerUser(user);
-        });
-        assertEquals("Password must be at least 6 characters long", exception.getMessage());
+        // Act & Assert combined into one assertion:
+        assertEquals("Password must be at least 6 characters long",
+                assertThrows(IllegalArgumentException.class, () -> registrationService.registerUser(user)).getMessage());
+
         verify(userRepository, times(1)).findByUsername("john_doe");
         verify(userRepository, times(1)).findByEmail("john.doe@example.com");
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository, never()).save(any(User.class));
     }
+
 
     // --- Tests for isValidEmail ---
 
