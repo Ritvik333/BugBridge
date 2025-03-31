@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.Model.User;
-import com.example.demo.Model.UserRepository;
+import com.example.demo.Repository.UserRepository;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.UserDto;

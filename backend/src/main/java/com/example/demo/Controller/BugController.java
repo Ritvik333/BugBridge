@@ -98,40 +98,6 @@ public class BugController {
         }
     }
 
-    // @PostMapping
-    // public ResponseWrapper<Bug> createBug(@ModelAttribute createBugDto bugDto) throws IOException {
-    //     try {
-    //         User creator = userService.getUserById(bugDto.getCreatorId());
-    //         if (creator == null) {
-    //             return new ResponseWrapper<>("error", "Invalid creator ID", null);
-    //         }
-
-    //         Bug bug = new Bug();
-    //         bug.setTitle(bugDto.getTitle());
-    //         bug.setSeverity(bugDto.getSeverity());
-    //         bug.setStatus(bugDto.getStatus());
-    //         bug.setCreator(creator);
-    //         bug.setLanguage(bugDto.getLanguage());
-    //         bug.setDescription(bugDto.getDescription());
-
-    //         MultipartFile codeFile = bugDto.getCodeFile();
-    //         System.out.println("file: "+codeFile);
-    //         if (codeFile != null && !codeFile.isEmpty()) {
-    //             System.out.println("in loop");
-    //             String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), bugDto.getLanguage());
-    //             System.out.println(filePath);
-    //             bug.setCodeFilePath(filePath);
-    //         }
-
-    //         Bug createdBug = bugService.createBug(bug);
-    //         return new ResponseWrapper<>("success", "Bug created successfully", createdBug);
-
-    //     } catch (Exception e) {
-    //         return new ResponseWrapper<>("error", "An unexpected error occurred", null);
-    //     }
-    // }
-
-
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBug(
             @PathVariable Long id,

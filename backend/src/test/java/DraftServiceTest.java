@@ -1,19 +1,3 @@
-import com.example.demo.Model.Bug;
-import com.example.demo.Model.Draft;
-import com.example.demo.Model.User;
-import com.example.demo.Repository.BugRepository;
-import com.example.demo.Repository.DraftRepository;
-import com.example.demo.Service.DraftService;
-import com.example.demo.Model.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,9 +6,31 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+
+import com.example.demo.Model.Bug;
+import com.example.demo.Model.Draft;
+import com.example.demo.Model.User;
+import com.example.demo.Repository.BugRepository;
+import com.example.demo.Repository.DraftRepository;
+import com.example.demo.Repository.UserRepository;
+import com.example.demo.Service.DraftService;
 
 class DraftServiceTest {
 

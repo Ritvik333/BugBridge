@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import com.example.demo.Model.Bug;
 import com.example.demo.Model.Submit;
 import com.example.demo.Model.User;
-import com.example.demo.Model.UserRepository;
+import com.example.demo.Repository.UserRepository;
 import com.example.demo.Repository.BugRepository;
 import com.example.demo.Repository.SubmitRepository;
 

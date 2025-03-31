@@ -21,9 +21,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.demo.Model.PasswordResetToken;
-import com.example.demo.Model.PasswordResetTokenRepository;
 import com.example.demo.Model.User;
-import com.example.demo.Model.UserRepository;
+import com.example.demo.Repository.PasswordResetTokenRepository;
+import com.example.demo.Repository.UserRepository;
 import com.example.demo.Service.PasswordResetService;
 
 import jakarta.mail.MessagingException;
