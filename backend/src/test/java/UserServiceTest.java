@@ -38,13 +38,13 @@ import com.example.demo.Model.PasswordResetToken;
 import com.example.demo.Model.User;
 import com.example.demo.Repository.PasswordResetTokenRepository;
 import com.example.demo.Repository.UserRepository;
+import com.example.demo.Service.UserMapper;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.CredentialsDto;
 import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.SignUpDto;
 import com.example.demo.dto.UserDto;
 import com.example.demo.exceptions.AppException;
-import com.example.demo.mappers.UserMapper;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

@@ -1,8 +1,8 @@
-package com.example.demo.mappers;
+package com.example.demo.Service;
 
+import com.example.demo.Model.User;
 import com.example.demo.dto.SignUpDto;
 import com.example.demo.dto.UserDto;
-import com.example.demo.Model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

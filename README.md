@@ -107,7 +107,14 @@
    cd backend
    ```
 
-2. Create a `.env` file with your environment variables: refer `application.yaml` for variable names
+2. Create a `.env` file with your environment variables: 
+   ```
+   SERVER_PORT=your_application_port
+   PROD_DB_PASSWORD=your_mysql_password
+   PROD_DB_URL=your_mysql_db_connection_url
+   PROD_DB_USER=your_mysql_username
+   ```
+
 
 3. Run the backend server:
    ```bash
@@ -214,12 +221,12 @@ Link: https://drive.google.com/drive/folders/1Z0E8NlweVXJuQ0adcdsxUYNsmdW24JFJ?u
 2. Engage in real-time debugging sessions
 3. Submit solutions with code changes
 4. Review and test proposed fixes from other developers
+5. Utilise Stack Overflow suggestions for each bug
 
 ### For Project Managers:
 1. Monitor bug resolution progress
 2. Assign bugs to team members
 3. Prioritize issues based on severity
-4. Generate reports on bug trends and team performance
 
 ---
 

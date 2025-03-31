@@ -23,7 +23,6 @@ import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.SignUpDto;
 import com.example.demo.dto.UserDto;
 import com.example.demo.exceptions.AppException;
-import com.example.demo.mappers.UserMapper;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
