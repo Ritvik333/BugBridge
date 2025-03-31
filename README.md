@@ -179,6 +179,28 @@ Link: https://drive.google.com/drive/folders/1Z0E8NlweVXJuQ0adcdsxUYNsmdW24JFJ?u
 | BugSuggestionService | c26b810decb7fc9ca6d64767b94f02aed39beb40 : #18 TEST StackOverflow Suggestions API | b7f7c7e5120462ddebac1c9fce364c82ef653cec : #18 service implemented |
 | SubmitService | 6170dcc5040619bda00be94dbf2898eba3da7b20 : #46 TEST for rejections and submission by creator | c82bced5f961a16f9f007eeba6d245115b7b2fbb : #46 rejection and fetch by creator |
 
+
+## Code coverage Report
+
+| Module | Line Coverage |
+|--------|--------------:|
+| BugService | 100% 	 |
+| BugSuggestionService |  84% |
+| CommentService |  100% |
+| DraftService |    100% |
+| FileStorageService |             83% |
+| JavaRunService |    100% |
+| JavaScriptRunService |  100% |
+| NotificationService |  100% |
+| PasswordResetService |     84% |
+| PythonRunService |    100% |
+| RegistrationService |    100% |
+| RunService |    100% |
+| RunServiceFactory |    100% |
+| SessionService |    100% |
+| SubmitService |    98% |
+| UserService |    89% |
+
 ## User Scenarios
 
 ### For Bug Reporters:
