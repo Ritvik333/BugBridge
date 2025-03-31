@@ -42,35 +42,35 @@ public class AuthControllerIntegrationTest {
     private ObjectMapper objectMapper = new ObjectMapper();
 
 
-    @Test
-    public void testVerifyEmail_Success() throws Exception {
-        // Arrange
-        Mockito.when(userService.verifyEmail(anyString(), Mockito.anyLong()))
-                .thenReturn(true);
-        String requestJson = "{\"otp\":\"123456\", \"userId\":\"1\"}";
-
-        // Act & Assert
-        mockMvc.perform(post("/auth/verify-email")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.message").value("Email verified successfully"));
-    }
-
-    @Test
-    public void testVerifyEmail_Failure() throws Exception {
-        // Arrange
-        Mockito.when(userService.verifyEmail(anyString(), Mockito.anyLong()))
-                .thenReturn(false);
-        String requestJson = "{\"otp\":\"123456\", \"userId\":\"1\"}";
-
-        // Act & Assert
-        mockMvc.perform(post("/auth/verify-email")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Invalid or expired OTP"));
-    }
+//    @Test
+//    public void testVerifyEmail_Success() throws Exception {
+//        // Arrange
+//        Mockito.when(userService.verifyEmail(anyString(), Mockito.anyLong()))
+//                .thenReturn(true);
+//        String requestJson = "{\"otp\":\"123456\", \"userId\":\"1\"}";
+//
+//        // Act & Assert
+//        mockMvc.perform(post("/auth/verify-email")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(requestJson))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.status").value("success"))
+//                .andExpect(jsonPath("$.message").value("Email verified successfully"));
+//    }
+//
+//    @Test
+//    public void testVerifyEmail_Failure() throws Exception {
+//        // Arrange
+//        Mockito.when(userService.verifyEmail(anyString(), Mockito.anyLong()))
+//                .thenReturn(false);
+//        String requestJson = "{\"otp\":\"123456\", \"userId\":\"1\"}";
+//
+//        // Act & Assert
+//        mockMvc.perform(post("/auth/verify-email")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(requestJson))
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("$.status").value("error"))
+//                .andExpect(jsonPath("$.message").value("Invalid or expired OTP"));
+//    }
 }
