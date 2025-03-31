@@ -48,6 +48,9 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
     // Create a ref to hold the current sessionId
     const sessionIdRef = useRef(sessionId);
 
+    const [showSessionEndModal, setShowSessionEndModal] = useState(false);
+    const [sessionEndMessage, setSessionEndMessage] = useState("");
+
 // Update the ref whenever sessionId changes
     useEffect(() => {
         sessionIdRef.current = sessionId;
@@ -171,7 +174,9 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                 console.log("Received update:", update);
                 
                 if (update.ended) {
-                    alert("Session ended by the owner.");
+                    // alert("Session ended by the owner.");
+                    setSessionEndMessage("Session ended by the owner.");
+                    setShowSessionEndModal(true);
                     setSessionId(null);
                     return;
                   }
@@ -484,7 +489,11 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
 
     };
     const [showJoinRequests, setShowJoinRequests] = useState(false);
-
+    // New handler to close the session end modal
+    const handleCloseSessionEndModal = () => {
+        setShowSessionEndModal(false);
+        setSessionEndMessage("");
+    };
     // ------------------ UI Rendering ------------------
 
     return (
@@ -648,6 +657,16 @@ export default function CodeEditor({ bug, draftCodeFilePath, rememberMeId }) {
                                 </div>
                             </div>
                         )}
+                    {/* New Session End Modal */}
+                    {showSessionEndModal && (
+                        <div className="modal-overlay">
+                            <div className="modal">
+                                <h2>Session Ended</h2>
+                                <p>{sessionEndMessage}</p>
+                                <button onClick={handleCloseSessionEndModal}>Close</button>
+                            </div>
+                        </div>
+                    )}
 
                     <button className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" onClick={handleCopyCode}>
                         <Copy />
