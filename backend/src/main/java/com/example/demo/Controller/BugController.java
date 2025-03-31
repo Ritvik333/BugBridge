@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,24 +16,18 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.Model.Bug;
-import com.example.demo.Model.Comment;
 import com.example.demo.Model.User;
 import com.example.demo.Service.BugService;
-import com.example.demo.Service.CommentService;
 import com.example.demo.Service.FileStorageService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.getBugsDto;
-
-import lombok.Data;
-
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -98,40 +91,7 @@ public class BugController {
         }
     }
 
-    // @PostMapping
-    // public ResponseWrapper<Bug> createBug(@ModelAttribute createBugDto bugDto) throws IOException {
-    //     try {
-    //         User creator = userService.getUserById(bugDto.getCreatorId());
-    //         if (creator == null) {
-    //             return new ResponseWrapper<>("error", "Invalid creator ID", null);
-    //         }
-
-    //         Bug bug = new Bug();
-    //         bug.setTitle(bugDto.getTitle());
-    //         bug.setSeverity(bugDto.getSeverity());
-    //         bug.setStatus(bugDto.getStatus());
-    //         bug.setCreator(creator);
-    //         bug.setLanguage(bugDto.getLanguage());
-    //         bug.setDescription(bugDto.getDescription());
-
-    //         MultipartFile codeFile = bugDto.getCodeFile();
-    //         System.out.println("file: "+codeFile);
-    //         if (codeFile != null && !codeFile.isEmpty()) {
-    //             System.out.println("in loop");
-    //             String filePath = fileStorageService.saveFile(codeFile, creator.getId(), creator.getUsername(), bugDto.getLanguage());
-    //             System.out.println(filePath);
-    //             bug.setCodeFilePath(filePath);
-    //         }
-
-    //         Bug createdBug = bugService.createBug(bug);
-    //         return new ResponseWrapper<>("success", "Bug created successfully", createdBug);
-
-    //     } catch (Exception e) {
-    //         return new ResponseWrapper<>("error", "An unexpected error occurred", null);
-    //     }
-    // }
-
-
+    
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBug(
             @PathVariable Long id,
@@ -191,94 +151,6 @@ public class BugController {
 
         String content = Files.readString(filePath, StandardCharsets.UTF_8);
         return ResponseEntity.ok(content);
-    }
-
-    @RestController
-    @RequestMapping("/api/comments")
-    public class CommentController {
-
-        @Autowired
-        private CommentService commentService;
-
-        @Autowired
-        private UserService userService;
-
-        // GET endpoint to retrieve comments for a given bugId
-        @GetMapping
-        public ResponseEntity<List<Comment>> getCommentsByBugId(@RequestParam Long bugId) {
-            List<Comment> comments = commentService.getCommentsByBugId(bugId);
-            return ResponseEntity.ok(comments);
-        }
-
-        // POST endpoint to create a new comment using a request DTO
-        @PostMapping
-        public ResponseWrapper<Comment> createComment(@RequestBody CommentRequest request) {
-            if (request.getBugId() == null || request.getUserId() == null || request.getText() == null || request.getText().isEmpty()) {
-                return new ResponseWrapper<>("error", "Bug ID, User ID, and text are required", null);
-            }
-            try {
-                User user = userService.getUserById(request.getUserId());
-                if (user == null) {
-                    return new ResponseWrapper<>("error", "Invalid user ID", null);
-                }
-                Comment comment = new Comment();
-                comment.setBugId(request.getBugId());
-                comment.setUser(user);
-                comment.setText(request.getText());
-                comment.setTimestamp(LocalDateTime.now());
-
-                Comment createdComment = commentService.createComment(comment);
-                return new ResponseWrapper<>("success", "Comment created successfully", createdComment);
-            } catch (Exception e) {
-                return new ResponseWrapper<>("error", "An unexpected error occurred: " + e.getMessage(), null);
-            }
-        }
-
-        @DeleteMapping("/{commentId}")
-        public ResponseWrapper<Void> deleteComment(@PathVariable Long commentId) {
-            try {
-                boolean deleted = commentService.deleteCommentById(commentId);
-                if (deleted) {
-                    return new ResponseWrapper<>("success", "Comment deleted successfully", null);
-                } else {
-                    return new ResponseWrapper<>("error", "Comment not found", null);
-                }
-            } catch (Exception e) {
-                return new ResponseWrapper<>("error", "An unexpected error occurred: " + e.getMessage(), null);
-            }
-        }
-
-        @Data
-        static class CommentRequest {
-            private Long bugId;
-            private Long userId;
-            private String text;
-
-            public Long getBugId() {
-                return bugId;
-            }
-
-            public void setBugId(Long bugId) {
-                this.bugId = bugId;
-            }
-
-            public Long getUserId() {
-                return userId;
-            }
-
-            public void setUserId(Long userId) {
-                this.userId = userId;
-            }
-
-            public String getText() {
-                return text;
-            }
-
-            public void setText(String text) {
-                this.text = text;
-            }
-        }
-
     }
 
 }
