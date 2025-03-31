@@ -14,7 +14,7 @@ build-backend:
   image: maven:latest
   script:
     - cd backend
-    - mvn clean package
+    - mvn clean package -DskipTests
     - ls -l target/
   artifacts:
     paths:
@@ -41,6 +41,16 @@ build-frontend:
 test:
   stage: test
   image: maven:latest
+  before_script:
+    # Update package lists and install Node.js and Python
+    - apt-get update
+    - apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - apt-get install -y python3 python3-pip
+    # Verify installations
+    - node --version
+    - python3 --version
   script:
     - cd backend
     - mvn test
