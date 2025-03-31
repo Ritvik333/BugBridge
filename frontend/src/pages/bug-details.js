@@ -396,7 +396,7 @@ const fetchSuggestions = async () => {
                                                     </p>
                                                 </div>
                                             </div>
-                                            {isCreator && (
+                                            {(isCreator || comment?.user?.id == rememberMeId) && (
                                                 <div onClick={() => handleDeleteComment(comment.id)} style={{ cursor: "pointer" }} className="flex items-center space-x-2">
                                                     <Trash className="h-4 w-4 text-red-500" />
                                                 </div>

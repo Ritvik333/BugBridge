@@ -3,12 +3,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
@@ -52,12 +50,15 @@ class SessionServiceTest {
         // Act
         List<Session> result = sessionService.getAllSession();
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(expectedSessions, result);
+        // Assert: Group all checks into one compound assertion.
+        assertAll("Get all session success",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(2, result.size(), "Result size should be 2"),
+                () -> assertEquals(expectedSessions, result, "Returned sessions should match expected sessions")
+        );
         verify(sessionRepository, times(1)).findAll();
     }
+
 
     @Test
     void testGetAllSessionEmpty() {
@@ -67,9 +68,11 @@ class SessionServiceTest {
         // Act
         List<Session> result = sessionService.getAllSession();
 
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        // Assert: Group assertions into one compound assertion.
+        assertAll("Empty session list assertions",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertTrue(result.isEmpty(), "Expected session list to be empty")
+        );
         verify(sessionRepository, times(1)).findAll();
     }
 
@@ -80,7 +83,6 @@ class SessionServiceTest {
         // Arrange
         Long bugId = 1L;
         Session session = new Session();
-        session.setBugId(1L);
         session.setBugId(bugId);
 
         when(sessionRepository.findByBugId(bugId)).thenReturn(session);
@@ -88,11 +90,14 @@ class SessionServiceTest {
         // Act
         Optional<Session> result = sessionService.getSessionByBugId(bugId);
 
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals(session, result.get());
+        // Assert: Group both checks into one compound assertion.
+        assertAll("Verify session found by bugId",
+                () -> assertTrue(result.isPresent(), "Session should be present"),
+                () -> assertEquals(session, result.get(), "Returned session should match expected")
+        );
         verify(sessionRepository, times(1)).findByBugId(bugId);
     }
+
 
     @Test
     void testGetSessionByBugIdNotFound() {
@@ -122,11 +127,14 @@ class SessionServiceTest {
         // Act
         Optional<Session> result = sessionService.getSessionById(sessionId);
 
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals(session, result.get());
+        // Assert: Group assertions into a single compound assertion.
+        assertAll("Verify session is found",
+                () -> assertTrue(result.isPresent(), "Session should be present"),
+                () -> assertEquals(session, result.get(), "Returned session should match expected session")
+        );
         verify(sessionRepository, times(1)).findById(sessionId);
     }
+
 
     @Test
     void testGetSessionByIdNotFound() {
@@ -157,13 +165,17 @@ class SessionServiceTest {
         // Act
         Session result = sessionService.createSession(session);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(session, result);
+        // Assert: Group both assertions into one compound assertion.
+        assertAll("Session creation assertions",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(session, result, "Returned session should match the input session")
+        );
+
         verify(sessionRepository, times(1)).existsByOwnerIdAndBugId(1L, 1L);
         verify(sessionRepository, times(1)).save(session);
         verify(sessionRepository, never()).findByOwnerIdAndBugId(anyLong(), anyLong());
     }
+
 
     @Test
     void testCreateSessionExistingSession() {
@@ -173,7 +185,6 @@ class SessionServiceTest {
         session.setBugId(1L);
 
         Session existingSession = new Session();
-        existingSession.setBugId(2L);
         existingSession.setOwnerId(1L);
         existingSession.setBugId(1L);
 
@@ -183,11 +194,77 @@ class SessionServiceTest {
         // Act
         Session result = sessionService.createSession(session);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(existingSession, result);
+        // Assert: Group assertions into a single compound assertion.
+        assertAll("Existing session returned",
+                () -> assertNotNull(result, "Result should not be null"),
+                () -> assertEquals(existingSession, result, "Returned session should match the existing session")
+        );
+
         verify(sessionRepository, times(1)).existsByOwnerIdAndBugId(1L, 1L);
         verify(sessionRepository, times(1)).findByOwnerIdAndBugId(1L, 1L);
         verify(sessionRepository, never()).save(any(Session.class));
+    }
+
+
+
+
+
+
+    @Test
+    void testGetAllSession() {
+        // Given
+        Session session1 = new Session();
+        Session session2 = new Session();
+        List<Session> expectedSessions = Arrays.asList(session1, session2);
+        when(sessionRepository.findAll()).thenReturn(expectedSessions);
+
+        // When
+        List<Session> sessions = sessionService.getAllSession();
+
+        // Then
+        assertEquals(expectedSessions, sessions);
+        verify(sessionRepository).findAll();
+    }
+
+
+
+    @Test
+    void testCreateSessionWhenSessionExists() {
+        // Given
+        Session session = new Session();
+        session.setOwnerId(10L);
+        session.setBugId(20L);
+        // Simulate an existing session for given owner and bug.
+        when(sessionRepository.existsByOwnerIdAndBugId(session.getOwnerId(), session.getBugId())).thenReturn(true);
+        when(sessionRepository.findByOwnerIdAndBugId(session.getOwnerId(), session.getBugId())).thenReturn(session);
+
+        // When
+        Session result = sessionService.createSession(session);
+
+        // Then
+        assertEquals(session, result);
+        verify(sessionRepository).existsByOwnerIdAndBugId(session.getOwnerId(), session.getBugId());
+        verify(sessionRepository).findByOwnerIdAndBugId(session.getOwnerId(), session.getBugId());
+        verify(sessionRepository, never()).save(any(Session.class));
+    }
+
+    @Test
+    void testCreateSessionWhenSessionDoesNotExist() {
+        // Given
+        Session session = new Session();
+        session.setOwnerId(10L);
+        session.setBugId(20L);
+        // Simulate that no session exists for given owner and bug.
+        when(sessionRepository.existsByOwnerIdAndBugId(session.getOwnerId(), session.getBugId())).thenReturn(false);
+        when(sessionRepository.save(session)).thenReturn(session);
+
+        // When
+        Session result = sessionService.createSession(session);
+
+        // Then
+        assertEquals(session, result);
+        verify(sessionRepository).existsByOwnerIdAndBugId(session.getOwnerId(), session.getBugId());
+        verify(sessionRepository).save(session);
+        verify(sessionRepository, never()).findByOwnerIdAndBugId(anyLong(), anyLong());
     }
 }
