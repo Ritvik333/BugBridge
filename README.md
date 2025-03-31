@@ -107,7 +107,7 @@
    cd backend
    ```
 
-2. Setup the environment:
+2. Create a `.env` file with your environment variables: refer `application.yaml` for variable names
 
 3. Run the backend server:
    ```bash
