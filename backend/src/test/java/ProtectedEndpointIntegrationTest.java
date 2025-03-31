@@ -1,15 +1,16 @@
-import com.example.demo.Controller.ProtectedEndpoint;
-import com.example.demo.DemoApplication;  // Replace with your main application class
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.beans.factory.annotation.Autowired;  // Replace with your main application class
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.example.demo.Controller.ProtectedEndpoint;
+import com.example.demo.DemoApplication;
 
 @WebMvcTest(controllers = ProtectedEndpoint.class)
 @ContextConfiguration(classes = DemoApplication.class)  // Specify your main config class here
