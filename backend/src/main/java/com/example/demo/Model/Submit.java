@@ -78,4 +78,8 @@ public class Submit {
     public void setCodeFilePath(String codeFilePath) {
         this.codeFilePath = codeFilePath;
     }
+
+    public String getApprovalStatus() {
+        return approvalStatus;
+    }
 }

@@ -91,7 +91,6 @@ public class BugController {
         }
     }
 
-    
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBug(
             @PathVariable Long id,

@@ -15,9 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.Model.PasswordResetToken;
-import com.example.demo.Model.PasswordResetTokenRepository;
 import com.example.demo.Model.User;
-import com.example.demo.Model.UserRepository;
+import com.example.demo.Repository.PasswordResetTokenRepository;
+import com.example.demo.Repository.UserRepository;
 import com.example.demo.dto.CredentialsDto;
 import com.example.demo.dto.ResponseWrapper;
 import com.example.demo.dto.SignUpDto;

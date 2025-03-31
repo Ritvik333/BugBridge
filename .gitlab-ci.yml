@@ -14,7 +14,7 @@ build-backend:
   image: maven:latest
   script:
     - cd backend
-    - mvn clean package
+    - mvn clean package -DskipTests
     - ls -l target/
   artifacts:
     paths:
@@ -41,6 +41,16 @@ build-frontend:
 test:
   stage: test
   image: maven:latest
+  before_script:
+    # Update package lists and install Node.js and Python
+    - apt-get update
+    - apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - apt-get install -y python3 python3-pip
+    # Verify installations
+    - node --version
+    - python3 --version
   script:
     - cd backend
     - mvn test
@@ -118,8 +128,8 @@ deploy-backend:
   before_script:
     - apk update && apk add openssh-client
     - eval $(ssh-agent -s)  # Start SSH agent
-    - mkdir -p ~/.ssh  # ✅ Ensure the .ssh directory exists
-    - chmod 700 ~/.ssh  # ✅ Secure the .ssh directory
+    - mkdir -p ~/.ssh  
+    - chmod 700 ~/.ssh  
     - echo "$ID_RSA" | base64 -d > ~/.ssh/id_ed25519  # Decode & save SSH key
     - chmod 600 ~/.ssh/id_ed25519  # Secure the SSH key (no access for others)
     - ssh-add ~/.ssh/id_ed25519  # Add the private key to SSH agent
@@ -153,8 +163,8 @@ deploy-frontend:
   before_script:
     - apk update && apk add openssh-client
     - eval $(ssh-agent -s)  # Start SSH agent
-    - mkdir -p ~/.ssh  # ✅ Ensure the .ssh directory exists
-    - chmod 700 ~/.ssh  # ✅ Secure the .ssh directory
+    - mkdir -p ~/.ssh  
+    - chmod 700 ~/.ssh  
     - echo "$ID_RSA" | base64 -d > ~/.ssh/id_ed25519  # Decode & save SSH key
     - chmod 600 ~/.ssh/id_ed25519  # Secure the SSH key (no access for others)
     - ssh-add ~/.ssh/id_ed25519  # Add the private key to SSH agent
