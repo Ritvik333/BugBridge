@@ -366,15 +366,7 @@ const Navbar = () => {
                 )}
               </div>
               <div className="p-2 border-t text-center">
-                <button
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                  onClick={() => {
-                    navigate("/all-notifications")
-                    setNotificationsOpen(false)
-                  }}
-                >
-                  View all notifications
-                </button>
+              
               </div>
             </div>
           )}
@@ -395,7 +387,6 @@ const Navbar = () => {
               className="absolute right-0 mt-2 w-56 bg-white border rounded-md shadow-lg p-3"
             >
               <p className="p-3 hover:bg-gray-100 cursor-pointer" onClick={handleProfileClick}>My Account</p>
-              <p className="p-3 hover:bg-gray-100 cursor-pointer">Settings</p>
               <p
                 onClick={() => {
                   logout()
