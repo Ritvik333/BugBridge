@@ -16,7 +16,6 @@
 - **Responsive Design**: Fully optimized for both desktop and mobile devices
 - **Email Notifications**: Receive account verification and password reset emails.
 
-
 ---
 
 ## Tech Stack
@@ -163,9 +162,9 @@ group08/
 
 ---
 
-## API Documentation
+## Adherence to SOLID
 
-API documentation is currently being developed and will be available in future updates.
+In this project, we have diligently adhered to the SOLID principles to create a robust and maintainable architecture, while also prioritizing high cohesion and low coupling. For instance, the **RunService** system serves as a key example of these principles in action. Each component follows the **Single Responsibility Principle** by having a distinct purpose—for instance, RunService implementations like JavaRunService or JavaScriptRunService are solely responsible for executing code in their respective languages. Our design is **open for extension but closed for modification**, as demonstrated by the RunServiceFactory, which enables support for new languages without altering existing code. The **Liskov Substitution Principle** is upheld since any RunService implementation can be swapped interchangeably without affecting functionality. The RunService interface is concise and purpose-driven, aligning with the **Interface Segregation Principle**, ensuring clients only depend on relevant methods. Additionally, the **Dependency Inversion Principle** is evident as high-level components, such as the factory, rely on the RunService abstraction rather than concrete implementations. Beyond SOLID, our design achieves **high cohesion** and **low coupling** between them, facilitated by interface-based interactions. 
 
 ---
 
