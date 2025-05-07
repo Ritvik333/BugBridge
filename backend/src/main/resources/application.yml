@@ -1,6 +1,6 @@
 server:
-  port: ${SERVER_PORT}
-  # port: 8080
+  # port: ${SERVER_PORT}
+  port: 8080
   error:
     include-message: always
     include-binding-errors: always
